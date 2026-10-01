@@ -1,0 +1,30 @@
+{
+  "shift_ops_valid.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 0,
+    "errors_after": 0,
+    "fix_method": "NONE",
+    "expected_fixed_code": "int main() {\n    int x = 8;\n    int y = x << 2;\n    int z = x >> 1;\n    x <<= 1;\n    x >>= 1;\n    return 0;\n}\n"
+  },
+  "shift_ops_broken_1.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "RULE",
+    "expected_fixed_code": "int main() {\n    int x = 8;\n    int y = x << 2;\n    return 0;\n}\n"
+  },
+  "shift_ops_broken_2.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "RULE",
+    "expected_fixed_code": "int main() {\n    int x = 8;\n    int y = x << 2;\n    return 0;\n}\n"
+  },
+  "shift_ops_broken_3.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "LEX",
+    "expected_fixed_code": "int main() {\n    short x = 8;\n    int y = x << 2;\n    return 0;\n}\n"
+  }
+}

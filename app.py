@@ -1,9 +1,14 @@
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context
-from compiler.gui_bridge import repair_source_for_gui, repair_source_for_gui_stream
 import os
 import threading
 import webbrowser
 import json
+
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from compiler.gui_bridge import repair_source_for_gui, repair_source_for_gui_stream
+from compiler.week5_repair_helpers import print_parser_check
+
+# Startup check for parser freshness
+print_parser_check()
 
 app = Flask(
     __name__,
@@ -77,6 +82,68 @@ def load_example(name):
         code = f.read()
 
     return jsonify({"code": code, "filename": name})
+
+
+@app.route("/api/file/create", methods=["POST"])
+def create_file():
+    data = request.json or {}
+    filename = data.get("filename", "").strip()
+    code = data.get("code", "")
+    folder = data.get("folder", "user_tests").strip()
+
+    if not filename:
+        return jsonify({"error": "Filename is required"}), 400
+
+    if not filename.endswith(".c"):
+        filename += ".c"
+
+    filename = os.path.basename(filename)
+
+    if folder:
+        safe_folder = os.path.normpath(folder).replace("..", "").strip("/\\")
+        target_dir = os.path.join("examples", safe_folder)
+    else:
+        target_dir = os.path.join("examples", "user_tests")
+
+    os.makedirs(target_dir, exist_ok=True)
+    full_path = os.path.join(target_dir, filename)
+
+    default_template = """int main() {
+    // Write your C code here
+    return 0;
+}
+"""
+    file_content = code if code is not None and code != "" else default_template
+
+    with open(full_path, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+    rel_name = os.path.relpath(full_path, "examples").replace("\\", "/")
+    return jsonify({
+        "success": True,
+        "filename": rel_name,
+        "code": file_content,
+        "message": f"Created {rel_name}"
+    })
+
+
+@app.route("/api/file/save", methods=["POST"])
+def save_file():
+    data = request.json or {}
+    filename = data.get("filename", "").strip()
+    code = data.get("code", "")
+
+    if not filename:
+        return jsonify({"error": "Filename is required"}), 400
+
+    safe_rel = os.path.normpath(filename).replace("..", "").strip("/\\")
+    full_path = os.path.join("examples", safe_rel)
+
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    with open(full_path, "w", encoding="utf-8") as f:
+        f.write(code)
+
+    return jsonify({"success": True, "message": f"Saved {safe_rel}"})
 
 
 def open_browser():

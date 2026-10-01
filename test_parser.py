@@ -11,12 +11,25 @@ from antlr4.tree.Tree import TerminalNodeImpl
 from compiler.error_classifier import classify_error_message
 from compiler.error_corrector import apply_correction
 from compiler.lexical_corrector import fix_common_lexical_issues
-from compiler.ai_error_corrector import ai_correct_source_patch_mode
-from compiler.ai_error_corrector import ai_generate_patch_candidates
+try:
+    from compiler.ai_error_corrector import ai_correct_source_patch_mode
+    from compiler.ai_error_corrector import ai_generate_patch_candidates
+except (ImportError, Exception):
+    def ai_correct_source_patch_mode(*args, **kwargs):
+        return None, None
+    def ai_generate_patch_candidates(*args, **kwargs):
+        return []
 from compiler.identifier_corrector import fix_identifier_typo_at
 from compiler.semantic_checker import SemanticChecker
+from compiler.semantic_auto_fixer import fix_semantic_issue
 from compiler.unused_var_fixer import remove_unused_decl_at
 from compiler.repair_logger import RepairLogger
+from compiler.week5_repair_helpers import (
+    check_parser_status,
+    try_week5_rules,
+    fix_split_operators,
+    fix_keyword_typos_fuzzy,
+)
 from compiler.symbol_table_builder import SymbolTableBuilder
 from compiler.security_engine import SecurityEngine
 from compiler.security_auto_fixer import SecurityAutoFixer
@@ -42,6 +55,12 @@ DETERMINISTIC_REASONS = {
     "main_lparen_expected",
     "mismatched_token",
     "missing_rhs",
+    "missing_semicolon_after_prototype",
+    "missing_comma_params",
+    "missing_rparen_params",
+    "missing_semicolon_after_global",
+    "missing_semicolon_after_do_while",
+    "missing_rparen_cast_or_sizeof",
 }
 
 
@@ -516,6 +535,7 @@ def _run_semantic_phase(
         # -----------------------------------------------------
         # A) Semantic repair loop on the CURRENT parsed tree
         # -----------------------------------------------------
+        failed_issue_keys = set()
         while sem_edits < MAX_SEM_EDITS:
             checker = SemanticChecker()
             checker.visit(tree)
@@ -527,7 +547,26 @@ def _run_semantic_phase(
             if not issues:
                 break
 
-            first = issues[0]
+            first = None
+            for candidate_issue in issues:
+                cid = (
+                    candidate_issue.get("kind"),
+                    candidate_issue.get("line"),
+                    candidate_issue.get("col"),
+                    candidate_issue.get("msg"),
+                )
+                if cid not in failed_issue_keys:
+                    first = candidate_issue
+                    break
+            if first is None:
+                break
+
+            cid = (
+                first.get("kind"),
+                first.get("line"),
+                first.get("col"),
+                first.get("msg"),
+            )
             kind = first.get("kind")
 
             # 1) Auto-fix UNUSED
@@ -553,11 +592,11 @@ def _run_semantic_phase(
                     corrected, msg = None, None
 
                 if msg is None or corrected is None or corrected == working:
-                    # Could not apply semantic auto-fix.
-                    # Let security phase still run before finalizing.
-                    break
+                    failed_issue_keys.add(cid)
+                    continue
 
                 working = corrected
+                failed_issue_keys.clear()
                 applied_steps.append(f"SEM: {msg}")
                 logger.log_sem_step(step=msg, source_after=working)
                 sem_edits += 1
@@ -620,12 +659,11 @@ def _run_semantic_phase(
                         pass
 
                 if msg is None or corrected == working:
-                    # Important:
-                    # some undeclared identifiers like gets/strcpy/sprintf
-                    # are security-relevant library calls, so do NOT finalize yet.
-                    break
+                    failed_issue_keys.add(cid)
+                    continue
 
                 working = corrected
+                failed_issue_keys.clear()
                 applied_steps.append(f"SYM: {msg}")
                 logger.log_sem_step(step=msg, source_after=working)
                 sem_edits += 1
@@ -654,9 +692,31 @@ def _run_semantic_phase(
                 tree, listeners, parser = tree2, listeners2, parser2
                 continue
 
-            # 3) Everything else: do not auto-fix semantically here.
-            # Allow security phase to run before finalizing.
-            break
+            # 3) General semantic issues (type mismatch, invalid operand, prototype, shadow, etc.)
+            corrected, msg = fix_semantic_issue(working, first)
+            if msg is None or corrected == working:
+                failed_issue_keys.add(cid)
+                continue
+
+            tree2, listeners2, parser2 = parse_source(working, f"{filename} (semantic-candidate)")
+            before_count = len(issues)
+            candidate_tree, candidate_listeners, candidate_parser = parse_source(corrected, f"{filename} (semantic-fixed)")
+            if candidate_tree is None or has_any_errors(candidate_listeners):
+                failed_issue_keys.add(cid)
+                continue
+            cand_checker = SemanticChecker()
+            cand_checker.visit(candidate_tree)
+            if len(cand_checker.get_issues()) >= before_count:
+                failed_issue_keys.add(cid)
+                continue
+
+            failed_issue_keys.clear()
+            working = corrected
+            tree, listeners, parser = candidate_tree, candidate_listeners, candidate_parser
+            applied_steps.append(f"SEM: {msg}")
+            logger.log_sem_step(step=msg, source_after=working)
+            sem_edits += 1
+            continue
 
         # Recompute semantic issues after the semantic-fix loop
         checker = SemanticChecker()
@@ -771,6 +831,11 @@ def _run_semantic_phase(
 
 
 def test_file(filename: str):
+    is_fresh, p_info, p_warn = check_parser_status()
+    print(p_info)
+    if p_warn:
+        print(p_warn)
+
     tree, listeners, parser, source_text = parse_file(filename)
     if tree is None:
         return
@@ -942,6 +1007,22 @@ def test_file(filename: str):
         # Lexer-stage error -> AI fallback directly
         # -----------------------------------------------------
         if stage == "LEX":
+            cur_err_cnt = len(get_all_error_strings(listeners))
+            cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                working, cur_err_cnt, parse_source, f"{filename} (week5-rule)"
+            )
+            if applied_msg is not None:
+                working = cand_src
+                tree, listeners, parser = tree_try, listeners_try, parser_try
+                applied_steps.append(f"RULE: {applied_msg}")
+                logger.log_rule_step(step=applied_msg, source_after=working)
+                edits += 1
+
+                if not has_any_errors(listeners):
+                    _run_semantic_phase(filename, working, tree, listeners, parser, applied_steps, logger)
+                    return
+                continue
+
             print("\nLexer-stage error remains after lexical correction; invoking AI patch-based correction...")
 
             candidates = ai_generate_patch_candidates(
@@ -1010,6 +1091,22 @@ def test_file(filename: str):
                 if classification.reason not in DETERMINISTIC_REASONS or (
                     deterministic_attempted and not deterministic_changed
                 ):
+                    cur_err_cnt = len(get_all_error_strings(listeners))
+                    cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                        working, cur_err_cnt, parse_source, f"{filename} (week5-rule)"
+                    )
+                    if applied_msg is not None:
+                        working = cand_src
+                        tree, listeners, parser = tree_try, listeners_try, parser_try
+                        applied_steps.append(f"RULE: {applied_msg}")
+                        logger.log_rule_step(step=applied_msg, source_after=working)
+                        edits += 1
+
+                        if not has_any_errors(listeners):
+                            _run_semantic_phase(filename, working, tree, listeners, parser, applied_steps, logger)
+                            return
+                        continue
+
                     print("\nInvoking AI patch-based correction...")
 
                     candidates = ai_generate_patch_candidates(

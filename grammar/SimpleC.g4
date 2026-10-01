@@ -5,13 +5,25 @@ grammar SimpleC;
    ========================= */
 
 program
-    : functionDef+ EOF
+    : topLevelItem+ EOF
+    ;
+
+topLevelItem
+    : functionDef
+    | functionDeclaration
+    | declaration
+    ;
+
+// ---- Function Prototypes / Declarations ----
+// Supports: int add(int a, int b); or int add(int, int); or void run(void);
+functionDeclaration
+    : typeSpecifier pointer? IDENTIFIER LPAREN paramList? RPAREN SEMI
     ;
 
 // ---- Functions ----
 // Supports: int foo(int a, float b) { ... }
 functionDef
-    : typeSpecifier IDENTIFIER LPAREN paramList? RPAREN block
+    : typeSpecifier pointer? IDENTIFIER LPAREN paramList? RPAREN block
     ;
 
 paramList
@@ -19,7 +31,7 @@ paramList
     ;
 
 param
-    : typeSpecifier IDENTIFIER arraySuffix?
+    : typeSpecifier pointer? IDENTIFIER? arraySuffix?
     ;
 
 // ---- Blocks with mixed declarations/statements (C99 style) ----
@@ -40,7 +52,7 @@ declaration
 // IMPORTANT: same as declaration, but WITHOUT the trailing ';'
 // Needed for: for (int i=0; ... ; ...)
 declarationNoSemi
-    : typeSpecifier initDeclaratorList
+    : typeSpecifier initDeclaratorList?
     ;
 
 initDeclaratorList
@@ -48,7 +60,18 @@ initDeclaratorList
     ;
 
 initDeclarator
-    : IDENTIFIER arraySuffix? (ASSIGN expression)?
+    : pointer? IDENTIFIER arraySuffix? (ASSIGN initializer)?
+    ;
+
+initializer
+    : assignmentExpression
+    | LBRACE (initializer (COMMA initializer)* COMMA?)? RBRACE
+    ;
+
+// A separate rule keeps `int *p` and `int **pp` unambiguous in declarations,
+// parameters, and function return types.
+pointer
+    : MUL+
     ;
 
 // multi-dimensional arrays: int a[10][20][30];
@@ -62,11 +85,23 @@ statement
     | exprStatement
     | ifStatement
     | whileStatement
+    | doWhileStatement
     | forStatement
+    | switchStatement
+    | labeledStatement
     | returnStatement
     | breakStatement
     | continueStatement
     | block
+    ;
+
+switchStatement
+    : SWITCH LPAREN expression RPAREN statement
+    ;
+
+labeledStatement
+    : CASE conditionalExpression COLON
+    | DEFAULT COLON
     ;
 
 emptyStatement
@@ -83,6 +118,10 @@ ifStatement
 
 whileStatement
     : WHILE LPAREN expression RPAREN statement
+    ;
+
+doWhileStatement
+    : DO statement WHILE LPAREN expression RPAREN SEMI
     ;
 
 // for (init; cond; update) stmt
@@ -129,6 +168,11 @@ assignmentOperator
     | MUL_ASSIGN
     | DIV_ASSIGN
     | MOD_ASSIGN
+    | AND_ASSIGN
+    | OR_ASSIGN
+    | XOR_ASSIGN
+    | LSHIFT_ASSIGN
+    | RSHIFT_ASSIGN
     ;
 
 conditionalExpression
@@ -140,7 +184,19 @@ logicalOrExpression
     ;
 
 logicalAndExpression
-    : equalityExpression (AND equalityExpression)*
+    : inclusiveOrExpression (AND inclusiveOrExpression)*
+    ;
+
+inclusiveOrExpression
+    : exclusiveOrExpression (PIPE exclusiveOrExpression)*
+    ;
+
+exclusiveOrExpression
+    : andExpression (CARET andExpression)*
+    ;
+
+andExpression
+    : equalityExpression (AMP equalityExpression)*
     ;
 
 equalityExpression
@@ -148,7 +204,11 @@ equalityExpression
     ;
 
 relationalExpression
-    : additiveExpression ((LT | LTE | GT | GTE) additiveExpression)*
+    : shiftExpression ((LT | LTE | GT | GTE) shiftExpression)*
+    ;
+
+shiftExpression
+    : additiveExpression ((LSHIFT | RSHIFT) additiveExpression)*
     ;
 
 additiveExpression
@@ -159,10 +219,13 @@ multiplicativeExpression
     : unaryExpression ((MUL | DIV | MOD) unaryExpression)*
     ;
 
-// unary: ++x, --x, +x, -x, !x, &x
+// unary: ++x, --x, +x, -x, !x, ~x, &x
 unaryExpression
     : postfixExpression
-    | (INC | DEC | PLUS | MINUS | NOT | AMP) unaryExpression
+    | (INC | DEC | PLUS | MINUS | NOT | TILDE | AMP | MUL) unaryExpression
+    // A type specifier after '(' is the clean syntactic discriminator for a cast.
+    | LPAREN typeSpecifier pointer? RPAREN unaryExpression
+    | SIZEOF (LPAREN typeSpecifier pointer? RPAREN | unaryExpression)
     ;
 
 // postfix: x++, x--, calls f(a,b), array indexing a[i]
@@ -173,6 +236,8 @@ postfixExpression
 postfixPart
     : LBRACK expression RBRACK
     | LPAREN argumentList? RPAREN
+    | DOT IDENTIFIER
+    | ARROW IDENTIFIER
     | INC
     | DEC
     ;
@@ -187,6 +252,7 @@ primaryExpression
     | FLOAT_LITERAL
     | CHAR_LITERAL
     | STRING_LITERAL
+    | NULL
     | LPAREN expression RPAREN
     ;
 
@@ -196,10 +262,32 @@ primaryExpression
    ========================= */
 
 typeSpecifier
-    : INT
+    : (SIGNED | UNSIGNED)? (
+          CHAR
+        | SHORT INT?
+        | LONG LONG INT?
+        | LONG INT?
+        | INT
+      )
+    | SIGNED
+    | UNSIGNED
     | FLOAT
-    | CHAR
+    | DOUBLE
     | VOID
+    | structSpecifier
+    ;
+
+structSpecifier
+    : STRUCT IDENTIFIER (LBRACE structMemberDeclaration* RBRACE)?
+    | STRUCT LBRACE structMemberDeclaration* RBRACE
+    ;
+
+structMemberDeclaration
+    : typeSpecifier structDeclarator (COMMA structDeclarator)* SEMI
+    ;
+
+structDeclarator
+    : pointer? IDENTIFIER arraySuffix?
     ;
 
 
@@ -211,24 +299,43 @@ INT      : 'int';
 FLOAT    : 'float';
 CHAR     : 'char';
 VOID     : 'void';
+DOUBLE   : 'double';
+SIGNED   : 'signed';
+UNSIGNED : 'unsigned';
+SHORT    : 'short';
+LONG     : 'long';
 
 RETURN   : 'return';
 IF       : 'if';
 ELSE     : 'else';
 WHILE    : 'while';
+DO       : 'do';
 FOR      : 'for';
 BREAK    : 'break';
 CONTINUE : 'continue';
+SIZEOF   : 'sizeof';
+NULL     : 'NULL';
+SWITCH   : 'switch';
+CASE     : 'case';
+DEFAULT  : 'default';
+STRUCT   : 'struct';
 
 INC      : '++';
 DEC      : '--';
 
-ADD_ASSIGN : '+=';
-SUB_ASSIGN : '-=';
-MUL_ASSIGN : '*=';
-DIV_ASSIGN : '/=';
-MOD_ASSIGN : '%=';
+LSHIFT_ASSIGN : '<<=';
+RSHIFT_ASSIGN : '>>=';
+ADD_ASSIGN    : '+=';
+SUB_ASSIGN    : '-=';
+MUL_ASSIGN    : '*=';
+DIV_ASSIGN    : '/=';
+MOD_ASSIGN    : '%=';
+AND_ASSIGN    : '&=';
+OR_ASSIGN     : '|=';
+XOR_ASSIGN    : '^=';
 
+LSHIFT   : '<<';
+RSHIFT   : '>>';
 EQ       : '==';
 NEQ      : '!=';
 LTE      : '<=';
@@ -237,6 +344,9 @@ AND      : '&&';
 OR       : '||';
 
 AMP      : '&';
+PIPE     : '|';
+CARET    : '^';
+TILDE    : '~';
 
 PLUS     : '+';
 MINUS    : '-';
@@ -261,6 +371,13 @@ LBRACE   : '{';
 RBRACE   : '}';
 LBRACK   : '[';
 RBRACK   : ']';
+
+ARROW    : '->';
+DOT      : '.';
+
+PREPROCESSOR_DIRECTIVE
+    : '#' ~[\r\n]* -> channel(HIDDEN)
+    ;
 
 IDENTIFIER
     : [a-zA-Z_][a-zA-Z_0-9]*

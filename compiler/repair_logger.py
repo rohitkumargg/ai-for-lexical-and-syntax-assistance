@@ -51,11 +51,20 @@ class RepairLogger:
         meta: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.case_id = case_id
+        from compiler.week5_repair_helpers import check_parser_status
+        is_fresh, p_info, p_warn = check_parser_status()
+        print(p_info)
+        if p_warn:
+            print(p_warn)
+        case_meta = dict(meta or {})
+        case_meta["parser_check"] = p_info
+        if p_warn:
+            case_meta["parser_warning"] = p_warn
         payload = {
             "case_id": case_id,
             "filename": filename,
             "original_source": original_source,
-            "meta": meta or {},
+            "meta": case_meta,
         }
         self._write(RepairLogEvent(ts_utc=_utc_now_iso(), event="case_start", data=payload))
 

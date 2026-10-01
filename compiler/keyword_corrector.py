@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple, Dict
 # =========================
 # Config (keep aligned with your grammar)
 # =========================
-TYPE_KEYWORDS = ["int", "float", "char", "void"]
+TYPE_KEYWORDS = ["int", "float", "char", "void", "double", "unsigned", "signed", "short", "long"]
 
 # Token boundary identifier
 IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
@@ -195,9 +195,9 @@ def _find_function_param_ranges(tokens: List[Dict[str, object]]) -> List[Tuple[i
         ):
             rpar = find_matching_rparen(i + 2)
             if rpar is not None and rpar + 1 < m:
-                # must be followed by '{' for a definition (not a prototype/call)
+                # must be followed by '{' for a definition or ';' for a prototype
                 nxt = tokens[rpar + 1]
-                if nxt["kind"] == "SYMBOL" and nxt["value"] == "{":
+                if nxt["kind"] == "SYMBOL" and nxt["value"] in ("{", ";"):
                     l = i + 3
                     r = rpar - 1
                     if l <= r:

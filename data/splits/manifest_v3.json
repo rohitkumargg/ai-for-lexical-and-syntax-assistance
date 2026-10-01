@@ -1,0 +1,23 @@
+{
+  "dataset": "data\\patch_synth_v3.jsonl",
+  "src_key": "input",
+  "tgt_key": "target",
+  "seed": "2026",
+  "paths": {
+    "dataset": "data\\patch_synth_v3.jsonl",
+    "train": "data\\splits\\train_v3.jsonl",
+    "val": "data\\splits\\val_v3.jsonl",
+    "hard": "data\\splits\\hard_v3.jsonl"
+  },
+  "sha256": {
+    "dataset": "374f052edaca180cec383d335b385631eb81886a0f940feb59f1dfd63fd55b2b",
+    "train": "7da63b80c68bb712d4aac0d92a94a78dd90578486b27c0e3480ad7e648620e63",
+    "val": "c853e2ab8ab808c7c850c5daab9f6ade1df5323d2fc1a7a61a40b6e83eef9667",
+    "hard": "36df654046996d267f8f1302fd327d79fd13c0d7075fbb3ce76428cd03f6aea8"
+  },
+  "counts": {
+    "total": 1986,
+    "train": 1788,
+    "val": 198
+  }
+}

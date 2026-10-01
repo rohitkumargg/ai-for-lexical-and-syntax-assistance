@@ -4,16 +4,28 @@ import time
 from compiler.error_classifier import classify_error_message
 from compiler.error_corrector import apply_correction
 from compiler.lexical_corrector import fix_common_lexical_issues
-from compiler.ai_error_corrector import ai_generate_patch_candidates
+try:
+    from compiler.ai_error_corrector import ai_generate_patch_candidates
+except (ImportError, Exception):
+    def ai_generate_patch_candidates(*args, **kwargs):
+        return []
 from compiler.identifier_corrector import fix_identifier_typo_at
 from compiler.semantic_checker import SemanticChecker
 from compiler.security_checker import SecurityChecker
 from compiler.taint_checker import TaintChecker
 from compiler.string_flow_checker import StringFlowChecker
 from compiler.unused_var_fixer import remove_unused_decl_at
+from compiler.semantic_auto_fixer import fix_semantic_issue
 from compiler.security_auto_fixer import SecurityAutoFixer
 from compiler.green_energy import GreenEnergyTracker
 from compiler.green_system import GreenSystemTracker
+
+from compiler.week5_repair_helpers import (
+    check_parser_status,
+    try_week5_rules,
+    fix_split_operators,
+    fix_keyword_typos_fuzzy,
+)
 
 from test_parser import (
     parse_source,
@@ -165,7 +177,30 @@ def _collect_security_issues(source_text: str) -> List[str]:
 def _collect_semantic_issues(tree) -> List[Dict[str, Any]]:
     checker = SemanticChecker()
     checker.visit(tree)
-    return checker.get_issues()
+    issues = list(checker.get_issues())
+
+    try:
+        symbols = build_symbols(tree)
+        from compiler.undeclared_identifier_checker import UndeclaredIdentifierChecker
+        u_checker = UndeclaredIdentifierChecker(symbols, require_decl_before_use=True)
+        u_checker.visit(tree)
+        u_issues = u_checker.get_issues()
+
+        # If an 'undeclared' issue is actually a 'use_before_declare', refine the kind
+        ubd_by_var = {
+            (ui.get("name"), ui.get("line")): ui
+            for ui in u_issues
+            if ui.get("kind") == "use_before_declare"
+        }
+        for iss in issues:
+            k = (iss.get("name"), iss.get("line"))
+            if iss.get("kind") == "undeclared" and k in ubd_by_var:
+                iss["kind"] = "use_before_declare"
+                iss["msg"] = f"Variable '{iss.get('name')}' used before declaration"
+    except Exception:
+        pass
+
+    return issues
 
 
 def _status_from_security(security_warnings: List[str]) -> str:
@@ -233,28 +268,67 @@ def _run_semantic_phase_for_gui(
     stats: Dict[str, int],
     green: Optional[GreenMetrics] = None,
 ):
-    MAX_SEM_EDITS = 5
+    MAX_SEM_EDITS = 20
     sem_edits = 0
 
     if green is not None:
         green.start("semantic_phase")
 
+    failed_issue_keys = set()  # Track issues we failed to fix on this source
     while sem_edits < MAX_SEM_EDITS:
         issues = _collect_semantic_issues(tree)
 
         if not issues:
             break
 
-        first = issues[0]
+        # Find the first issue whose key we have not already failed on
+        first = None
+        for candidate_issue in issues:
+            cid = (
+                candidate_issue.get("kind"),
+                candidate_issue.get("line"),
+                candidate_issue.get("col"),
+                candidate_issue.get("msg"),
+            )
+            if cid not in failed_issue_keys:
+                first = candidate_issue
+                break
+        if first is None:
+            break  # All remaining issues are ones we cannot fix
+
+        cid = (
+            first.get("kind"),
+            first.get("line"),
+            first.get("col"),
+            first.get("msg"),
+        )
         kind = first.get("kind")
 
         if kind == "unused":
+            # Guard: do not remove an unused variable declaration if that variable or line
+            # has other unresolved semantic issues (e.g. type_mismatch, invalid_operand_type, pointer_assignment_warning).
+            # Deleting the declaration would mask the underlying semantic issue instead of fixing it.
+            has_conflicting_issue = any(
+                other is not first
+                and other.get("kind") != "unused"
+                and (
+                    other.get("line") == first.get("line")
+                    or (first.get("name") and other.get("name") == first.get("name"))
+                )
+                for other in issues
+            )
+            if has_conflicting_issue:
+                failed_issue_keys.add(cid)
+                continue
+
             corrected, msg = _try_remove_unused_decl(working, first)
 
             if msg is None or corrected == working:
-                break
+                failed_issue_keys.add(cid)
+                continue
 
             working = corrected
+            failed_issue_keys.clear()
             steps.append(f"SEM: {msg}")
             logs.append(f"Applied semantic fix: {msg}")
             stats["sem_fixes"] = stats.get("sem_fixes", 0) + 1
@@ -297,9 +371,11 @@ def _run_semantic_phase_for_gui(
             )
 
             if msg is None or corrected == working:
-                break
+                failed_issue_keys.add(cid)
+                continue
 
             working = corrected
+            failed_issue_keys.clear()
             steps.append(f"SEM: {msg}")
             logs.append(f"Applied semantic fix: {msg}")
             stats["sem_fixes"] = stats.get("sem_fixes", 0) + 1
@@ -326,7 +402,32 @@ def _run_semantic_phase_for_gui(
             tree, listeners, parser = tree2, listeners2, parser2
             continue
 
-        break
+        corrected, msg = fix_semantic_issue(working, first)
+        if msg is None or corrected == working:
+            failed_issue_keys.add(cid)
+            continue
+
+        # Semantic repair is accepted only after a clean reparse.  The next
+        # loop iteration recomputes all diagnostics before another edit.
+        tree2, listeners2, parser2 = parse_source(working, f"{filename} (semantic-candidate)")
+        before_count = len(issues)
+        candidate_tree, candidate_listeners, candidate_parser = parse_source(corrected, f"{filename} (semantic-fixed)")
+        if candidate_tree is None or has_any_errors(candidate_listeners):
+            failed_issue_keys.add(cid)
+            continue
+        if len(_collect_semantic_issues(candidate_tree)) >= before_count:
+            failed_issue_keys.add(cid)
+            continue
+        failed_issue_keys.clear()
+        working = corrected
+        tree, listeners, parser = candidate_tree, candidate_listeners, candidate_parser
+        steps.append(f"SEM: {msg}")
+        logs.append(f"Applied semantic fix: {msg}")
+        stats["sem_fixes"] = stats.get("sem_fixes", 0) + 1
+        sem_edits += 1
+        if green is not None:
+            green.inc("sem_fixes")
+        continue
 
     issues = _collect_semantic_issues(tree)
 
@@ -395,7 +496,7 @@ def _finalize_green_report(
         pass
 
 
-def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
+def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", enable_ai: bool = True):
     original_source = source_text
     working = source_text
 
@@ -419,6 +520,13 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
         "sem_fixes": 0,
         "iterations": 0,
     }
+
+    is_fresh, p_info, p_warn = check_parser_status()
+    print(p_info)
+    logs.append(p_info)
+    if p_warn:
+        print(p_warn)
+        logs.append(p_warn)
 
     yield _emit_progress("start", f"Started repairing {filename}", working, steps, stats)
 
@@ -553,6 +661,25 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
                     continue
 
         if stage == "LEX":
+            cur_err_cnt = len(get_all_error_strings(listeners))
+            cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                working, cur_err_cnt, parse_source, f"{filename} (gui-week5-rule)"
+            )
+            if applied_msg is not None:
+                working = cand_src
+                tree, listeners, parser = tree_try, listeners_try, parser_try
+                steps.append(f"RULE: {applied_msg}")
+                logs.append(f"Applied deterministic fix: {applied_msg}")
+                stats["rule_fixes"] += 1
+                green.inc("rule_fixes")
+                edits += 1
+                yield _emit_progress("fix", f"RULE: {applied_msg}", working, steps, stats)
+                if not has_any_errors(listeners):
+                    break
+                continue
+
+            if not enable_ai:
+                break
             candidates = ai_generate_patch_candidates(
                 working, line, col, reason=classification.reason, top_k=5, debug=False
             )
@@ -577,28 +704,49 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
             deterministic_attempted = False
             deterministic_changed = False
 
-            if classification.reason in DETERMINISTIC_REASONS:
+            # Always try apply_correction first -- it has internal
+            # _validate_fix safety and handles cast/sizeof/do-while
+            # patterns even for non-deterministic error reasons.
+            corrected, applied = apply_correction(working, line, col, classification)
+
+            if applied is not None and corrected != working:
                 deterministic_attempted = True
-                corrected, applied = apply_correction(working, line, col, classification)
+                deterministic_changed = True
+                working = corrected
+                steps.append(f"RULE: {applied}")
+                stats["rule_fixes"] += 1
+                green.inc("rule_fixes")
+                edits += 1
 
-                if applied is not None and corrected != working:
-                    deterministic_changed = True
-                    working = corrected
-                    steps.append(f"RULE: {applied}")
-                    stats["rule_fixes"] += 1
-                    green.inc("rule_fixes")
-                    edits += 1
+                tree, listeners, parser = parse_source(working, f"{filename} (gui-rule-fixed)")
+                if tree is None:
+                    break
 
-                    tree, listeners, parser = parse_source(working, f"{filename} (gui-rule-fixed)")
-                    if tree is None:
-                        break
-
-                    yield _emit_progress("fix", f"RULE: {applied}", working, steps, stats)
+                yield _emit_progress("fix", f"RULE: {applied}", working, steps, stats)
+            elif classification.reason in DETERMINISTIC_REASONS:
+                deterministic_attempted = True
 
             if has_any_errors(listeners):
-                if classification.reason not in DETERMINISTIC_REASONS or (
-                    deterministic_attempted and not deterministic_changed
-                ):
+                if not deterministic_changed:
+                    cur_err_cnt = len(get_all_error_strings(listeners))
+                    cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                        working, cur_err_cnt, parse_source, f"{filename} (gui-week5-rule)"
+                    )
+                    if applied_msg is not None:
+                        working = cand_src
+                        tree, listeners, parser = tree_try, listeners_try, parser_try
+                        steps.append(f"RULE: {applied_msg}")
+                        logs.append(f"Applied deterministic fix: {applied_msg}")
+                        stats["rule_fixes"] += 1
+                        green.inc("rule_fixes")
+                        edits += 1
+                        yield _emit_progress("fix", f"RULE: {applied_msg}", working, steps, stats)
+                        if not has_any_errors(listeners):
+                            break
+                        continue
+
+                    if not enable_ai:
+                        break
                     candidates = ai_generate_patch_candidates(
                         working, line, col, reason=classification.reason, top_k=5, debug=False
                     )
@@ -634,7 +782,7 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
 
     green.end("syntax_repair")
 
-    final_result = repair_source_for_gui(working, filename)
+    final_result = repair_source_for_gui(working, filename, enable_ai=enable_ai)
     final_result["type"] = "done"
     final_result["total_repairs"] = (
         final_result["stats"].get("lex_fixes", 0)
@@ -646,7 +794,7 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c"):
     yield final_result
 
 
-def repair_source_for_gui(source_text: str, filename: str = "main.c") -> Dict[str, Any]:
+def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai: bool = True) -> Dict[str, Any]:
     original_source = source_text
     working = source_text
 
@@ -681,6 +829,13 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c") -> Dict[st
     system.start()
 
     green.start("total")
+
+    is_fresh, p_info, p_warn = check_parser_status()
+    print(p_info)
+    logs.append(p_info)
+    if p_warn:
+        print(p_warn)
+        logs.append(p_warn)
 
     result: Dict[str, Any] = {
         "success": False,
@@ -823,6 +978,28 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c") -> Dict[st
                     continue
 
         if stage == "LEX":
+            cur_err_cnt = len(get_all_error_strings(listeners))
+            cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                working, cur_err_cnt, parse_source, f"{filename} (gui-week5-rule)"
+            )
+            if applied_msg is not None:
+                working = cand_src
+                tree, listeners, parser = tree_try, listeners_try, parser_try
+                steps.append(f"RULE: {applied_msg}")
+                logs.append(f"Applied deterministic fix: {applied_msg}")
+                stats["rule_fixes"] += 1
+                green.inc("rule_fixes")
+                edits += 1
+
+                if not has_any_errors(listeners):
+                    break
+                continue
+
+            if not enable_ai:
+                logs.append("AI disabled; stopping on lexer error.")
+                result["status"] = "UNFIXABLE"
+                break
+
             logs.append("Lexer-stage error remains; invoking AI patch candidates.")
 
             candidates = ai_generate_patch_candidates(
@@ -858,30 +1035,53 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c") -> Dict[st
             deterministic_attempted = False
             deterministic_changed = False
 
-            if classification.reason in DETERMINISTIC_REASONS:
+            # Always try apply_correction first -- it has internal
+            # _validate_fix safety and handles cast/sizeof/do-while
+            # patterns even for non-deterministic error reasons.
+            corrected, applied = apply_correction(working, line, col, classification)
+
+            if applied is not None and corrected != working:
                 deterministic_attempted = True
-                corrected, applied = apply_correction(working, line, col, classification)
+                deterministic_changed = True
+                working = corrected
+                steps.append(f"RULE: {applied}")
+                logs.append(f"Applied deterministic fix: {applied}")
+                stats["rule_fixes"] += 1
+                green.inc("rule_fixes")
+                edits += 1
 
-                if applied is not None and corrected != working:
-                    deterministic_changed = True
-                    working = corrected
-                    steps.append(f"RULE: {applied}")
-                    logs.append(f"Applied deterministic fix: {applied}")
-                    stats["rule_fixes"] += 1
-                    green.inc("rule_fixes")
-                    edits += 1
-
-                    tree, listeners, parser = parse_source(working, f"{filename} (gui-rule-fixed)")
-                    if tree is None:
-                        result["status"] = "STOPPED"
-                        break
-                else:
-                    logs.append("Deterministic fix made no change; allowing AI fallback.")
+                tree, listeners, parser = parse_source(working, f"{filename} (gui-rule-fixed)")
+                if tree is None:
+                    result["status"] = "STOPPED"
+                    break
+            elif classification.reason in DETERMINISTIC_REASONS:
+                deterministic_attempted = True
+                logs.append("Deterministic fix made no change; allowing AI fallback.")
 
             if has_any_errors(listeners):
-                if classification.reason not in DETERMINISTIC_REASONS or (
-                    deterministic_attempted and not deterministic_changed
-                ):
+                if not deterministic_changed:
+                    cur_err_cnt = len(get_all_error_strings(listeners))
+                    cand_src, applied_msg, tree_try, listeners_try, parser_try = try_week5_rules(
+                        working, cur_err_cnt, parse_source, f"{filename} (gui-week5-rule)"
+                    )
+                    if applied_msg is not None:
+                        working = cand_src
+                        tree, listeners, parser = tree_try, listeners_try, parser_try
+                        steps.append(f"RULE: {applied_msg}")
+                        logs.append(f"Applied deterministic fix: {applied_msg}")
+                        stats["rule_fixes"] += 1
+                        green.inc("rule_fixes")
+                        edits += 1
+
+                        if not has_any_errors(listeners):
+                            break
+                        continue
+
+                    if not enable_ai:
+                        logs.append("AI disabled; no deterministic fix available.")
+                        result["status"] = "UNFIXABLE"
+                        break
+
                     logs.append("Invoking AI patch-based correction.")
 
                     candidates = ai_generate_patch_candidates(
@@ -941,6 +1141,7 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c") -> Dict[st
         parse_errors = get_all_error_strings(listeners)
     else:
         result["status"] = "PARSE_SUCCESS"
+        parse_errors = []
 
     # ---------------------------------------------------------
     # Phase 3: semantic + iterative security

@@ -1,0 +1,23 @@
+{
+  "types_valid.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 0,
+    "errors_after": 0,
+    "fix_method": "NONE",
+    "expected_fixed_code": "int main() {\n    unsigned int u = 100;\n    signed long sl = 500;\n    short s = 10;\n    long long ll = 100000;\n    double d = 3.14;\n    return 0;\n}\n"
+  },
+  "types_broken_1.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "RULE",
+    "expected_fixed_code": "int main() {\n    unsigned int u = 100;\n    return 0;\n}\n"
+  },
+  "types_broken_3.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "LEX",
+    "expected_fixed_code": "int main() {\n    short s = 10;\n    return 0;\n}\n"
+  }
+}

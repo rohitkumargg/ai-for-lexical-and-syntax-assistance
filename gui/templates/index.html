@@ -2,123 +2,326 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hybrid AI-Assisted Compiler IDE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleC AI-Assisted Compiler IDE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-    <div class="topbar">
-        <div class="titleblock">
-            <h2>Hybrid AI-Assisted Compiler IDE</h2>
-            <div class="subtitle">Syntax + Semantic + Security repair workspace</div>
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+            </div>
+            <div class="titleblock">
+                <h2>SimpleC Compiler IDE</h2>
+                <div class="subtitle">AI-Assisted Syntax • Semantic • Security Auto-Repair</div>
+            </div>
         </div>
 
         <div class="controls">
-            <button onclick="runRepair()">Run Current File</button>
-            <button onclick="newFile()">New File</button>
-            <button onclick="refreshExamples()">Refresh Files</button>
-        </div>
-    </div>
+            <button class="btn btn-primary" id="btn-run" onclick="runRepair()" title="Run Repair on Current File (Ctrl+Enter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Run Repair</span>
+                <span class="btn-hint">Ctrl+Enter</span>
+            </button>
 
+            <button class="btn btn-secondary" id="btn-save" onclick="saveActiveFile()" title="Save Current File (Ctrl+S)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>Save File</span>
+            </button>
+
+            <button class="btn btn-accent" id="btn-new-file" onclick="openNewFileModal()" title="Add New C File in Website">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>+ New C File</span>
+            </button>
+
+            <button class="btn btn-ghost" onclick="refreshExamples()" title="Refresh File Tree">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
     <div class="workspace">
+        <!-- Sidebar File Explorer -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span>Project Files</span>
+                <div class="sidebar-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>Project Explorer</span>
+                </div>
+                <button class="icon-btn" onclick="openNewFileModal()" title="Create New C File">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- File Search Filter -->
+            <div class="sidebar-search">
+                <input type="text" id="file-search" placeholder="Search C files..." oninput="filterFiles(this.value)">
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-section-title">Examples</div>
+                <div class="sidebar-section-title">
+                    <span>Source & Example Files</span>
+                    <span class="file-count" id="file-count">0</span>
+                </div>
                 <div id="file-tree" class="file-tree"></div>
             </div>
         </aside>
 
+        <!-- Vertical Resizer: Sidebar / Main -->
         <div class="resizer vertical-resizer" id="sidebar-resizer"></div>
 
+        <!-- Main Panel: Tabs + Editor + Results + Testcases -->
         <main class="mainpanel">
-            <div class="tabbar" id="tabbar"></div>
+            <!-- Tabs Bar -->
+            <div class="tabbar-container">
+                <div class="tabbar" id="tabbar"></div>
+                <button class="new-tab-btn" onclick="openNewFileModal()" title="Add new C file">+</button>
+            </div>
 
             <div class="top-section" id="top-section">
                 <div class="editor-and-side">
+                    <!-- Code Editor Panel -->
                     <section class="editorpanel" id="editorpanel">
                         <div class="editor-toolbar">
-                            <span id="active-file-label">main.c</span>
+                            <div class="file-badge">
+                                <span class="c-icon">C</span>
+                                <span id="active-file-label">main.c</span>
+                                <span id="unsaved-dot" class="unsaved-dot" title="Unsaved changes" style="display:none;"></span>
+                            </div>
+                            <div class="editor-actions">
+                                <button class="small-btn" onclick="saveActiveFile()" title="Save (Ctrl+S)">Save</button>
+                                <button class="small-btn" onclick="copyEditorCode()" title="Copy Code">Copy</button>
+                                <button class="small-btn" onclick="resetEditorContent()" title="Reset to Original">Reset</button>
+                            </div>
                         </div>
                         <div id="editor"></div>
                     </section>
 
+                    <!-- Vertical Resizer: Editor / Results -->
                     <div class="resizer vertical-resizer" id="rightpanel-resizer"></div>
 
+                    <!-- Results & Diagnostics Panel -->
                     <section class="resultpanel" id="resultpanel">
-                        <section class="panelcard">
-                            <h3>Status</h3>
-                            <div id="status">Idle</div>
+                        <!-- Status Card -->
+                        <section class="panelcard status-card">
+                            <div class="card-header">
+                                <h3>Compiler Status</h3>
+                                <div id="status-pill" class="status-pill status-idle">
+                                    <span class="status-dot"></span>
+                                    <span id="status">Idle</span>
+                                </div>
+                            </div>
                         </section>
 
+                        <!-- Progress Card -->
                         <section class="panelcard">
-                            <h3>Repair Progress</h3>
+                            <div class="card-header">
+                                <h3>Repair Pipeline</h3>
+                                <span id="repairProgressText" class="progress-label">Ready</span>
+                            </div>
                             <div class="progress-wrap">
                                 <div id="repairProgressBar" class="progress-bar"></div>
                             </div>
-                            <div id="repairProgressText" class="progress-text">Idle</div>
                         </section>
 
+                        <!-- Statistics Card -->
                         <section class="panelcard">
-                            <h3>Stats</h3>
-                            <div id="stats"></div>
+                            <div class="card-header">
+                                <h3>Diagnostics & Fix Stats</h3>
+                            </div>
+                            <div id="stats" class="stats-grid"></div>
                         </section>
 
-                        <section class="panelcard">
-                            <h3>Repair Steps</h3>
-                            <ul id="steps"></ul>
+                        <!-- Repair Steps -->
+                        <section class="panelcard collapsible" id="card-steps">
+                            <div class="card-header clickable" onclick="toggleCard('card-steps')">
+                                <div class="card-title-wrap">
+                                    <span class="chevron">▼</span>
+                                    <h3>Applied Repair Steps</h3>
+                                </div>
+                                <span class="badge" id="badge-steps">0</span>
+                            </div>
+                            <div class="card-body">
+                                <ul id="steps" class="detail-list"></ul>
+                            </div>
                         </section>
 
-                        <section class="panelcard">
-                            <h3>Errors</h3>
-                            <ul id="errors"></ul>
+                        <!-- Syntax & Parser Errors -->
+                        <section class="panelcard collapsible" id="card-errors">
+                            <div class="card-header clickable" onclick="toggleCard('card-errors')">
+                                <div class="card-title-wrap">
+                                    <span class="chevron">▼</span>
+                                    <h3>Syntax & Parser Errors</h3>
+                                </div>
+                                <span class="badge badge-danger" id="badge-errors">0</span>
+                            </div>
+                            <div class="card-body">
+                                <ul id="errors" class="detail-list"></ul>
+                            </div>
                         </section>
 
-                        <section class="panelcard">
-                            <h3>Semantic Issues</h3>
-                            <ul id="semantic"></ul>
+                        <!-- Semantic Diagnostics -->
+                        <section class="panelcard collapsible" id="card-semantic">
+                            <div class="card-header clickable" onclick="toggleCard('card-semantic')">
+                                <div class="card-title-wrap">
+                                    <span class="chevron">▼</span>
+                                    <h3>Semantic Diagnostics</h3>
+                                </div>
+                                <span class="badge badge-warning" id="badge-semantic">0</span>
+                            </div>
+                            <div class="card-body">
+                                <ul id="semantic" class="detail-list"></ul>
+                            </div>
                         </section>
 
-                        <section class="panelcard">
-                            <h3>Security Warnings</h3>
-                            <ul id="security"></ul>
+                        <!-- Security Warnings -->
+                        <section class="panelcard collapsible" id="card-security">
+                            <div class="card-header clickable" onclick="toggleCard('card-security')">
+                                <div class="card-title-wrap">
+                                    <span class="chevron">▼</span>
+                                    <h3>Security Warnings</h3>
+                                </div>
+                                <span class="badge badge-security" id="badge-security">0</span>
+                            </div>
+                            <div class="card-body">
+                                <ul id="security" class="detail-list"></ul>
+                            </div>
                         </section>
 
-                        <section class="panelcard">
-                            <h3>Logs</h3>
-                            <ul id="logs"></ul>
+                        <!-- Execution Logs -->
+                        <section class="panelcard collapsible" id="card-logs">
+                            <div class="card-header clickable" onclick="toggleCard('card-logs')">
+                                <div class="card-title-wrap">
+                                    <span class="chevron">▼</span>
+                                    <h3>Pipeline Logs</h3>
+                                </div>
+                                <span class="badge" id="badge-logs">0</span>
+                            </div>
+                            <div class="card-body">
+                                <ul id="logs" class="detail-list code-font"></ul>
+                            </div>
                         </section>
                     </section>
                 </div>
             </div>
 
+            <!-- Horizontal Resizer: Top Section / Bottom Testcases -->
             <div class="resizer horizontal-resizer" id="bottom-resizer"></div>
 
+            <!-- Test Case Runner Panel -->
             <section class="testcase-panel" id="testcase-panel">
                 <div class="testcase-header">
-                    <h3>Test Case Runner</h3>
-                    <button onclick="runTestCase()">Run Test Case</button>
+                    <div class="testcase-title-wrap">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        <h3>Interactive Testcase Sandbox</h3>
+                    </div>
+                    <div class="testcase-actions">
+                        <button class="btn btn-primary btn-sm" onclick="runTestCase()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Run Test</span>
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="clearTestCase()">Clear</button>
+                    </div>
                 </div>
 
                 <div class="testcase-grid" id="testcase-grid">
                     <div class="testcase-box" id="testcase-input-box">
-                        <label for="testcase-input">Input / Test Code</label>
-                        <textarea id="testcase-input" spellcheck="false"></textarea>
+                        <label for="testcase-input">Test Code Input</label>
+                        <textarea id="testcase-input" spellcheck="false" placeholder="Type or paste custom C code snippet here..."></textarea>
                     </div>
 
                     <div class="resizer vertical-resizer" id="testcase-resizer"></div>
 
                     <div class="testcase-box" id="testcase-output-box">
-                        <label for="testcase-output">Output</label>
-                        <textarea id="testcase-output" readonly spellcheck="false"></textarea>
+                        <label for="testcase-output">Compiler & Auto-Repair Output</label>
+                        <textarea id="testcase-output" readonly spellcheck="false" placeholder="Compiler repair outputs, diagnostics, and metrics will appear here..."></textarea>
                     </div>
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- New C File Modal Dialog -->
+    <div class="modal-backdrop" id="new-file-modal" style="display:none;" onclick="handleModalBackdropClick(event)">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Create New C File</h3>
+                        <p class="modal-subtitle">Add a new .c source file to the compiler workspace</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeNewFileModal()">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-file-name">File Name</label>
+                    <div class="input-with-suffix">
+                        <input type="text" id="new-file-name" placeholder="my_program" autofocus autocomplete="off" onkeydown="handleNewFileKeyDown(event)">
+                        <span class="input-suffix">.c</span>
+                    </div>
+                    <span class="form-help">Enter the file name. Hit Enter to create and open immediately.</span>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeNewFileModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCreateFile()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Create & Open</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="/static/app.js"></script>
 </body>

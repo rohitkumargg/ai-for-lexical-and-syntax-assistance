@@ -1,0 +1,23 @@
+{
+  "prototype_valid.c": {
+    "status": "SEM_ISSUES",
+    "errors_before": 0,
+    "errors_after": 0,
+    "fix_method": "NONE",
+    "expected_fixed_code": "int add(int a, int b);\nvoid display(void);\nshort compute(long x, unsigned int y);\n\nint add(int a, int b) {\n    return a + b;\n}\n\nvoid display(void) {\n    int s = add(2, 3);\n}\n\nint main() {\n    display();\n    return 0;\n}\n"
+  },
+  "prototype_broken_1.c": {
+    "status": "SUCCESS",
+    "errors_before": 3,
+    "errors_after": 0,
+    "fix_method": "RULE",
+    "expected_fixed_code": "int add(int a, int b);\nint main() {\n    return 0;\n}\n"
+  },
+  "prototype_broken_3.c": {
+    "status": "SUCCESS",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "LEX",
+    "expected_fixed_code": "void display(void);\nint main() {\n    return 0;\n}\n"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "globals_valid.c": {
+    "status": "SUCCESS",
+    "errors_before": 0,
+    "errors_after": 0,
+    "fix_method": "NONE",
+    "expected_fixed_code": "int g_counter = 0;\nunsigned long g_mask = 255;\ndouble g_factor;\n\nint main() {\n    g_counter = 10;\n    return 0;\n}\n"
+  },
+  "globals_broken_1.c": {
+    "status": "SUCCESS",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "RULE",
+    "expected_fixed_code": "int g_counter = 0;\nint main() {\n    return 0;\n}\n"
+  },
+  "globals_broken_3.c": {
+    "status": "SUCCESS",
+    "errors_before": 1,
+    "errors_after": 0,
+    "fix_method": "LEX",
+    "expected_fixed_code": "unsigned int g_mask = 255;\nint main() {\n    return 0;\n}\n"
+  }
+}

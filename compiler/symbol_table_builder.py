@@ -52,8 +52,20 @@ class SymbolTableBuilder(SimpleCVisitor):
             self.symbols[name] = entry
 
     # -------------------------
-    # Functions / Params
+    # Top-level items & Functions / Prototypes
     # -------------------------
+    def visitTopLevelItem(self, ctx: SimpleCParser.TopLevelItemContext):
+        return self.visitChildren(ctx)
+
+    def visitFunctionDeclaration(self, ctx: SimpleCParser.FunctionDeclarationContext):
+        ret_type = self._type_text(ctx.typeSpecifier())
+        fn_ident = ctx.IDENTIFIER()
+        if fn_ident is not None:
+            name = fn_ident.getText()
+            line = fn_ident.symbol.line if hasattr(fn_ident, "symbol") else -1
+            self._add_symbol(name, "func", ret_type, line)
+        return self.visitChildren(ctx)
+
     def visitFunctionDef(self, ctx: SimpleCParser.FunctionDefContext):
         ret_type = self._type_text(ctx.typeSpecifier())
 

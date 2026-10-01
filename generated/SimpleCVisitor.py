@@ -14,6 +14,16 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#topLevelItem.
+    def visitTopLevelItem(self, ctx:SimpleCParser.TopLevelItemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#functionDeclaration.
+    def visitFunctionDeclaration(self, ctx:SimpleCParser.FunctionDeclarationContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#functionDef.
     def visitFunctionDef(self, ctx:SimpleCParser.FunctionDefContext):
         return self.visitChildren(ctx)
@@ -59,6 +69,16 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#initializer.
+    def visitInitializer(self, ctx:SimpleCParser.InitializerContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#pointer.
+    def visitPointer(self, ctx:SimpleCParser.PointerContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#arraySuffix.
     def visitArraySuffix(self, ctx:SimpleCParser.ArraySuffixContext):
         return self.visitChildren(ctx)
@@ -66,6 +86,16 @@ class SimpleCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SimpleCParser#statement.
     def visitStatement(self, ctx:SimpleCParser.StatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#switchStatement.
+    def visitSwitchStatement(self, ctx:SimpleCParser.SwitchStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#labeledStatement.
+    def visitLabeledStatement(self, ctx:SimpleCParser.LabeledStatementContext):
         return self.visitChildren(ctx)
 
 
@@ -86,6 +116,11 @@ class SimpleCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SimpleCParser#whileStatement.
     def visitWhileStatement(self, ctx:SimpleCParser.WhileStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#doWhileStatement.
+    def visitDoWhileStatement(self, ctx:SimpleCParser.DoWhileStatementContext):
         return self.visitChildren(ctx)
 
 
@@ -144,6 +179,21 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#inclusiveOrExpression.
+    def visitInclusiveOrExpression(self, ctx:SimpleCParser.InclusiveOrExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#exclusiveOrExpression.
+    def visitExclusiveOrExpression(self, ctx:SimpleCParser.ExclusiveOrExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#andExpression.
+    def visitAndExpression(self, ctx:SimpleCParser.AndExpressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#equalityExpression.
     def visitEqualityExpression(self, ctx:SimpleCParser.EqualityExpressionContext):
         return self.visitChildren(ctx)
@@ -151,6 +201,11 @@ class SimpleCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SimpleCParser#relationalExpression.
     def visitRelationalExpression(self, ctx:SimpleCParser.RelationalExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#shiftExpression.
+    def visitShiftExpression(self, ctx:SimpleCParser.ShiftExpressionContext):
         return self.visitChildren(ctx)
 
 
@@ -191,6 +246,21 @@ class SimpleCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SimpleCParser#typeSpecifier.
     def visitTypeSpecifier(self, ctx:SimpleCParser.TypeSpecifierContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#structSpecifier.
+    def visitStructSpecifier(self, ctx:SimpleCParser.StructSpecifierContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#structMemberDeclaration.
+    def visitStructMemberDeclaration(self, ctx:SimpleCParser.StructMemberDeclarationContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#structDeclarator.
+    def visitStructDeclarator(self, ctx:SimpleCParser.StructDeclaratorContext):
         return self.visitChildren(ctx)
 
 

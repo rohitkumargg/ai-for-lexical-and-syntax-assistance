@@ -22,6 +22,10 @@ KEYWORDS = [
     "float",
     "double",
     "void",
+    "unsigned",
+    "signed",
+    "short",
+    "long",
 ]
 
 # Safe single-character normalizations that often appear from copy/paste.
@@ -232,6 +236,21 @@ def _best_keyword_replacement(word: str) -> Optional[str]:
         "flaot": "float",
 
         "doulbe": "double",
+        "doubel": "double",
+
+        "unsinged": "unsigned",
+        "unsignd": "unsigned",
+        "unsigend": "unsigned",
+
+        "singed": "signed",
+        "signd": "signed",
+
+        "shrot": "short",
+        "sohrt": "short",
+        "shotr": "short",
+
+        "lnog": "long",
+        "lonng": "long",
 
         "viod": "void",
 

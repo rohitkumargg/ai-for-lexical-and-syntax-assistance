@@ -1,0 +1,225 @@
+{
+  "total_files_analyzed": 112,
+  "total_duration_sec": 30.089144945144653,
+  "by_kind": {
+    "arrow_on_value": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.10037422180175781,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "call_arity_mismatch": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.45418739318847656,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "case_outside_switch": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.1423358917236328,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "dot_on_pointer": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.09036064147949219,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "unknown_struct_type": {
+      "detected": 2,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.007152557373046875,
+      "methods": {
+        "none": 2
+      },
+      "rejections": {}
+    },
+    "type_mismatch": {
+      "detected": 3,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.2512931823730469,
+      "methods": {
+        "none": 3
+      },
+      "rejections": {}
+    },
+    "return_type_mismatch": {
+      "detected": 1,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.10275840759277344,
+      "methods": {
+        "none": 1
+      },
+      "rejections": {}
+    },
+    "duplicate_member": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.07891654968261719,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "redeclared_struct": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.017642974853515625,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "too_many_initializers": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.24127960205078125,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "undeclared": {
+      "detected": 66,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 271.5444564819336,
+      "methods": {
+        "none": 66
+      },
+      "rejections": {}
+    },
+    "unused": {
+      "detected": 54,
+      "standalone_fixed": 50,
+      "standalone_accepted": 31,
+      "pipeline_fixed": 30,
+      "pipeline_accepted": 30,
+      "total_latency_ms": 2.460479736328125,
+      "methods": {
+        "rule_unused": 50,
+        "none": 4
+      },
+      "rejections": {
+        "Target issue remained after fix": 19
+      }
+    },
+    "redeclared": {
+      "detected": 1,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.008344650268554688,
+      "methods": {
+        "none": 1
+      },
+      "rejections": {}
+    },
+    "invalid_operand_type": {
+      "detected": 6,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.0152587890625,
+      "methods": {
+        "none": 6
+      },
+      "rejections": {}
+    },
+    "prototype_mismatch": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.25582313537597656,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "shadow_warning": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.4858970642089844,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "invalid_dereference": {
+      "detected": 2,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.012636184692382812,
+      "methods": {
+        "none": 2
+      },
+      "rejections": {}
+    },
+    "pointer_assignment_warning": {
+      "detected": 2,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.029325485229492188,
+      "methods": {
+        "none": 2
+      },
+      "rejections": {}
+    }
+  }
+}

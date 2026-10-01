@@ -1,0 +1,119 @@
+{
+  "total_files_analyzed": 104,
+  "total_duration_sec": 23.67615246772766,
+  "by_kind": {
+    "undeclared": {
+      "detected": 65,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 255.53083419799805,
+      "methods": {
+        "none": 65
+      },
+      "rejections": {}
+    },
+    "unused": {
+      "detected": 54,
+      "standalone_fixed": 50,
+      "standalone_accepted": 35,
+      "pipeline_fixed": 39,
+      "pipeline_accepted": 39,
+      "total_latency_ms": 2.4552345275878906,
+      "methods": {
+        "rule_unused": 50,
+        "none": 4
+      },
+      "rejections": {
+        "Target issue remained after fix": 15
+      }
+    },
+    "redeclared": {
+      "detected": 1,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.015020370483398438,
+      "methods": {
+        "none": 1
+      },
+      "rejections": {}
+    },
+    "invalid_operand_type": {
+      "detected": 6,
+      "standalone_fixed": 6,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 6,
+      "pipeline_accepted": 6,
+      "total_latency_ms": 0.3643035888671875,
+      "methods": {
+        "rule_auto_fixer": 6
+      },
+      "rejections": {
+        "Fixer phase is not idempotent (re-applied change)": 5
+      }
+    },
+    "type_mismatch": {
+      "detected": 2,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 2,
+      "pipeline_accepted": 2,
+      "total_latency_ms": 0.2257823944091797,
+      "methods": {
+        "none": 2
+      },
+      "rejections": {}
+    },
+    "prototype_mismatch": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.23627281188964844,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "shadow_warning": {
+      "detected": 1,
+      "standalone_fixed": 1,
+      "standalone_accepted": 1,
+      "pipeline_fixed": 1,
+      "pipeline_accepted": 1,
+      "total_latency_ms": 0.4150867462158203,
+      "methods": {
+        "rule_auto_fixer": 1
+      },
+      "rejections": {}
+    },
+    "invalid_dereference": {
+      "detected": 2,
+      "standalone_fixed": 0,
+      "standalone_accepted": 0,
+      "pipeline_fixed": 0,
+      "pipeline_accepted": 0,
+      "total_latency_ms": 0.011205673217773438,
+      "methods": {
+        "none": 2
+      },
+      "rejections": {}
+    },
+    "pointer_assignment_warning": {
+      "detected": 2,
+      "standalone_fixed": 2,
+      "standalone_accepted": 2,
+      "pipeline_fixed": 2,
+      "pipeline_accepted": 2,
+      "total_latency_ms": 0.29087066650390625,
+      "methods": {
+        "rule_auto_fixer": 2
+      },
+      "rejections": {}
+    }
+  }
+}

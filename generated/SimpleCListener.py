@@ -17,6 +17,24 @@ class SimpleCListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by SimpleCParser#topLevelItem.
+    def enterTopLevelItem(self, ctx:SimpleCParser.TopLevelItemContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#topLevelItem.
+    def exitTopLevelItem(self, ctx:SimpleCParser.TopLevelItemContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#functionDeclaration.
+    def enterFunctionDeclaration(self, ctx:SimpleCParser.FunctionDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#functionDeclaration.
+    def exitFunctionDeclaration(self, ctx:SimpleCParser.FunctionDeclarationContext):
+        pass
+
+
     # Enter a parse tree produced by SimpleCParser#functionDef.
     def enterFunctionDef(self, ctx:SimpleCParser.FunctionDefContext):
         pass
@@ -98,6 +116,24 @@ class SimpleCListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by SimpleCParser#initializer.
+    def enterInitializer(self, ctx:SimpleCParser.InitializerContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#initializer.
+    def exitInitializer(self, ctx:SimpleCParser.InitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#pointer.
+    def enterPointer(self, ctx:SimpleCParser.PointerContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#pointer.
+    def exitPointer(self, ctx:SimpleCParser.PointerContext):
+        pass
+
+
     # Enter a parse tree produced by SimpleCParser#arraySuffix.
     def enterArraySuffix(self, ctx:SimpleCParser.ArraySuffixContext):
         pass
@@ -113,6 +149,24 @@ class SimpleCListener(ParseTreeListener):
 
     # Exit a parse tree produced by SimpleCParser#statement.
     def exitStatement(self, ctx:SimpleCParser.StatementContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#switchStatement.
+    def enterSwitchStatement(self, ctx:SimpleCParser.SwitchStatementContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#switchStatement.
+    def exitSwitchStatement(self, ctx:SimpleCParser.SwitchStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#labeledStatement.
+    def enterLabeledStatement(self, ctx:SimpleCParser.LabeledStatementContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#labeledStatement.
+    def exitLabeledStatement(self, ctx:SimpleCParser.LabeledStatementContext):
         pass
 
 
@@ -149,6 +203,15 @@ class SimpleCListener(ParseTreeListener):
 
     # Exit a parse tree produced by SimpleCParser#whileStatement.
     def exitWhileStatement(self, ctx:SimpleCParser.WhileStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#doWhileStatement.
+    def enterDoWhileStatement(self, ctx:SimpleCParser.DoWhileStatementContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#doWhileStatement.
+    def exitDoWhileStatement(self, ctx:SimpleCParser.DoWhileStatementContext):
         pass
 
 
@@ -251,6 +314,33 @@ class SimpleCListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by SimpleCParser#inclusiveOrExpression.
+    def enterInclusiveOrExpression(self, ctx:SimpleCParser.InclusiveOrExpressionContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#inclusiveOrExpression.
+    def exitInclusiveOrExpression(self, ctx:SimpleCParser.InclusiveOrExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#exclusiveOrExpression.
+    def enterExclusiveOrExpression(self, ctx:SimpleCParser.ExclusiveOrExpressionContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#exclusiveOrExpression.
+    def exitExclusiveOrExpression(self, ctx:SimpleCParser.ExclusiveOrExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#andExpression.
+    def enterAndExpression(self, ctx:SimpleCParser.AndExpressionContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#andExpression.
+    def exitAndExpression(self, ctx:SimpleCParser.AndExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by SimpleCParser#equalityExpression.
     def enterEqualityExpression(self, ctx:SimpleCParser.EqualityExpressionContext):
         pass
@@ -266,6 +356,15 @@ class SimpleCListener(ParseTreeListener):
 
     # Exit a parse tree produced by SimpleCParser#relationalExpression.
     def exitRelationalExpression(self, ctx:SimpleCParser.RelationalExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#shiftExpression.
+    def enterShiftExpression(self, ctx:SimpleCParser.ShiftExpressionContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#shiftExpression.
+    def exitShiftExpression(self, ctx:SimpleCParser.ShiftExpressionContext):
         pass
 
 
@@ -338,6 +437,33 @@ class SimpleCListener(ParseTreeListener):
 
     # Exit a parse tree produced by SimpleCParser#typeSpecifier.
     def exitTypeSpecifier(self, ctx:SimpleCParser.TypeSpecifierContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#structSpecifier.
+    def enterStructSpecifier(self, ctx:SimpleCParser.StructSpecifierContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#structSpecifier.
+    def exitStructSpecifier(self, ctx:SimpleCParser.StructSpecifierContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#structMemberDeclaration.
+    def enterStructMemberDeclaration(self, ctx:SimpleCParser.StructMemberDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#structMemberDeclaration.
+    def exitStructMemberDeclaration(self, ctx:SimpleCParser.StructMemberDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by SimpleCParser#structDeclarator.
+    def enterStructDeclarator(self, ctx:SimpleCParser.StructDeclaratorContext):
+        pass
+
+    # Exit a parse tree produced by SimpleCParser#structDeclarator.
+    def exitStructDeclarator(self, ctx:SimpleCParser.StructDeclaratorContext):
         pass
 
 

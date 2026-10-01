@@ -1,7 +1,63 @@
 import re
 from typing import Optional, Tuple, List
 
+from antlr4 import InputStream, CommonTokenStream
+from antlr4.error.ErrorListener import ErrorListener
+try:
+    from generated.SimpleCLexer import SimpleCLexer
+    from generated.SimpleCParser import SimpleCParser
+except Exception:
+    SimpleCLexer = None
+    SimpleCParser = None
+
 from .error_classifier import ErrorClassification
+
+
+class _SilentParseCollector(ErrorListener):
+    def __init__(self):
+        self.errors = []
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        self.errors.append((line, column, msg))
+
+
+def _count_parse_errors(code: str) -> Tuple[int, Optional[Tuple[int, int]]]:
+    if SimpleCLexer is None or SimpleCParser is None:
+        return 9999, None
+    try:
+        lexer = SimpleCLexer(InputStream(code))
+        collector = _SilentParseCollector()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(collector)
+        parser = SimpleCParser(CommonTokenStream(lexer))
+        parser.removeErrorListeners()
+        parser.addErrorListener(collector)
+        parser.program()
+        if not collector.errors:
+            return 0, None
+        earliest = min((e[0], e[1]) for e in collector.errors)
+        return len(collector.errors), earliest
+    except Exception:
+        return 9999, (0, 0)
+
+
+def _validate_fix(orig_src: str, candidate_src: str, fix_msg: str) -> Tuple[str, Optional[str]]:
+    if candidate_src == orig_src or not fix_msg:
+        return orig_src, None
+
+    orig_count, orig_earliest = _count_parse_errors(orig_src)
+    if orig_count == 0:
+        # Do not touch code that parses cleanly
+        return orig_src, None
+
+    cand_count, cand_earliest = _count_parse_errors(candidate_src)
+
+    # Only accept it if the error count goes down and no new error appears earlier in the file
+    if cand_count < orig_count:
+        if cand_count == 0 or (cand_earliest is not None and orig_earliest is not None and cand_earliest >= orig_earliest):
+            return candidate_src, fix_msg
+
+    # Otherwise ambiguous or invalid -> leave for AI fallback
+    return orig_src, None
 
 
 def apply_correction(
@@ -19,10 +75,37 @@ def apply_correction(
 
     if msg:
         return new_src, msg
+
+    # ANTLR may report a missing do-while terminator at the next token rather
+    # than including `do` in its message.  The source shape is unambiguous.
+    new_src, msg = _fix_missing_semicolon_after_do_while(source_text, error_line)
+    if msg:
+        return new_src, msg
+    new_src, msg = _fix_missing_rparen_cast_or_sizeof(source_text, error_line)
+    if msg:
+        return new_src, msg
     if not classification.fixable:
         return source_text, None
 
     reason = classification.reason
+
+    if reason == "missing_semicolon_after_prototype":
+        return _fix_missing_semicolon_after_prototype(source_text, error_line, error_column)
+
+    if reason == "missing_comma_params":
+        return _fix_missing_comma_params(source_text, error_line, error_column)
+
+    if reason == "missing_rparen_params":
+        return _fix_missing_rparen_params(source_text, error_line, error_column)
+
+    if reason == "missing_semicolon_after_global":
+        return _fix_missing_semicolon_after_global(source_text, error_line, error_column)
+
+    if reason == "missing_semicolon_after_do_while":
+        return _fix_missing_semicolon_after_do_while(source_text, error_line)
+
+    if reason == "missing_rparen_cast_or_sizeof":
+        return _fix_missing_rparen_cast_or_sizeof(source_text, error_line)
 
     if reason == "missing_semicolon":
         return _insert_semicolon_near_line(source_text, error_line)
@@ -409,3 +492,126 @@ def repair_missing_rhs(source: str, error_line: int) -> Tuple[str, Optional[str]
         return "".join(lines), "inserted default RHS 0"
 
     return source, None
+
+
+# -----------------------------
+# Week 5 New Deterministic Fixes
+# -----------------------------
+def _fix_missing_semicolon_after_prototype(source_text: str, error_line: int, error_column: int) -> Tuple[str, Optional[str]]:
+    lines = source_text.splitlines(keepends=True)
+    idx = error_line - 1
+    cand_line = idx if idx < len(lines) else len(lines) - 1
+    while cand_line >= 0:
+        line_str = lines[cand_line]
+        if "{" in line_str:
+            cand_line -= 1
+            continue
+        if ")" in line_str:
+            rpos = line_str.rfind(")")
+            after = line_str[rpos + 1:].strip()
+            if not after.startswith(";"):
+                candidate_lines = list(lines)
+                candidate_lines[cand_line] = line_str[:rpos + 1] + ";" + line_str[rpos + 1:]
+                cand_src = "".join(candidate_lines)
+                return _validate_fix(source_text, cand_src, "inserted ';' after prototype closing parenthesis")
+        cand_line -= 1
+    return source_text, None
+
+
+def _fix_missing_comma_params(source_text: str, error_line: int, error_column: int) -> Tuple[str, Optional[str]]:
+    lines = source_text.splitlines(keepends=True)
+    idx = error_line - 1
+    if 0 <= idx < len(lines):
+        line = lines[idx]
+        col = error_column if error_column < len(line) else len(line)
+        prefix = line[:col].rstrip()
+        suffix = line[col:].lstrip()
+        candidate_lines = list(lines)
+        candidate_lines[idx] = prefix + ", " + suffix
+        cand_src = "".join(candidate_lines)
+        return _validate_fix(source_text, cand_src, "inserted missing comma between parameters")
+    return source_text, None
+
+
+def _fix_missing_rparen_params(source_text: str, error_line: int, error_column: int) -> Tuple[str, Optional[str]]:
+    lines = source_text.splitlines(keepends=True)
+    idx = error_line - 1
+    cand_line = idx if idx < len(lines) else len(lines) - 1
+    while cand_line >= 0:
+        line = lines[cand_line]
+        if ";" in line:
+            pos = line.find(";")
+            candidate_lines = list(lines)
+            candidate_lines[cand_line] = line[:pos].rstrip() + ");" + line[pos + 1:]
+            cand_src = "".join(candidate_lines)
+            res_src, res_msg = _validate_fix(source_text, cand_src, "inserted missing ')' in parameter list")
+            if res_msg:
+                return res_src, res_msg
+        if "{" in line:
+            pos = line.find("{")
+            candidate_lines = list(lines)
+            candidate_lines[cand_line] = line[:pos].rstrip() + ") " + line[pos:]
+            cand_src = "".join(candidate_lines)
+            res_src, res_msg = _validate_fix(source_text, cand_src, "inserted missing ')' in parameter list")
+            if res_msg:
+                return res_src, res_msg
+        cand_line -= 1
+    return source_text, None
+
+
+def _fix_missing_semicolon_after_global(source_text: str, error_line: int, error_column: int) -> Tuple[str, Optional[str]]:
+    lines = source_text.splitlines(keepends=True)
+    idx = error_line - 1
+    j = idx - 1 if idx < len(lines) else len(lines) - 2
+    while j >= 0 and not lines[j].strip():
+        j -= 1
+    if j >= 0:
+        prev_line = lines[j]
+        clean = prev_line.split("//", 1)[0].rstrip()
+        if not clean.endswith(";"):
+            comment = prev_line[len(clean):]
+            candidate_lines = list(lines)
+            candidate_lines[j] = clean + ";" + comment
+            cand_src = "".join(candidate_lines)
+            return _validate_fix(source_text, cand_src, "inserted missing ';' after global declaration")
+    return source_text, None
+
+
+def _fix_missing_semicolon_after_do_while(source_text: str, error_line: int) -> Tuple[str, Optional[str]]:
+    # The parser often reports the token *after* the `while (condition)`.
+    # Find a do-body paired with a while whose closing ')' has no semicolon.
+    for match in re.finditer(r"\bdo\b[\s\S]*?\bwhile\s*\([^)]*\)(?!\s*;)", source_text):
+        insert_at = match.end()
+        candidate = source_text[:insert_at] + ";" + source_text[insert_at:]
+        fixed, msg = _validate_fix(source_text, candidate, "inserted missing ';' after do-while")
+        if msg:
+            return fixed, msg
+    return source_text, None
+
+
+def _fix_missing_rparen_cast_or_sizeof(source_text: str, error_line: int) -> Tuple[str, Optional[str]]:
+    lines = source_text.splitlines(keepends=True)
+    idx = error_line - 1
+    if not (0 <= idx < len(lines)):
+        return source_text, None
+    raw = lines[idx]
+    body = raw.rstrip("\r\n")
+    match = re.search(r"\bsizeof\s*\([^;)]*;", body)
+    if match:
+        pos = match.end() - 1
+        nl = raw[len(body):]
+        candidate = "".join(lines[:idx] + [body[:pos] + ")" + body[pos:] + nl] + lines[idx + 1:])
+        return _validate_fix(source_text, candidate, "inserted missing ')' in sizeof")
+
+    # `(double value` / `(int value` has an unambiguous type prefix followed
+    # by an operand. Insert the missing cast close-paren before that operand.
+    cast = re.search(
+        r"\((?:signed\s+|unsigned\s+)?(?:char|short|long|int|float|double|void)(?:\s*\*)?\s+([A-Za-z_]\w*)",
+        body,
+    )
+    if cast:
+        operand_start = cast.start(1)
+        nl = raw[len(body):]
+        candidate = "".join(lines[:idx] + [body[:operand_start] + ")" + body[operand_start:] + nl] + lines[idx + 1:])
+        return _validate_fix(source_text, candidate, "inserted missing ')' in cast")
+    return source_text, None
