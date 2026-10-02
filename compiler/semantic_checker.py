@@ -346,6 +346,7 @@ class SemanticChecker(_VISITOR_BASE):
                 return True
 
         r_lhs = self._type_rank(c_lhs)
+        r_rhs = self._type_rank(c_rhs)
         if c_lhs == "?" or c_rhs == "?":
             return True
         if r_lhs < 0 or r_rhs < 0:
