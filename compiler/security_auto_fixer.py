@@ -179,7 +179,12 @@ class SecurityAutoFixer:
         steps: List[str] = []
         suggestions: List[str] = []
 
-        fixed, det_steps, det_sugg = self._apply_deterministic_fixes(source)
+        # Pre-pass: repair already-corrupted lines from the old fixer
+        fixed, corr_steps, corr_sugg = self._repair_corrupted_buffer_refs(source)
+        steps.extend(corr_steps)
+        suggestions.extend(corr_sugg)
+
+        fixed, det_steps, det_sugg = self._apply_deterministic_fixes(fixed)
         steps.extend(det_steps)
         suggestions.extend(det_sugg)
 
@@ -242,6 +247,112 @@ class SecurityAutoFixer:
             if found:
                 return size
         return None
+
+    # ------------------------------------------------------------------
+    # Pre-pass: repair corruption left by the old (v1) fixer
+    # ------------------------------------------------------------------
+    # The old fixer would copy identifiers from unrelated functions,
+    # producing lines like  scanf("%11s", arr)  where arr belongs to a
+    # different function.  This pass detects such lines and substitutes
+    # the correct local buffer when unambiguous.
+    _CORRUPTED_SCANF_RE = re.compile(
+        r'\bscanf\s*\(\s*"(%\d*[dsx])"\s*,\s*([A-Za-z_]\w*)\s*\)'
+    )
+    _CHAR_DECL_RE = re.compile(
+        r'\b(?:char)\s+([A-Za-z_]\w*)\s*\[\s*(\d+)\s*\]'
+    )
+
+    def _repair_corrupted_buffer_refs(
+        self, source: str
+    ) -> Tuple[str, List[str], List[str]]:
+        """Find scanf(..., NAME) where NAME is not declared locally.
+
+        If the enclosing function has exactly one char[] local, substitute
+        it and recompute the width.  If ambiguous (0 or 2+), add a
+        suggestion instead.
+        """
+        lines, eols = _split_lines(source)
+        if not lines:
+            return source, [], []
+        mask = _code_mask(lines)
+        spans = _function_spans(lines, mask)
+
+        steps: List[str] = []
+        suggestions: List[str] = []
+
+        for idx in range(len(lines)):
+            line = lines[idx]
+            lineno = idx + 1
+            m = self._CORRUPTED_SCANF_RE.search(line)
+            if m is None or not mask[idx][m.start()]:
+                continue
+
+            buf_name = m.group(2)
+            # Is buf_name declared in this function?
+            span = next(
+                (s for s in spans if s.open_idx <= idx <= s.end_idx), None
+            )
+            if span is None:
+                continue  # not inside a function
+
+            # Check local declarations in this function body
+            local_declared = False
+            for k in range(span.open_idx, span.end_idx + 1):
+                if re.search(r'\b' + re.escape(buf_name) + r'\b', lines[k]):
+                    # Is it a declaration (not just a use)?
+                    if re.search(
+                        r'\b(?:char|int|float|double|short|long|unsigned|signed|void|size_t)\b'
+                        r'[^;()]*\b' + re.escape(buf_name) + r'\b',
+                        lines[k]
+                    ):
+                        local_declared = True
+                        break
+
+            # Also check function parameters
+            if not local_declared:
+                header = " ".join(lines[span.header_start: span.open_idx + 1])
+                if re.search(r'\b' + re.escape(buf_name) + r'\b', header):
+                    local_declared = True
+
+            if local_declared:
+                continue  # buf_name is a real local, nothing to fix
+
+            # Find all char[] locals in this function
+            char_arrays: List[Tuple[str, int]] = []
+            for k in range(span.open_idx, span.end_idx + 1):
+                for cm in self._CHAR_DECL_RE.finditer(lines[k]):
+                    if mask[k][cm.start()]:
+                        char_arrays.append((cm.group(1), int(cm.group(2))))
+
+            if len(char_arrays) == 1:
+                correct_name, correct_size = char_arrays[0]
+                fmt_spec = m.group(1)
+                # Rewrite the format spec width to match the correct buffer
+                if fmt_spec.endswith("s") and correct_size >= 2:
+                    new_fmt = f"%{correct_size - 1}s"
+                else:
+                    new_fmt = fmt_spec
+                new_call = f'scanf("{new_fmt}", {correct_name})'
+                new_line = line[:m.start()] + new_call + line[m.end():]
+                lines[idx] = new_line
+                steps.append(
+                    f"REPAIR: line {lineno}: fixed corrupted buffer ref "
+                    f"'{buf_name}' -> '{correct_name}' in scanf"
+                )
+            elif len(char_arrays) == 0:
+                suggestions.append(
+                    f"line {lineno}: scanf uses undeclared buffer '{buf_name}' "
+                    f"— no char[] found in enclosing function; fix manually"
+                )
+            else:
+                names = ", ".join(n for n, _ in char_arrays)
+                suggestions.append(
+                    f"line {lineno}: scanf uses undeclared buffer '{buf_name}' "
+                    f"— multiple char[] candidates ({names}); fix manually"
+                )
+
+        fixed = "".join(c + e for c, e in zip(lines, eols))
+        return fixed, steps, suggestions
 
     # ------------------------------------------------------------------
     # Deterministic fixes
@@ -333,6 +444,21 @@ class SecurityAutoFixer:
             line = sub_call(r"\bprintf\s*\(\s*" + ID + r"\s*\)",
                             lambda m: f'printf("%s", {m.group(1)})',
                             'printf(var) -> printf("%s", var)', line)
+
+            # system/popen/exec with variable argument: detect-only, never auto-fixed
+            _EXEC_RE = re.compile(
+                r"\b(system|popen|execl|execv|execvp|execve)\s*\(\s*" + ID + r"\b"
+            )
+            for em in _EXEC_RE.finditer(line):
+                if mask[idx][em.start()]:
+                    fn_name = em.group(1)
+                    arg_name = em.group(2)
+                    suggestions.append(
+                        f"line {lineno}: TAINTED_{fn_name.upper()}: "
+                        f"{fn_name}({arg_name}) uses a variable as command — "
+                        f"consider a whitelist, validated enum dispatch, or "
+                        f"removing the {fn_name}() call entirely"
+                    )
 
             lines[idx] = line
 

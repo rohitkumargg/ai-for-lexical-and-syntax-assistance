@@ -197,5 +197,61 @@ class TestAiValidator(unittest.TestCase):
         self.assertFalse(f._model_load_attempted)
 
 
+class TestCorruptionRepair(unittest.TestCase):
+    """The old fixer produced scanf("%11s", arr) where arr belongs to another
+    function.  The repair pre-pass should fix these when the function has
+    exactly one char[] local."""
+
+    def test_unique_char_array_substituted(self):
+        src = ("int helper(int arr[], int n) {\n    return arr[0];\n}\n\n"
+               "int vuln() {\n    char cmd[100];\n    scanf(\"%11s\", arr);\n    return 0;\n}\n")
+        r = fix(src)
+        self.assertIn('scanf("%99s", cmd)', r.source)
+        self.assertNotIn("arr", r.source.split("int vuln")[1])  # no arr in vuln()
+
+    def test_already_correct_buffer_untouched(self):
+        src = "int f() {\n    char buf[32];\n    scanf(\"%31s\", buf);\n    return 0;\n}\n"
+        r = fix(src)
+        self.assertEqual(r.source, src)
+
+    def test_multiple_char_arrays_suggested_not_fixed(self):
+        src = ("int f() {\n    char a[10];\n    char b[20];\n"
+               "    scanf(\"%11s\", arr);\n    return 0;\n}\n")
+        r = fix(src)
+        self.assertIn("arr", r.source)  # not auto-fixed
+        self.assertTrue(any("multiple" in s.lower() for s in r.suggestions))
+
+    def test_no_char_array_suggested(self):
+        src = "int f() {\n    int x = 5;\n    scanf(\"%11s\", arr);\n    return 0;\n}\n"
+        r = fix(src)
+        self.assertIn("arr", r.source)  # not auto-fixed
+        self.assertTrue(any("no char[]" in s.lower() for s in r.suggestions))
+
+    def test_idempotent_after_repair(self):
+        src = ("int helper(int arr[], int n) {\n    return arr[0];\n}\n\n"
+               "int vuln() {\n    char cmd[100];\n    scanf(\"%11s\", arr);\n    return 0;\n}\n")
+        once = fix(src).source
+        self.assertEqual(fix(once).source, once)
+
+
+class TestSystemSuggestion(unittest.TestCase):
+    def test_system_variable_suggested(self):
+        src = "int main() {\n    char cmd[50];\n    system(cmd);\n    return 0;\n}\n"
+        r = fix(src)
+        self.assertEqual(r.source, src)  # not auto-fixed
+        self.assertTrue(any("TAINTED_SYSTEM" in s for s in r.suggestions))
+
+    def test_system_literal_not_suggested(self):
+        # system("ls") with a string literal won't match our variable pattern
+        src = 'int main() {\n    system("ls");\n    return 0;\n}\n'
+        r = fix(src)
+        self.assertFalse(any("TAINTED" in s for s in r.suggestions))
+
+    def test_popen_suggested(self):
+        src = "int f() {\n    char cmd[100];\n    popen(cmd);\n    return 0;\n}\n"
+        r = fix(src)
+        self.assertTrue(any("TAINTED_POPEN" in s for s in r.suggestions))
+
+
 if __name__ == "__main__":
     unittest.main()

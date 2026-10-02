@@ -1,0 +1,255 @@
+[
+  {
+    "file": "ademo.c",
+    "status": "UNFIXABLE",
+    "success": false,
+    "parse_errors": 64,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 0,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 0,
+    "total_steps": 2,
+    "runtime_s": 0.345
+  },
+  {
+    "file": "ademo2.c",
+    "status": "UNFIXABLE",
+    "success": false,
+    "parse_errors": 89,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 0,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 0,
+    "total_steps": 2,
+    "runtime_s": 0.537
+  },
+  {
+    "file": "ademo3mix.c",
+    "status": "UNFIXABLE",
+    "success": false,
+    "parse_errors": 20,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 3,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 0,
+    "total_steps": 2,
+    "runtime_s": 0.256
+  },
+  {
+    "file": "arena_500line_final_80_errors.c",
+    "status": "SUCCESS",
+    "success": true,
+    "parse_errors": 0,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 0,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 0,
+    "total_steps": 65,
+    "runtime_s": 26.108
+  },
+  {
+    "file": "asecuritydemo.c",
+    "status": "SEM_ISSUES",
+    "success": true,
+    "parse_errors": 0,
+    "semantic_issues_total": 28,
+    "undeclared_introduced": 28,
+    "undeclared_details": [
+      [
+        "arr",
+        40,
+        18
+      ],
+      [
+        "arr",
+        46,
+        18
+      ],
+      [
+        "arr",
+        66,
+        18
+      ],
+      [
+        "arr",
+        72,
+        18
+      ],
+      [
+        "arr",
+        77,
+        18
+      ],
+      [
+        "arr",
+        89,
+        18
+      ],
+      [
+        "arr",
+        94,
+        18
+      ],
+      [
+        "arr",
+        99,
+        18
+      ],
+      [
+        "arr",
+        104,
+        18
+      ],
+      [
+        "arr",
+        105,
+        18
+      ],
+      [
+        "arr",
+        118,
+        18
+      ],
+      [
+        "arr",
+        119,
+        18
+      ],
+      [
+        "arr",
+        124,
+        18
+      ],
+      [
+        "arr",
+        125,
+        18
+      ],
+      [
+        "arr",
+        137,
+        18
+      ],
+      [
+        "arr",
+        138,
+        18
+      ],
+      [
+        "arr",
+        143,
+        18
+      ],
+      [
+        "arr",
+        148,
+        18
+      ],
+      [
+        "arr",
+        149,
+        18
+      ],
+      [
+        "arr",
+        162,
+        18
+      ],
+      [
+        "arr",
+        163,
+        18
+      ],
+      [
+        "arr",
+        248,
+        18
+      ],
+      [
+        "arr",
+        249,
+        18
+      ],
+      [
+        "arr",
+        254,
+        18
+      ],
+      [
+        "arr",
+        259,
+        18
+      ],
+      [
+        "arr",
+        272,
+        18
+      ],
+      [
+        "arr",
+        284,
+        18
+      ],
+      [
+        "arr",
+        289,
+        18
+      ]
+    ],
+    "security_warnings": 12,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 2,
+    "total_steps": 13,
+    "runtime_s": 4.734
+  },
+  {
+    "file": "mixed_errors_1.c",
+    "status": "BLOCKED_SECURITY",
+    "success": false,
+    "parse_errors": 0,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 1,
+    "security_fixes_applied": 1,
+    "semantic_fixes_applied": 1,
+    "total_steps": 3,
+    "runtime_s": 0.129
+  },
+  {
+    "file": "mixed_errors_2.c",
+    "status": "BLOCKED_SECURITY",
+    "success": false,
+    "parse_errors": 0,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 3,
+    "security_fixes_applied": 1,
+    "semantic_fixes_applied": 1,
+    "total_steps": 3,
+    "runtime_s": 0.118
+  },
+  {
+    "file": "prof_demo_pack_safe_massfix.c",
+    "status": "SUCCESS",
+    "success": true,
+    "parse_errors": 0,
+    "semantic_issues_total": 0,
+    "undeclared_introduced": 0,
+    "undeclared_details": [],
+    "security_warnings": 0,
+    "security_fixes_applied": 0,
+    "semantic_fixes_applied": 0,
+    "total_steps": 75,
+    "runtime_s": 33.049
+  }
+]
