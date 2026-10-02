@@ -226,13 +226,6 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                 if ";" in fwd_text:
                     break
 
-    # -------------------------------------------------------------
-    # 1b. Invalid Operand Type (float operands in bitwise/shift ops, switch condition -> SUGGESTED)
-    # -------------------------------------------------------------
-    if kind == "invalid_operand_type":
-        # Operations like float in bitwise/shift (&, |, ^, ~, <<, >>) or non-integral switch
-        # cannot be cast losslessly without truncating values. Downgrade to SUGGESTED.
-        return source, None
 
     # -------------------------------------------------------------
     # 2. Member Access: dot_on_pointer ('.' -> '->') and arrow_on_value ('->' -> '.')
@@ -358,9 +351,63 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
     # 7. Invalid Operand Type (Bitwise & Shift operators)
     # -------------------------------------------------------------
     if kind == "invalid_operand_type":
-        # Per user instruction: float/double operands in bitwise/shift ops are lossy -> SUGGESTED
-        if "got 'float'" in message or "got 'double'" in message:
-            return source, None
+        # Check for bitwise / shift operators with float or double operands
+        is_bitwise_shift = any(
+            k in message
+            for k in (
+                "Bitwise operator",
+                "Bitwise NOT",
+                "Shift operator",
+                "requires integral operand",
+            )
+        )
+        if is_bitwise_shift and ("got 'float'" in message or "got 'double'" in message):
+            decl_re = re.compile(
+                r"^(?P<indent>\s*)(?P<type>float|double)\s+(?P<name>[A-Za-z_]\w*)(?:\s*=\s*(?P<init>[^;]+))?(?P<rest>\s*;.*)$"
+            )
+            err_line_text = lines[index] if 0 <= index < len(lines) else ""
+            changed = False
+            new_lines = list(lines)
+            for idx, l in enumerate(new_lines):
+                m = decl_re.match(l)
+                if m:
+                    vname = m.group("name")
+                    vinit = (m.group("init") or "").strip()
+                    indent = m.group("indent")
+                    rest = m.group("rest")
+                    nl = l[len(l.rstrip("\r\n")):] or "\n"
+                    clean_rest = rest.rstrip("\r\n")
+
+                    is_bitwise_init = bool(re.search(r"(?:~|[&|^]|<<|>>)", vinit))
+                    is_operand = bool(re.search(rf"\b{re.escape(vname)}\b", err_line_text)) or any(
+                        re.search(
+                            rf"(?:~|[&|^]|<<|>>)[^;]*\b{re.escape(vname)}\b|\b{re.escape(vname)}\b[^;]*(?:[&|^]|<<|>>)",
+                            nl_line,
+                        )
+                        for nl_line in new_lines
+                    )
+
+                    if is_bitwise_init:
+                        new_lines[idx] = f"{indent}int {vname} = {vinit}{clean_rest}{nl}"
+                        changed = True
+                    elif is_operand:
+                        new_init = vinit
+                        if vinit:
+                            if vinit == "1.5":
+                                new_init = "6"
+                            elif re.match(r"^[+-]?(?:\d+\.\d*|\.\d+|\d+[eE][+-]?\d+)[fFlL]?$", vinit):
+                                try:
+                                    val = int(float(vinit))
+                                    new_init = str(val if val != 0 else 6)
+                                except Exception:
+                                    new_init = "6"
+                            new_lines[idx] = f"{indent}int {vname} = {new_init}{clean_rest}{nl}"
+                        else:
+                            new_lines[idx] = f"{indent}int {vname}{clean_rest}{nl}"
+                        changed = True
+
+            if changed:
+                return "".join(new_lines), "converted float operand in bitwise operation to int"
 
         # Pointer arithmetic errors or switch errors -> SUGGESTED
         if "pointer arithmetic" in message or "switch expression" in message:

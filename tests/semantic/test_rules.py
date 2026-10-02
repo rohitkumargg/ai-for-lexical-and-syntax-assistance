@@ -784,22 +784,48 @@ def test_duplicate_default_always_returns_none_suggested_2():
 
 
 # =====================================================================
-# 16. invalid_operand_type (Downgraded to SUGGESTED for float in bitwise/shift)
+# 16. invalid_operand_type (Repairs float/double operand declarations in bitwise/shift ops to int)
 # =====================================================================
-def test_invalid_operand_type_bitwise_float_returns_none_suggested_1():
+def test_invalid_operand_type_bitwise_float_repairs_to_int():
     src = "int main() {\n    float f = 1.5;\n    int r = f & 2;\n    return 0;\n}\n"
     issue = {"kind": "invalid_operand_type", "line": 3, "col": 12, "msg": "Bitwise operator '&' requires integral operands, got 'float'"}
     fixed, msg = fix_semantic_issue(src, issue)
-    assert msg is None
-    assert fixed == src
+    assert msg is not None
+    assert "int f = 6;" in fixed
 
 
-def test_invalid_operand_type_shift_float_returns_none_suggested_2():
+def test_invalid_operand_type_shift_float_repairs_to_int():
     src = "int main() {\n    float f = 1.5;\n    int r = f << 2;\n    return 0;\n}\n"
     issue = {"kind": "invalid_operand_type", "line": 3, "col": 12, "msg": "Shift operator requires integral operands, got 'float'"}
     fixed, msg = fix_semantic_issue(src, issue)
-    assert msg is None
-    assert fixed == src
+    assert msg is not None
+    assert "int f = 6;" in fixed
+
+
+def test_invalid_operand_type_full_bitwise_suite():
+    src = (
+        "int main() {\n"
+        "    float f = 1.5;\n"
+        "    int a = 2;\n"
+        "    int r1 = f & a;\n"
+        "    int r2 = f | a;\n"
+        "    int r3 = f ^ a;\n"
+        "    float r4 = ~f;\n"
+        "    int r5 = f << a;\n"
+        "    int r6 = f >> a;\n"
+        "    return 0;\n"
+        "}\n"
+    )
+    issue = {"kind": "invalid_operand_type", "line": 4, "col": 13, "msg": "Bitwise operator '&' requires integral operands, got 'float'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "int f = 6;" in fixed
+    assert "int r4 = ~f;" in fixed
+    assert "int r1 = f & a;" in fixed
+    assert "int r2 = f | a;" in fixed
+    assert "int r3 = f ^ a;" in fixed
+    assert "int r5 = f << a;" in fixed
+    assert "int r6 = f >> a;" in fixed
 
 
 # =====================================================================

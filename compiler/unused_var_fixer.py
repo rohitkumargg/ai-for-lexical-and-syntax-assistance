@@ -87,6 +87,19 @@ def _extract_name_from_declarator(decl: str) -> Optional[str]:
     return m.group(1) if m else None
 
 
+def _is_trivial_literal(expr: str) -> bool:
+    e = expr.strip()
+    if re.match(r"^[+-]?(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d*)?|\.\d+)[uUlLfF]*$", e):
+        return True
+    if re.match(r"^'(?:\\.|[^\\'])*'$", e):
+        return True
+    if re.match(r'^"(?:\\.|[^"\\])*"$', e):
+        return True
+    if e in ("NULL", "true", "false", "0"):
+        return True
+    return False
+
+
 def remove_unused_decl_at(
     source: str,
     decl_line: int,
@@ -163,6 +176,11 @@ def remove_unused_decl_at(
         init_expr = target_decl.split("=", 1)[1].strip()
 
     has_side_effect = init_expr is not None and _contains_side_effects(init_expr)
+
+    # Criterion 3: Unused variable with non-trivial computation expression (e.g. 'int r1 = f & a;')
+    # must not be deleted if it is neither a simple literal constant nor a side effect.
+    if init_expr is not None and not has_side_effect and not _is_trivial_literal(init_expr):
+        return source, None
 
     # Case 1: Single declarator in statement
     if len(decls) == 1:
