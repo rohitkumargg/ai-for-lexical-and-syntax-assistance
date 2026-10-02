@@ -13,7 +13,7 @@
     "security_suggestions": [],
     "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.467
+    "runtime_s": 0.465
   },
   {
     "file": "ademo2.c",
@@ -29,7 +29,7 @@
     "security_suggestions": [],
     "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.391
+    "runtime_s": 0.386
   },
   {
     "file": "ademo3mix.c",
@@ -45,7 +45,7 @@
     "security_suggestions": [],
     "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.251
+    "runtime_s": 0.239
   },
   {
     "file": "arena_500line_final_80_errors.c",
@@ -61,7 +61,7 @@
     "security_suggestions": [],
     "suggestions_count": 0,
     "total_steps": 65,
-    "runtime_s": 27.923
+    "runtime_s": 27.049
   },
   {
     "file": "asecuritydemo.c",
@@ -114,7 +114,7 @@
     ],
     "suggestions_count": 36,
     "total_steps": 16,
-    "runtime_s": 11.422
+    "runtime_s": 10.748
   },
   {
     "file": "mixed_errors_1.c",
@@ -151,7 +151,7 @@
     ],
     "suggestions_count": 4,
     "total_steps": 3,
-    "runtime_s": 0.126
+    "runtime_s": 0.12
   },
   {
     "file": "prof_demo_pack_safe_massfix.c",
@@ -167,6 +167,6 @@
     "security_suggestions": [],
     "suggestions_count": 0,
     "total_steps": 75,
-    "runtime_s": 33.972
+    "runtime_s": 39.447
   }
 ]

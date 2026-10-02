@@ -32,15 +32,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-try:
-    import torch
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-    from peft import PeftModel
-except Exception:  # model stack is optional
-    torch = None
-    AutoTokenizer = None
-    AutoModelForSeq2SeqLM = None
-    PeftModel = None
+torch = None
+AutoTokenizer = None
+AutoModelForSeq2SeqLM = None
+PeftModel = None
 
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -290,6 +285,8 @@ class SecurityAutoFixer:
             m_strcpy = re.search(r'\bstrcpy\s*\(\s*([A-Za-z_]\w*)\s*,', line)
             m_strcat = re.search(r'\bstrcat\s*\(\s*([A-Za-z_]\w*)\s*,', line)
             m_sprintf = re.search(r'\bsprintf\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+            m_snprintf = re.search(r'\bsnprintf\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+            m_vsnprintf = re.search(r'\bvsnprintf\s*\(\s*([A-Za-z_]\w*)\s*,', line)
 
             match = None
             api = ""
@@ -318,6 +315,14 @@ class SecurityAutoFixer:
                 match = m_sprintf
                 api = "sprintf"
                 buf_name = m_sprintf.group(1)
+            elif m_snprintf and mask[idx][m_snprintf.start()]:
+                match = m_snprintf
+                api = "snprintf"
+                buf_name = m_snprintf.group(1)
+            elif m_vsnprintf and mask[idx][m_vsnprintf.start()]:
+                match = m_vsnprintf
+                api = "vsnprintf"
+                buf_name = m_vsnprintf.group(1)
 
             if not match or not buf_name:
                 continue
@@ -370,9 +375,7 @@ class SecurityAutoFixer:
                     new_call = f'scanf("{new_fmt}", {correct_name})'
                     new_line = line[:match.start()] + new_call + line[match.end():]
                 else:
-                    call_fragment = line[match.start():match.end()]
-                    updated_fragment = re.sub(r'\b' + re.escape(buf_name) + r'\b', correct_name, call_fragment, count=1)
-                    new_line = line[:match.start()] + updated_fragment + line[match.end():]
+                    new_line = re.sub(r'\b' + re.escape(buf_name) + r'\b', correct_name, line)
                 lines[idx] = new_line
                 steps.append(
                     f"REPAIR: line {lineno}: fixed corrupted buffer ref "
@@ -588,13 +591,24 @@ class SecurityAutoFixer:
         return True
 
     def _load_security_model(self):
+        global torch, AutoTokenizer, AutoModelForSeq2SeqLM, PeftModel
         if self._tokenizer is not None and self._model is not None:
             return self._tokenizer, self._model
         if self._model_load_attempted:
             return None
         self._model_load_attempted = True
-        if (torch is None or AutoTokenizer is None or AutoModelForSeq2SeqLM is None
-                or PeftModel is None or not os.path.isdir(self.ADAPTER_PATH)):
+        try:
+            if torch is None:
+                import torch as _torch
+                from transformers import AutoTokenizer as _AutoTokenizer, AutoModelForSeq2SeqLM as _AutoModelForSeq2SeqLM
+                from peft import PeftModel as _PeftModel
+                torch = _torch
+                AutoTokenizer = _AutoTokenizer
+                AutoModelForSeq2SeqLM = _AutoModelForSeq2SeqLM
+                PeftModel = _PeftModel
+        except Exception:
+            return None
+        if not os.path.isdir(self.ADAPTER_PATH):
             return None
         try:
             self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

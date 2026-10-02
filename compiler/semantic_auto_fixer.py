@@ -582,7 +582,7 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
             if proto not in source:
                 return f"{proto}\n" + source, f"added forward declaration for library function '{target_name}'"
 
-        # 3. Undeclared buffer argument rule (gets/fgets/scanf("%s")/strcpy/strcat/sprintf)
+        # 3. Undeclared buffer argument rule (gets/fgets/scanf("%s")/strcpy/strcat/sprintf/snprintf/vsnprintf)
         is_buf_arg = False
         m_scanf = None
         if target_name:
@@ -592,7 +592,17 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
             m_strcpy = re.search(r'\bstrcpy\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
             m_strcat = re.search(r'\bstrcat\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
             m_sprintf = re.search(r'\bsprintf\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
-            is_buf_arg = bool(m_gets or m_fgets or m_scanf or m_strcpy or m_strcat or m_sprintf)
+            m_snprintf = re.search(r'\bsnprintf\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            m_vsnprintf = re.search(r'\bvsnprintf\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            m_in_buf_api = re.search(
+                r'\b(?:gets|fgets|scanf|strcpy|strcat|sprintf|snprintf|vsnprintf|strncpy|strncat)\s*\([^;]*\b'
+                + re.escape(target_name) + r'\b',
+                text
+            )
+            is_buf_arg = bool(
+                m_gets or m_fgets or m_scanf or m_strcpy or m_strcat or m_sprintf
+                or m_snprintf or m_vsnprintf or m_in_buf_api
+            )
 
         if is_buf_arg:
             from compiler.security_auto_fixer import _split_lines, _code_mask, _function_spans
@@ -621,7 +631,7 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                         new_call = f'scanf("{new_fmt}", {c_name})'
                         updated_line = updated_line.replace(old_call, new_call, 1)
                     else:
-                        updated_line = re.sub(r'\b' + re.escape(target_name) + r'\b', c_name, updated_line, count=1)
+                        updated_line = re.sub(r'\b' + re.escape(target_name) + r'\b', c_name, updated_line)
 
                     if updated_line != text:
                         return _replace_line(

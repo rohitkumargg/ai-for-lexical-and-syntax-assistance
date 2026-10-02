@@ -233,6 +233,32 @@ class TestCorruptionRepair(unittest.TestCase):
         once = fix(src).source
         self.assertEqual(fix(once).source, once)
 
+    def test_snprintf_corrupted_self_copy_repaired(self):
+        # ademo3mix.c shape: syntax20() has int a; sec1() only has char buf[32];
+        src = ("int syntax20() {\n"
+               "    int a = 0;\n"
+               "    return a;\n"
+               "}\n"
+               "int sec1() {\n"
+               "    char buf[32];\n"
+               "    snprintf(a, sizeof(a), \"%s\", a);\n"
+               "    return 0;\n"
+               "}\n")
+        r = fix(src)
+        self.assertIn('snprintf(buf, sizeof(buf), "%s", buf);', r.source)
+        self.assertNotIn('snprintf(a', r.source)
+        self.assertNotIn('sizeof(a)', r.source)
+
+    def test_fgets_corrupted_str_in_sizeof_repaired(self):
+        src = ("int main() {\n"
+               "    char buf[64];\n"
+               "    fgets(str, sizeof(str), stdin);\n"
+               "    return 0;\n"
+               "}\n")
+        r = fix(src)
+        self.assertIn("fgets(buf, sizeof(buf), stdin);", r.source)
+        self.assertNotIn("str", r.source)
+
 
 class TestSystemSuggestion(unittest.TestCase):
     def test_system_variable_suggested(self):
@@ -309,6 +335,18 @@ class TestSemanticUndeclaredBufferRule(unittest.TestCase):
         new_src, msg = fix_semantic_issue(src, issue)
         self.assertIn("gets(local_buf);", new_src)
         self.assertIn("replaced undeclared buffer", msg)
+
+    def test_snprintf_undeclared_repaired_all_occurrences(self):
+        from compiler.semantic_auto_fixer import fix_semantic_issue
+        src = ("int sec1() {\n"
+               "    char buf[32];\n"
+               "    snprintf(a, sizeof(a), \"%s\", a);\n"
+               "    return 0;\n"
+               "}\n")
+        issue = {"kind": "undeclared", "name": "a", "line": 3, "col": 13}
+        new_src, msg = fix_semantic_issue(src, issue)
+        self.assertIn('snprintf(buf, sizeof(buf), "%s", buf);', new_src)
+        self.assertIn("replaced undeclared buffer 'a' with local array 'buf'", msg)
 
 
 class TestPipelineSafetyGuard(unittest.TestCase):
