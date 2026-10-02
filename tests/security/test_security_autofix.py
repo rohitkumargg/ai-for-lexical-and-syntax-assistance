@@ -348,6 +348,23 @@ class TestSemanticUndeclaredBufferRule(unittest.TestCase):
         self.assertIn('snprintf(buf, sizeof(buf), "%s", buf);', new_src)
         self.assertIn("replaced undeclared buffer 'a' with local array 'buf'", msg)
 
+    def test_snprintf_undeclared_no_char_array_auto_declared(self):
+        from compiler.semantic_auto_fixer import fix_semantic_issue
+        src = ("int sec1() {\n"
+               "    snprintf(a, sizeof(a), \"%s\", a);\n"
+               "    return 0;\n"
+               "}\n")
+        issue = {"kind": "undeclared", "name": "a", "line": 2, "col": 13}
+        new_src, msg = fix_semantic_issue(src, issue)
+        self.assertIn("char a[40];", new_src)
+        self.assertIn("declared character buffer 'char a[40]'", msg)
+        expected = ("int sec1() {\n"
+                    "    char a[40];\n"
+                    "    snprintf(a, sizeof(a), \"%s\", a);\n"
+                    "    return 0;\n"
+                    "}\n")
+        self.assertEqual(new_src, expected)
+
 
 class TestPipelineSafetyGuard(unittest.TestCase):
     """Pipeline safety guard: accept only if clean parse & no new semantic issues."""

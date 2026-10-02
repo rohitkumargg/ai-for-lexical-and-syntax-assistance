@@ -606,7 +606,7 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
 
         if is_buf_arg:
             from compiler.security_auto_fixer import _split_lines, _code_mask, _function_spans
-            lines, _ = _split_lines(source)
+            lines, eols = _split_lines(source)
             mask = _code_mask(lines)
             spans = _function_spans(lines, mask)
             idx = line - 1
@@ -639,8 +639,20 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                             f"replaced undeclared buffer '{target_name}' with local array '{c_name}'"
                         )
                 elif len(char_arrays) == 0:
-                    issue["suggestion"] = f"undeclared buffer '{target_name}' in buffer API: no char[] found in enclosing function"
-                    return source, None
+                    # Auto-declare as a character buffer at the top of the function: char <target_name>[40];
+                    eol = eols[span.open_idx] if span.open_idx < len(eols) else "\n"
+                    indent = "    "
+                    if span.open_idx + 1 < len(lines):
+                        m_ind = re.match(r"^(\s+)", lines[span.open_idx + 1])
+                        if m_ind:
+                            indent = m_ind.group(1)
+                    decl_line = f"{indent}char {target_name}[40];"
+                    new_lines = list(lines)
+                    new_eols = list(eols)
+                    new_lines.insert(span.open_idx + 1, decl_line)
+                    new_eols.insert(span.open_idx + 1, eol)
+                    repaired = "".join(l + e for l, e in zip(new_lines, new_eols))
+                    return repaired, f"declared character buffer 'char {target_name}[40]' for undeclared identifier '{target_name}'"
                 else:
                     candidates_str = ", ".join(f"'{name}'[{sz}]" for name, sz in char_arrays)
                     issue["suggestion"] = f"undeclared buffer '{target_name}' in buffer API: multiple char[] candidates ({candidates_str})"
