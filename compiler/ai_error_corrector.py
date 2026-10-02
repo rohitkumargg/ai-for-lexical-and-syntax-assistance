@@ -48,9 +48,9 @@ DEL_RE = re.compile(r"^\s*DEL\s+(\d+)\s+(\d+)\s*$", re.IGNORECASE)
 REP_RE = re.compile(r"^\s*REP\s+(\d+)\s+(\d+)\s+(.+?)\s*$", re.IGNORECASE)
 
 # Line-column commands actually being predicted by your model
-INS_LC_RE = re.compile(r"^\s*INS_LC\s+(\d+)\s+(\d+)(?:\s+)?(.+?)\s*$", re.IGNORECASE)
+INS_LC_RE = re.compile(r"^\s*INS_LC\s+(\d+)\s+(\d+)\s*([^\d\s].*?)\s*$", re.IGNORECASE)
 DEL_LC_RE = re.compile(r"^\s*DEL_LC\s+(\d+)\s+(\d+)\s*$", re.IGNORECASE)
-REP_LC_RE = re.compile(r"^\s*REP_LC\s+(\d+)\s+(\d+)(?:\s+)?(.+?)\s*$", re.IGNORECASE)
+REP_LC_RE = re.compile(r"^\s*REP_LC\s+(\d+)\s+(\d+)\s*([^\d\s].*?)\s*$", re.IGNORECASE)
 
 @dataclass(frozen=True)
 class PatchCommand:

@@ -1,225 +1,452 @@
 {
-  "total_files_analyzed": 112,
-  "total_duration_sec": 30.089144945144653,
-  "by_kind": {
-    "arrow_on_value": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.10037422180175781,
-      "methods": {
-        "rule_auto_fixer": 1
+  "main": {
+    "total_files_analyzed": 96,
+    "total_duration_sec": 43.998167276382446,
+    "by_kind": {
+      "undeclared": {
+        "detected": 65,
+        "standalone_fixed": 2,
+        "standalone_accepted": 2,
+        "pipeline_fixed": 2,
+        "pipeline_accepted": 2,
+        "total_latency_ms": 409.44862365722656,
+        "methods": {
+          "none": 63,
+          "sym_typo": 2
+        },
+        "rejections": {}
       },
-      "rejections": {}
-    },
-    "call_arity_mismatch": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.45418739318847656,
-      "methods": {
-        "rule_auto_fixer": 1
+      "unused": {
+        "detected": 45,
+        "standalone_fixed": 42,
+        "standalone_accepted": 42,
+        "pipeline_fixed": 30,
+        "pipeline_accepted": 30,
+        "total_latency_ms": 2.7403831481933594,
+        "methods": {
+          "rule_unused": 42,
+          "none": 3
+        },
+        "rejections": {}
       },
-      "rejections": {}
-    },
-    "case_outside_switch": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.1423358917236328,
-      "methods": {
-        "rule_auto_fixer": 1
+      "redeclared": {
+        "detected": 1,
+        "standalone_fixed": 0,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 0,
+        "pipeline_accepted": 0,
+        "total_latency_ms": 0.011920928955078125,
+        "methods": {
+          "none": 1
+        },
+        "rejections": {}
       },
-      "rejections": {}
-    },
-    "dot_on_pointer": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.09036064147949219,
-      "methods": {
-        "rule_auto_fixer": 1
+      "invalid_dereference": {
+        "detected": 2,
+        "standalone_fixed": 2,
+        "standalone_accepted": 2,
+        "pipeline_fixed": 2,
+        "pipeline_accepted": 2,
+        "total_latency_ms": 0.034332275390625,
+        "methods": {
+          "rule_auto_fixer": 2
+        },
+        "rejections": {}
       },
-      "rejections": {}
-    },
-    "unknown_struct_type": {
-      "detected": 2,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.007152557373046875,
-      "methods": {
-        "none": 2
-      },
-      "rejections": {}
-    },
-    "type_mismatch": {
-      "detected": 3,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.2512931823730469,
-      "methods": {
-        "none": 3
-      },
-      "rejections": {}
-    },
-    "return_type_mismatch": {
-      "detected": 1,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.10275840759277344,
-      "methods": {
-        "none": 1
-      },
-      "rejections": {}
-    },
-    "duplicate_member": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.07891654968261719,
-      "methods": {
-        "rule_auto_fixer": 1
-      },
-      "rejections": {}
-    },
-    "redeclared_struct": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.017642974853515625,
-      "methods": {
-        "rule_auto_fixer": 1
-      },
-      "rejections": {}
-    },
-    "too_many_initializers": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.24127960205078125,
-      "methods": {
-        "rule_auto_fixer": 1
-      },
-      "rejections": {}
-    },
-    "undeclared": {
-      "detected": 66,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 271.5444564819336,
-      "methods": {
-        "none": 66
-      },
-      "rejections": {}
-    },
-    "unused": {
-      "detected": 54,
-      "standalone_fixed": 50,
-      "standalone_accepted": 31,
-      "pipeline_fixed": 30,
-      "pipeline_accepted": 30,
-      "total_latency_ms": 2.460479736328125,
-      "methods": {
-        "rule_unused": 50,
-        "none": 4
-      },
-      "rejections": {
-        "Target issue remained after fix": 19
+      "pointer_assignment_warning": {
+        "detected": 2,
+        "standalone_fixed": 0,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 0,
+        "pipeline_accepted": 0,
+        "total_latency_ms": 0.3032684326171875,
+        "methods": {
+          "none": 2
+        },
+        "rejections": {}
       }
     },
-    "redeclared": {
-      "detected": 1,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.008344650268554688,
-      "methods": {
-        "none": 1
+    "unused_accounting": {
+      "detected": 45,
+      "accepted": [
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          39,
+          "buf"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          46,
+          "buf"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          66,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          74,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          80,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          93,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          99,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          105,
+          "dst"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          106,
+          "src"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          112,
+          "name"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          113,
+          "out"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          121,
+          "logbuf"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          129,
+          "a"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          130,
+          "b"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          137,
+          "user"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          138,
+          "msg"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          152,
+          "one"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          153,
+          "two"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          160,
+          "data"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          166,
+          "source"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          167,
+          "dest"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          182,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          258,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          270,
+          "dst"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          271,
+          "src"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          278,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          284,
+          "s"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          298,
+          "line"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          311,
+          "a"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          312,
+          "b"
+        ],
+        [
+          "examples\\week11_testing\\asecuritydemo.c",
+          318,
+          "x"
+        ],
+        [
+          "examples\\week5_grammar_2026\\bitwise_ops_valid.c",
+          4,
+          "c"
+        ],
+        [
+          "examples\\week5_grammar_2026\\bitwise_ops_valid.c",
+          5,
+          "d"
+        ],
+        [
+          "examples\\week5_grammar_2026\\bitwise_ops_valid.c",
+          6,
+          "e"
+        ],
+        [
+          "examples\\week5_grammar_2026\\bitwise_ops_valid.c",
+          7,
+          "f"
+        ],
+        [
+          "examples\\week5_grammar_2026\\prototype_valid.c",
+          10,
+          "s"
+        ],
+        [
+          "examples\\week5_grammar_2026\\shift_ops_valid.c",
+          3,
+          "y"
+        ],
+        [
+          "examples\\week5_grammar_2026\\shift_ops_valid.c",
+          4,
+          "z"
+        ],
+        [
+          "examples\\week5_grammar_2026\\types_valid.c",
+          2,
+          "u"
+        ],
+        [
+          "examples\\week5_grammar_2026\\types_valid.c",
+          4,
+          "s"
+        ],
+        [
+          "examples\\week5_grammar_2026\\types_valid.c",
+          6,
+          "d"
+        ],
+        [
+          "examples\\week6_grammar_2026\\nullpointer.c",
+          3,
+          "pointer"
+        ]
+      ],
+      "rejected": [],
+      "unfixed": [
+        [
+          "examples\\week5_grammar_2026\\types_valid.c",
+          3,
+          "sl",
+          "Fixer produced no edit (declaration pattern not matched)"
+        ],
+        [
+          "examples\\week5_grammar_2026\\types_valid.c",
+          5,
+          "ll",
+          "Fixer produced no edit (declaration pattern not matched)"
+        ],
+        [
+          "examples\\week6_grammar_2026\\pointer_errors.c",
+          3,
+          "pointer",
+          "Fixer produced no edit (declaration pattern not matched)"
+        ]
+      ]
+    }
+  },
+  "rule_triggers": {
+    "total_files_analyzed": 8,
+    "total_duration_sec": 0.13278889656066895,
+    "by_kind": {
+      "arrow_on_value": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.13017654418945312,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
       },
-      "rejections": {}
+      "call_arity_mismatch": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.5140304565429688,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "case_outside_switch": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.16427040100097656,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "dot_on_pointer": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.10013580322265625,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "unknown_struct_type": {
+        "detected": 2,
+        "standalone_fixed": 0,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 0,
+        "pipeline_accepted": 0,
+        "total_latency_ms": 0.018835067749023438,
+        "methods": {
+          "none": 2
+        },
+        "rejections": {}
+      },
+      "type_mismatch": {
+        "detected": 1,
+        "standalone_fixed": 0,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 0,
+        "pipeline_accepted": 0,
+        "total_latency_ms": 0.014543533325195312,
+        "methods": {
+          "none": 1
+        },
+        "rejections": {}
+      },
+      "return_type_mismatch": {
+        "detected": 1,
+        "standalone_fixed": 0,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 0,
+        "pipeline_accepted": 0,
+        "total_latency_ms": 0.3657341003417969,
+        "methods": {
+          "none": 1
+        },
+        "rejections": {}
+      },
+      "duplicate_member": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.14448165893554688,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "redeclared_struct": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.025272369384765625,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "too_many_initializers": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 1,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.29754638671875,
+        "methods": {
+          "rule_auto_fixer": 1
+        },
+        "rejections": {}
+      },
+      "undeclared": {
+        "detected": 1,
+        "standalone_fixed": 1,
+        "standalone_accepted": 0,
+        "pipeline_fixed": 1,
+        "pipeline_accepted": 1,
+        "total_latency_ms": 0.5462169647216797,
+        "methods": {
+          "rule_auto_declare": 1
+        },
+        "rejections": {
+          "Issue count did not decrease (1 -> 1)": 1
+        }
+      }
     },
-    "invalid_operand_type": {
-      "detected": 6,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.0152587890625,
-      "methods": {
-        "none": 6
-      },
-      "rejections": {}
-    },
-    "prototype_mismatch": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.25582313537597656,
-      "methods": {
-        "rule_auto_fixer": 1
-      },
-      "rejections": {}
-    },
-    "shadow_warning": {
-      "detected": 1,
-      "standalone_fixed": 1,
-      "standalone_accepted": 1,
-      "pipeline_fixed": 1,
-      "pipeline_accepted": 1,
-      "total_latency_ms": 0.4858970642089844,
-      "methods": {
-        "rule_auto_fixer": 1
-      },
-      "rejections": {}
-    },
-    "invalid_dereference": {
-      "detected": 2,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.012636184692382812,
-      "methods": {
-        "none": 2
-      },
-      "rejections": {}
-    },
-    "pointer_assignment_warning": {
-      "detected": 2,
-      "standalone_fixed": 0,
-      "standalone_accepted": 0,
-      "pipeline_fixed": 0,
-      "pipeline_accepted": 0,
-      "total_latency_ms": 0.029325485229492188,
-      "methods": {
-        "none": 2
-      },
-      "rejections": {}
+    "unused_accounting": {
+      "detected": 0,
+      "accepted": [],
+      "rejected": [],
+      "unfixed": []
     }
   }
 }

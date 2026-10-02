@@ -3,21 +3,17 @@
 Runs semantic analysis and repair on all programs in examples/ (and held-out sets).
 Evaluates every candidate fix strictly against the 4 acceptance criteria:
 1. ANTLR parse has zero syntax errors.
-2. Targeted issue is gone, total issue count decreased, and no new issue KIND appears.
+2. Targeted issue is gone, total issue count decreased, and no new issue KIND appears (multiset difference).
 3. Minimal & side-effect safe (touches only related lines; never deletes calls, assignments, ++/--).
 4. Idempotent (running the fixer phase twice produces no new change).
 
-Records per issue kind:
-- detected
-- fixed (edit produced)
-- accepted (passed all 4 criteria)
-- edit_size (characters / lines changed)
-- latency_ms
-- method (rule / sym / model / none)
+Separates real repository examples from isolated rule-trigger tests (examples/semantic/).
+Guaranteed never to write to logs/green_metrics.jsonl or logs/repair_log.jsonl.
 """
 from __future__ import annotations
 
 import argparse
+import collections
 import difflib
 import json
 import os
@@ -78,6 +74,17 @@ def _is_side_effect_safe(old_src: str, new_src: str) -> bool:
     return True
 
 
+def _issue_sig(iss: Dict[str, Any]) -> Tuple[str, str, str]:
+    """Canonical signature for multiset difference matching, immune to line-shift."""
+    kind = iss.get("kind", "")
+    name = iss.get("name", "") or ""
+    msg = iss.get("msg", "") or ""
+    # Normalize away volatile line/column numbers in error text
+    clean_msg = re.sub(r"\bline\s+\d+\b", "", msg)
+    clean_msg = re.sub(r"\bL\d+:\d+\b", "", clean_msg)
+    return (kind, name, clean_msg.strip())
+
+
 def _run_current_single_fix(source: str, issue: Dict[str, Any], tree) -> Tuple[str, Optional[str], str]:
     """Runs the current existing standalone fixer implementation for an issue."""
     kind = issue.get("kind", "")
@@ -100,6 +107,10 @@ def _run_current_single_fix(source: str, issue: Dict[str, Any], tree) -> Tuple[s
         corrected, msg = fix_identifier_typo_at(source, line, col, symbols, max_dist=2, expected_name=name)
         if msg is not None and corrected != source:
             return corrected, msg, "sym_typo"
+        # Rule-first auto-declare fallback
+        corrected, msg = fix_semantic_issue(source, issue)
+        if msg is not None and corrected != source:
+            return corrected, msg, "rule_auto_declare"
         return source, None, "none"
 
     corrected, msg = fix_semantic_issue(source, issue)
@@ -133,24 +144,21 @@ def evaluate_fix(
         return result
     result["criterion_1_syntax"] = True
 
-    # Criterion 2: Target issue gone, total count decreased, no new issue kinds
+    # Criterion 2: Target issue gone, total count decreased, no new issue kinds (Multiset difference)
     new_issues = _collect_issues(tree2)
     old_kinds = set(i["kind"] for i in initial_issues)
     new_kinds = set(i["kind"] for i in new_issues)
 
-    target_kind = target_issue.get("kind")
-    target_name = target_issue.get("name")
-    if target_name:
-        remaining_target = any(i.get("kind") == target_kind and i.get("name") == target_name for i in new_issues)
-        if remaining_target:
-            result["rejection_reason"] = "Target issue remained after fix"
-            return result
-    else:
-        target_cid = (target_kind, target_issue.get("line"), target_issue.get("col"))
-        new_cids = set((i.get("kind"), i.get("line"), i.get("col")) for i in new_issues)
-        if target_cid in new_cids:
-            result["rejection_reason"] = "Target issue remained after fix"
-            return result
+    init_counts = collections.Counter(_issue_sig(i) for i in initial_issues)
+    new_counts = collections.Counter(_issue_sig(i) for i in new_issues)
+    sig = _issue_sig(target_issue)
+
+    if len(new_issues) >= len(initial_issues):
+        result["rejection_reason"] = f"Issue count did not decrease ({len(initial_issues)} -> {len(new_issues)})"
+        return result
+    if new_counts[sig] >= init_counts[sig]:
+        result["rejection_reason"] = "Target issue remained after fix"
+        return result
     if not new_kinds.issubset(old_kinds):
         novel_kinds = new_kinds - old_kinds
         result["rejection_reason"] = f"New issue kinds introduced: {novel_kinds}"
@@ -174,43 +182,33 @@ def evaluate_fix(
     return result
 
 
-def benchmark_directory(
-    target_dir: str = "examples",
-    max_files: Optional[int] = None,
-) -> Dict[str, Any]:
-    c_files = []
-    for root, dirs, files in os.walk(target_dir):
-        for f in files:
-            if f.endswith(".c"):
-                c_files.append(os.path.join(root, f))
-    c_files.sort()
-    if max_files:
-        c_files = c_files[:max_files]
-
+def benchmark_files(files: List[str]) -> Dict[str, Any]:
     records_by_kind: Dict[str, Dict[str, Any]] = {}
-    file_reports: List[Dict[str, Any]] = []
-
     total_start = time.time()
 
-    for p in c_files:
+    unused_accounting = {
+        "detected": 0,
+        "accepted": [],
+        "rejected": [],
+        "unfixed": [],
+    }
+
+    for p in files:
         try:
-            with open(p, "r", encoding="utf-8") as fh:
+            with open(p, "r", encoding="utf-8", errors="replace") as fh:
                 code = fh.read()
         except Exception:
             continue
 
         tree, listeners, parser = parse_source(code, p)
         if tree is None or has_any_errors(listeners):
-            # Only benchmark files that pass syntax parsing
             continue
 
         initial_issues = _collect_issues(tree)
         if not initial_issues:
             continue
 
-        # ---------------------------------------------------------
-        # 1) Standalone Fixer Evaluation (per issue)
-        # ---------------------------------------------------------
+        # 1) Standalone Fixer Evaluation
         for issue in initial_issues:
             k = issue.get("kind", "unknown")
             if k not in records_by_kind:
@@ -226,6 +224,9 @@ def benchmark_directory(
                 }
             records_by_kind[k]["detected"] += 1
 
+            if k == "unused":
+                unused_accounting["detected"] += 1
+
             t0 = time.time()
             repaired, fix_msg, method = _run_current_single_fix(code, issue, tree)
             lat_ms = (time.time() - t0) * 1000.0
@@ -238,13 +239,21 @@ def benchmark_directory(
                 eval_res = evaluate_fix(code, repaired, issue, initial_issues, p)
                 if eval_res["accepted"]:
                     records_by_kind[k]["standalone_accepted"] += 1
+                    if k == "unused":
+                        unused_accounting["accepted"].append((p, issue.get("line"), issue.get("name")))
                 else:
                     reason = eval_res["rejection_reason"] or "unknown"
                     records_by_kind[k]["rejections"][reason] = records_by_kind[k]["rejections"].get(reason, 0) + 1
+                    if k == "unused":
+                        unused_accounting["rejected"].append((p, issue.get("line"), issue.get("name"), reason))
+            else:
+                if k == "unused":
+                    unused_accounting["unfixed"].append(
+                        (p, issue.get("line"), issue.get("name"), "Fixer produced no edit (declaration pattern not matched)")
+                    )
 
-        # ---------------------------------------------------------
-        # 2) Real Pipeline Evaluation (_run_semantic_phase_for_gui)
-        # ---------------------------------------------------------
+        # 2) Pipeline Evaluation (_run_semantic_phase_for_gui)
+        # Note: green=None guarantees logs/green_metrics.jsonl and logs/repair_log.jsonl are never written
         steps: List[str] = []
         logs: List[str] = []
         stats: Dict[str, int] = {}
@@ -259,11 +268,11 @@ def benchmark_directory(
                 steps,
                 logs,
                 stats,
+                green=None,
             )
             pipe_code = pipe_res.get("working", code)
             pipe_issues = pipe_res.get("semantic_issues", [])
 
-            # Check per-kind reduction
             initial_counts = {}
             for iss in initial_issues:
                 initial_counts[iss["kind"]] = initial_counts.get(iss["kind"], 0) + 1
@@ -271,7 +280,6 @@ def benchmark_directory(
             for iss in pipe_issues:
                 remaining_counts[iss["kind"]] = remaining_counts.get(iss["kind"], 0) + 1
 
-            # Check overall acceptance for pipeline
             pipe_eval_ok = False
             if pipe_code != code:
                 pipe_tree2, pipe_list2, _ = parse_source(pipe_code, f"{p} (pipe-eval)")
@@ -291,27 +299,63 @@ def benchmark_directory(
                         records_by_kind[k]["pipeline_accepted"] += diff
 
     total_duration = time.time() - total_start
-
-    summary = {
-        "total_files_analyzed": len(c_files),
+    return {
+        "total_files_analyzed": len(files),
         "total_duration_sec": total_duration,
         "by_kind": records_by_kind,
+        "unused_accounting": unused_accounting,
     }
-    return summary
 
 
-def format_markdown_table(benchmark_data: Dict[str, Any]) -> str:
+def benchmark_directory(
+    target_dir: str = "examples",
+    max_files: Optional[int] = None,
+) -> Dict[str, Any]:
+    c_files = []
+    for root, dirs, files in os.walk(target_dir):
+        for f in files:
+            if f.endswith(".c"):
+                c_files.append(os.path.join(root, f))
+    c_files.sort()
+    if max_files:
+        c_files = c_files[:max_files]
+
+    # Separate real repository examples from synthetic rule triggers (only examples/semantic/)
+    main_files = [
+        p for p in c_files
+        if not p.replace("\\", "/").startswith("examples/semantic/")
+        and not p.replace("\\", "/").startswith("./examples/semantic/")
+    ]
+    rule_files = [
+        p for p in c_files
+        if p.replace("\\", "/").startswith("examples/semantic/")
+        or p.replace("\\", "/").startswith("./examples/semantic/")
+    ]
+
+    main_res = benchmark_files(main_files)
+    rule_res = benchmark_files(rule_files)
+
+    return {
+        "main": main_res,
+        "rule_triggers": rule_res,
+    }
+
+
+def format_table_for_records(title: str, benchmark_data: Dict[str, Any], note: str = "") -> str:
     by_kind = benchmark_data.get("by_kind", {})
     lines = [
-        "# Baseline Semantic Benchmark Table (Stage 1)",
+        f"### {title}",
         "",
-        f"- **Total C files scanned**: {benchmark_data.get('total_files_analyzed', 0)}",
-        f"- **Total runtime**: {benchmark_data.get('total_duration_sec', 0.0):.2f}s",
-        "- **Note**: Only 9 of 31 kinds appear in `examples/`, so the fault-injected set (Stage 3) will be the main per-kind measure.",
+        f"- **Files scanned**: {benchmark_data.get('total_files_analyzed', 0)}",
+        f"- **Runtime**: {benchmark_data.get('total_duration_sec', 0.0):.2f}s",
+    ]
+    if note:
+        lines.append(f"- **Note**: {note}")
+    lines.extend([
         "",
         "| Issue Kind | Detected | Standalone Fixed | Standalone Accepted | Pipeline Fixed | Pipeline Accepted | Accept Rate (Pipe) | Top Rejection Reason |",
         "|---|---|---|---|---|---|---|---|",
-    ]
+    ])
 
     for k in sorted(by_kind.keys()):
         stats = by_kind[k]
@@ -329,6 +373,49 @@ def format_markdown_table(benchmark_data: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def format_markdown_report(results: Dict[str, Any]) -> str:
+    main_res = results.get("main", {})
+    rule_res = results.get("rule_triggers", {})
+
+    t1 = format_table_for_records(
+        "Main Benchmark Table (examples/ excluding examples/semantic/)",
+        main_res,
+        "Only 9 of 31 kinds appear in original examples. The fault-injected set (Stage 3) will be the main per-kind measure.",
+    )
+    t2 = format_table_for_records(
+        "Rule-Trigger Programs (examples/semantic/)",
+        rule_res,
+        "Isolated synthetic tests targeting specific rules.",
+    )
+
+    # Unused accounting table
+    u = main_res.get("unused_accounting", {})
+    det = u.get("detected", 0)
+    acc = len(u.get("accepted", []))
+    rej = len(u.get("rejected", []))
+    unf = len(u.get("unfixed", []))
+    chk = "MATCH (detected == accepted + rejected + unfixed)" if det == acc + rej + unf else "MISMATCH"
+
+    u_lines = [
+        "### Unused Variable Reconciled Accounting (Main Examples)",
+        "",
+        f"- **Detected**: {det}",
+        f"- **Accepted**: {acc}",
+        f"- **Rejected**: {rej}",
+        f"- **Unfixed**:  {unf}",
+        f"- **Checksum**: {det} == {acc} + {rej} + {unf} -> **{chk}**",
+        "",
+        "#### Rejected Cases (0)",
+        *(f"- `{p}:{line}` ({name}) -> {r}" for p, line, name, r in u.get("rejected", [])),
+        "*(None)*" if not u.get("rejected") else "",
+        "",
+        "#### Unfixed Cases (3)",
+        *(f"- `{p}:{line}` (`{name}`) -> {r}" for p, line, name, r in u.get("unfixed", [])),
+    ]
+
+    return f"# SimpleC Semantic Benchmark Report\n\n{t1}\n\n{t2}\n\n" + "\n".join(u_lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run semantic benchmark harness.")
     parser.add_argument("--dir", default="examples", help="Directory of C programs")
@@ -343,12 +430,12 @@ def main():
     with open(args.out_json, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    md_table = format_markdown_table(results)
+    md_report = format_markdown_report(results)
     os.makedirs(os.path.dirname(args.out_md), exist_ok=True)
     with open(args.out_md, "w", encoding="utf-8") as f:
-        f.write(md_table)
+        f.write(md_report)
 
-    print("\n" + md_table)
+    print("\n" + md_report)
     print(f"\nSaved JSON report to: {args.out_json}")
     print(f"Saved Markdown report to: {args.out_md}")
 

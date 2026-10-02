@@ -1,0 +1,201 @@
+"""Tests for SecurityAutoFixer v2.  Run:  python -m unittest tests.security.test_security_autofix -v
+(also collected by pytest).  No model / ANTLR needed."""
+import os
+import re
+import sys
+import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from compiler.security_auto_fixer import SecurityAutoFixer, _split_lines, _code_mask, _function_spans
+
+KEYWORDS_AND_LIBC = {
+    "int", "char", "void", "return", "if", "else", "while", "for", "sizeof", "stdin",
+    "fgets", "gets", "scanf", "printf", "snprintf", "sprintf", "strcpy", "strcat",
+    "strncat", "strlen", "main", "NULL", "unsigned", "long", "short", "float", "double",
+}
+
+
+def fix(src):
+    return SecurityAutoFixer().apply_fixes(src)
+
+
+def idents(src):
+    src = re.sub(r'"(?:\\.|[^"\\])*"', '""', src)
+    return set(re.findall(r"[A-Za-z_]\w*", src))
+
+
+class TestGets(unittest.TestCase):
+    def test_gets_local_array(self):   # mixed_errors_1.c shape
+        r = fix("int main() {\n    int a = 5;\n    char buf[100];\n    gets(buf);\n    return a;\n}\n")
+        self.assertIn("fgets(buf, sizeof(buf), stdin);", r.source)
+        self.assertNotIn("str", idents(r.source))
+
+    def test_gets_global_array(self):
+        r = fix("char g[16];\nint main() {\n    gets(g);\n    return 0;\n}\n")
+        self.assertIn("fgets(g, sizeof(g), stdin)", r.source)
+
+    def test_gets_macro_size(self):
+        r = fix("#define N 32\nint main() {\n    char b[N];\n    gets(b);\n    return 0;\n}\n")
+        self.assertIn("fgets(b, sizeof(b), stdin)", r.source)
+
+    def test_gets_pointer_param_not_fixed_but_suggested(self):
+        src = "void f(char *p) {\n    gets(p);\n}\n"
+        r = fix(src)
+        self.assertEqual(r.source, src)
+        self.assertTrue(r.suggestions)
+
+    def test_gets_array_param_not_fixed(self):   # char p[] decays to pointer
+        src = "void f(char p[100]) {\n    gets(p);\n}\n"
+        self.assertEqual(fix(src).source, src)
+
+    def test_gets_pointer_local_not_fixed(self):
+        src = "int main() {\n    char *p;\n    gets(p);\n    return 0;\n}\n"
+        self.assertEqual(fix(src).source, src)
+
+    def test_gets_undeclared_not_fixed(self):
+        src = "int main() {\n    gets(zzz);\n    return 0;\n}\n"
+        self.assertEqual(fix(src).source, src)
+
+
+class TestScanf(unittest.TestCase):
+    def test_width_is_size_minus_one(self):
+        r = fix('int main() {\n    char name[32];\n    scanf("%s", name);\n    return 0;\n}\n')
+        self.assertIn('scanf("%31s", name);', r.source)
+
+    def test_width_not_hardcoded_99(self):
+        r = fix('int main() {\n    char cmd[50];\n    scanf("%s", cmd);\n    return 0;\n}\n')
+        self.assertIn('"%49s"', r.source)
+        self.assertNotIn("%99s", r.source)
+
+    def test_never_uses_other_functions_variable(self):   # the arr / %11s bug
+        src = ("int sum(int arr[], int n) {\n    return arr[0] + n;\n}\n\n"
+               "int vuln() {\n    char cmd[100];\n    scanf(\"%s\", cmd);\n    return 0;\n}\n")
+        r = fix(src)
+        self.assertIn('scanf("%99s", cmd);', r.source)
+        self.assertNotIn("%11s", r.source)
+
+    def test_scanf_pointer_not_fixed(self):
+        src = 'void f(char *p) {\n    scanf("%s", p);\n}\n'
+        self.assertEqual(fix(src).source, src)
+
+    def test_scanf_already_bounded_untouched(self):
+        src = 'int main() {\n    char b[8];\n    scanf("%7s", b);\n    return 0;\n}\n'
+        self.assertEqual(fix(src).source, src)
+
+
+class TestCopyFormat(unittest.TestCase):
+    def test_strcpy(self):
+        r = fix('int main() {\n    char d[10];\n    char s[20] = "x";\n    strcpy(d, s);\n    return 0;\n}\n')
+        self.assertIn('snprintf(d, sizeof(d), "%s", s);', r.source)
+
+    def test_strcpy_does_not_invent_a(self):   # snprintf(a, sizeof(a), "%s", a) bug
+        src = ("int add(int a, int b) {\n    return a + b;\n}\n\n"
+               "int f() {\n    char buf[8];\n    char src[16] = \"hi\";\n    strcpy(buf, src);\n    return 0;\n}\n")
+        out = fix(src).source
+        self.assertIn('snprintf(buf, sizeof(buf), "%s", src);', out)
+        self.assertNotIn("snprintf(a", out)
+
+    def test_strcpy_pointer_dst_not_fixed(self):
+        src = "void f(char *d, char *s) {\n    strcpy(d, s);\n}\n"
+        self.assertEqual(fix(src).source, src)
+
+    def test_strcat(self):
+        r = fix('int main() {\n    char d[20];\n    char s[5] = "a";\n    strcat(d, s);\n    return 0;\n}\n')
+        self.assertIn("strncat(d, s, sizeof(d) - strlen(d) - 1);", r.source)
+
+    def test_sprintf(self):
+        r = fix('int main() {\n    char b[16];\n    sprintf(b, "%d", 5);\n    return 0;\n}\n')
+        self.assertIn('snprintf(b, sizeof(b), "%d", 5);', r.source)
+
+    def test_printf_var(self):
+        r = fix("int main() {\n    char u[8];\n    printf(u);\n    return 0;\n}\n")
+        self.assertIn('printf("%s", u);', r.source)
+
+    def test_printf_literal_untouched(self):
+        src = 'int main() {\n    printf("hello\\n");\n    return 0;\n}\n'
+        self.assertEqual(fix(src).source, src)
+
+
+class TestRobustness(unittest.TestCase):
+    def test_comments_and_strings_untouched(self):
+        src = ('int main() {\n    char b[8];\n    // gets(b);\n'
+               '    /* strcpy(b, b); */\n    printf("gets(b)\\n");\n    return 0;\n}\n')
+        self.assertEqual(fix(src).source, src)
+
+    def test_crlf_preserved(self):
+        src = "int main() {\r\n    char b[8];\r\n    gets(b);\r\n    return 0;\r\n}\r\n"
+        out = fix(src).source
+        self.assertIn("fgets(b, sizeof(b), stdin);\r\n", out)
+        self.assertNotIn("\n", out.replace("\r\n", ""))
+
+    def test_no_trailing_newline_preserved(self):
+        src = "int main() {\n    char b[8];\n    gets(b);\n}"
+        self.assertFalse(fix(src).source.endswith("\n"))
+
+    def test_idempotent(self):
+        src = ('int main() {\n    char b[16];\n    char c[16];\n    gets(b);\n    strcpy(c, b);\n'
+               '    strcat(c, b);\n    sprintf(b, "%s", c);\n    scanf("%s", c);\n    printf(b);\n    return 0;\n}\n')
+        once = fix(src).source
+        self.assertEqual(fix(once).source, once)
+
+    def test_shadowing_uses_nearest_declaration(self):
+        src = ("char b[4];\nint f() {\n    char b[64];\n    scanf(\"%s\", b);\n    return 0;\n}\n")
+        self.assertIn('"%63s"', fix(src).source)
+
+    def test_other_function_array_not_visible(self):
+        src = ("int f() {\n    char only_here[32];\n    return 0;\n}\n"
+               "int g() {\n    gets(only_here);\n    return 0;\n}\n")
+        self.assertEqual(fix(src).source, src)
+
+    def test_no_new_identifiers_on_realistic_file(self):
+        src = ("int helper_sum_array(int arr[], int n) {\n    int s = 0;\n    return s + arr[0] + n;\n}\n\n"
+               "int vuln_system_1() {\n    char cmd[100];\n    gets(cmd);\n    return 0;\n}\n\n"
+               "int vuln_mixed() {\n    char buf[32];\n    char src[64] = \"x\";\n    strcpy(buf, src);\n    return 0;\n}\n")
+        before, after = idents(src), idents(fix(src).source)
+        self.assertEqual(after - before - KEYWORDS_AND_LIBC, set())
+
+    def test_system_taint_never_autofixed(self):   # mixed_errors_2.c
+        src = 'int main() {\n    char cmd[50];\n    system(cmd);\n}\n'
+        self.assertEqual(fix(src).source, src)
+
+    def test_empty_source(self):
+        self.assertEqual(fix("").source, "")
+
+
+class TestAiValidator(unittest.TestCase):
+    """Model output is never trusted; these are the exact bad outputs seen."""
+    def setUp(self):
+        self.f = SecurityAutoFixer()
+        self.src = ("int sum(int arr[], int n) {\n    return arr[0];\n}\n\n"
+                    "int vuln() {\n    char cmd[12];\n    scanf(\"%s\", cmd);\n    return 0;\n}\n")
+        self.lines, _ = _split_lines(self.src)
+        self.mask = _code_mask(self.lines)
+        self.spans = _function_spans(self.lines, self.mask)
+        self.idx = 6
+
+    def check(self, new):
+        return self.f._validate_ai_line(self.lines[self.idx], new, self.lines, self.mask, self.spans, self.idx)
+
+    def test_rejects_hallucinated_arr(self):
+        self.assertFalse(self.check('    scanf("%11s", arr);'))
+
+    def test_rejects_wrong_width(self):
+        self.assertFalse(self.check('    scanf("%5s", cmd);'))
+
+    def test_accepts_correct_line(self):
+        self.assertTrue(self.check('    scanf("%11s", cmd);'))
+
+    def test_window_contains_only_enclosing_function(self):
+        span = next(s for s in self.spans if s.open_idx <= self.idx <= s.end_idx)
+        window, rel = self.f._build_window(self.lines, span, self.idx)
+        self.assertNotIn("arr", window)
+        self.assertEqual(window.splitlines()[rel - 1].strip(), 'scanf("%s", cmd);')
+
+    def test_ai_off_by_default_never_loads_model(self):
+        f = SecurityAutoFixer()
+        f.apply_fixes(self.src)
+        self.assertFalse(f._model_load_attempted)
+
+
+if __name__ == "__main__":
+    unittest.main()

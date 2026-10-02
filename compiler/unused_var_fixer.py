@@ -124,9 +124,10 @@ def remove_unused_decl_at(
     stmt = code_part[:semi_idx].strip()
 
     # Match declaration pattern: <type> <declarators>
-    # Type can be: int, unsigned int, char*, struct Foo, etc.
+    # Type can be: int, unsigned int, signed long, long long, char*, struct Foo, etc.
+    type_kws = r"(?:void|char|short|int|long|float|double|signed|unsigned|size_t)"
     type_match = re.match(
-        r"^(?P<type>(?:(?:unsigned|signed|long|short)\s+)*(?:struct\s+[A-Za-z_]\w*|[A-Za-z_]\w+)(?:\s*\*+)*)\s+(?P<decls>.+)$",
+        rf"^(?P<type>(?:struct\s+[A-Za-z_]\w*|(?:{type_kws}\b\s*)+|[A-Za-z_]\w+)(?:\s*\*+)*)\s+(?P<decls>[*A-Za-z_].*)$",
         stmt,
     )
     if not type_match:

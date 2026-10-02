@@ -55,21 +55,34 @@ def _common_prefix_len(a: str, b: str) -> int:
     return i
 
 
+STD_LIB_SYMBOLS: Dict[str, Dict[str, Any]] = {
+    "printf": {"type": "int", "line": 0},
+    "scanf": {"type": "int", "line": 0},
+    "malloc": {"type": "void*", "line": 0},
+    "free": {"type": "void", "line": 0},
+    "strlen": {"type": "int", "line": 0},
+    "strcpy": {"type": "char*", "line": 0},
+    "strncpy": {"type": "char*", "line": 0},
+    "strcmp": {"type": "int", "line": 0},
+    "strncmp": {"type": "int", "line": 0},
+    "puts": {"type": "int", "line": 0},
+    "gets": {"type": "char*", "line": 0},
+    "putchar": {"type": "int", "line": 0},
+    "getchar": {"type": "int", "line": 0},
+    "sprintf": {"type": "int", "line": 0},
+    "snprintf": {"type": "int", "line": 0},
+    "exit": {"type": "void", "line": 0},
+}
+
+
 def _best_symbol_match(
     word: str,
     symbols: Dict[str, Dict[str, Any]],
     max_dist: int
 ) -> Optional[str]:
     """
-    Find a unique best match from declared symbols using Damerau–Levenshtein distance.
-
-    Conservative behavior:
-      1) smaller DL distance wins
-      2) if equal distance, larger common-prefix wins
-      3) if still equal, prefer symbol declared later (heuristic: deeper scope or later line)
-      4) if still tied, reject
+    Find a unique best match from declared symbols and standard library symbols using DL distance.
     """
-
     if word in C_KEYWORDS:
         return None
 
@@ -77,8 +90,11 @@ def _best_symbol_match(
     best_key: Optional[tuple] = None
     tie = False
 
-    for name, info in symbols.items():
+    merged_symbols = dict(STD_LIB_SYMBOLS)
+    if symbols:
+        merged_symbols.update(symbols)
 
+    for name, info in merged_symbols.items():
         if name in C_KEYWORDS:
             continue
 
@@ -261,7 +277,10 @@ def fix_identifier_typo_at(
         "open",
     }
 
-    if not symbols:
+    merged_symbols = dict(STD_LIB_SYMBOLS)
+    if symbols:
+        merged_symbols.update(symbols)
+    if not merged_symbols:
         return src, None
 
     # Split into lines without losing raw text indexing for replacement
@@ -289,17 +308,18 @@ def fix_identifier_typo_at(
     if word in symbols:
         return src, None
 
-    # Find best match among declared symbols
-    best = _best_symbol_match(word, symbols, max_dist=max_dist)
+    # Find best match among declared and standard symbols
+    best = _best_symbol_match(word, merged_symbols, max_dist=max_dist)
     if best is None:
         return src, None
 
-    # Never rewrite TO a protected identifier either
-    if best in PROTECTED_IDENTIFIERS:
+    # Never rewrite TO a dangerous security sink
+    DANGEROUS_SINKS = {"gets", "system", "popen"}
+    if best in DANGEROUS_SINKS:
         return src, None
 
     # Optional safety: declared-before-use (best-effort)
-    info = symbols.get(best, {})
+    info = merged_symbols.get(best, {})
     decl_line = info.get("line")
     if isinstance(decl_line, int) and decl_line > 0:
         if decl_line > line:

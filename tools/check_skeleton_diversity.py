@@ -4,7 +4,9 @@ import hashlib
 from pathlib import Path
 from collections import Counter
 
-INP = Path("data/splits/train.jsonl")
+import sys
+
+INP = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("data/splits/train.jsonl")
 SRC_KEY = "input"
 
 # remove identifiers and numbers to get a "skeleton"

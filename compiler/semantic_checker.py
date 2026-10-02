@@ -346,7 +346,8 @@ class SemanticChecker(_VISITOR_BASE):
                 return True
 
         r_lhs = self._type_rank(c_lhs)
-        r_rhs = self._type_rank(c_rhs)
+        if c_lhs == "?" or c_rhs == "?":
+            return True
         if r_lhs < 0 or r_rhs < 0:
             return False
         return r_rhs <= r_lhs
@@ -557,22 +558,23 @@ class SemanticChecker(_VISITOR_BASE):
                 sub_ctx = ctx.getChild(ctx.getChildCount() - 1)
                 t = self._infer_expr_type(sub_ctx)
                 if ctx.getChildCount() == 2:
-                    op = ctx.getChild(0).getText()
+                    op_node = ctx.getChild(0)
+                    op = op_node.getText()
                     if op == "~":
                         if t is not None and not self._is_integral_type(t):
-                            line, col = _tok_line_col(sub_ctx)
+                            line, col = _tok_line_col(op_node)
                             self._add_issue("invalid_operand_type", "", line, col, f"Bitwise NOT operator '~' requires integral operand, got '{t}'")
                     elif op == "!":
                         return "int"
                     elif op == "&":
                         if not self._is_lvalue(sub_ctx):
-                            line, col = _tok_line_col(sub_ctx)
+                            line, col = _tok_line_col(op_node)
                             self._add_issue("invalid_address_of", "", line, col, "Address-of operator '&' requires an lvalue")
                             return None
                         return _canonical_type((t or "?") + "*")
                     elif op == "*":
                         if not self._is_pointer_type(t):
-                            line, col = _tok_line_col(sub_ctx)
+                            line, col = _tok_line_col(op_node)
                             self._add_issue("invalid_dereference", "", line, col, f"Cannot dereference non-pointer type '{t or '?'}'")
                             return None
                         return self._pointer_target(t)

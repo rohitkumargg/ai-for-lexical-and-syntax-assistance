@@ -305,52 +305,55 @@ def _run_semantic_phase_for_gui(
         kind = first.get("kind")
 
         if kind == "unused":
-            # Guard: do not remove an unused variable declaration if that variable or line
-            # has other unresolved semantic issues (e.g. type_mismatch, invalid_operand_type, pointer_assignment_warning).
-            # Deleting the declaration would mask the underlying semantic issue instead of fixing it.
-            has_conflicting_issue = any(
-                other is not first
-                and other.get("kind") != "unused"
-                and (
-                    other.get("line") == first.get("line")
-                    or (first.get("name") and other.get("name") == first.get("name"))
+            # Treat all non-conflicting unused removals in one pass as a single batch step
+            unused_to_remove = []
+            for candidate in issues:
+                if candidate.get("kind") != "unused":
+                    continue
+                # Guard: do not remove an unused variable declaration if that variable or line
+                # has other unresolved semantic issues (masking prevention)
+                has_conflicting_issue = any(
+                    other is not candidate
+                    and other.get("kind") != "unused"
+                    and (
+                        other.get("line") == candidate.get("line")
+                        or (candidate.get("name") and other.get("name") == candidate.get("name"))
+                    )
+                    for other in issues
                 )
-                for other in issues
-            )
-            if has_conflicting_issue:
+                if not has_conflicting_issue:
+                    unused_to_remove.append(candidate)
+
+            # Sort descending by line so removals from the bottom do not invalidate line offsets
+            unused_to_remove.sort(key=lambda x: int(x.get("line", 0) or 0), reverse=True)
+
+            batch_working = working
+            batch_removed = 0
+            for u_iss in unused_to_remove:
+                c_working, c_msg = _try_remove_unused_decl(batch_working, u_iss)
+                if c_msg is not None and c_working != batch_working:
+                    batch_working = c_working
+                    batch_removed += 1
+
+            if batch_removed == 0:
                 failed_issue_keys.add(cid)
                 continue
 
-            corrected, msg = _try_remove_unused_decl(working, first)
-
-            if msg is None or corrected == working:
+            tree2, listeners2, parser2 = parse_source(batch_working, f"{filename} (unused-batch-removed)")
+            if tree2 is None or has_any_errors(listeners2):
                 failed_issue_keys.add(cid)
                 continue
 
-            working = corrected
+            working = batch_working
             failed_issue_keys.clear()
-            steps.append(f"SEM: {msg}")
-            logs.append(f"Applied semantic fix: {msg}")
-            stats["sem_fixes"] = stats.get("sem_fixes", 0) + 1
-            sem_edits += 1
+            steps.append(f"SEM: batch removed {batch_removed} unused declarations")
+            logs.append(f"Applied batch unused removals: {batch_removed} variables")
+            stats["sem_fixes"] = stats.get("sem_fixes", 0) + batch_removed
+            sem_edits += 1  # Count as single batch step against the edit cap
 
             if green is not None:
-                green.inc("sem_fixes")
-
-            tree2, listeners2, parser2 = parse_source(working, f"{filename} (unused-removed)")
-            if tree2 is None or has_any_errors(listeners2):
-                remaining = get_all_error_strings(listeners2) if tree2 is not None else []
-                if green is not None:
-                    green.end("semantic_phase")
-                return {
-                    "status": "STOPPED",
-                    "working": working,
-                    "tree": tree2,
-                    "listeners": listeners2,
-                    "parser": parser2,
-                    "semantic_issues": issues,
-                    "parse_errors": remaining,
-                }
+                for _ in range(batch_removed):
+                    green.inc("sem_fixes")
 
             tree, listeners, parser = tree2, listeners2, parser2
             continue
@@ -369,6 +372,9 @@ def _run_semantic_phase_for_gui(
                 max_dist=2,
                 expected_name=name,
             )
+
+            if msg is None or corrected == working:
+                corrected, msg = fix_semantic_issue(working, first)
 
             if msg is None or corrected == working:
                 failed_issue_keys.add(cid)
@@ -403,6 +409,16 @@ def _run_semantic_phase_for_gui(
             continue
 
         corrected, msg = fix_semantic_issue(working, first)
+        if msg is None or corrected == working:
+            # Fall back to CodeT5 AI fixer for judgment kinds (undeclared, redeclared, unknown_member)
+            if first.get("kind") in ("undeclared", "redeclared", "unknown_member"):
+                try:
+                    from compiler.semantic_ai_fixer import get_semantic_ai_fixer
+                    ai_fixer = get_semantic_ai_fixer()
+                    corrected, msg = ai_fixer.fix_semantic_issue_ai(working, first, baseline_issues=issues)
+                except Exception:
+                    pass
+
         if msg is None or corrected == working:
             failed_issue_keys.add(cid)
             continue

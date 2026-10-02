@@ -166,6 +166,17 @@ def _safe_rename_identifier(source: str, start_line: int, old_name: str, new_nam
     return "".join(lines)
 
 
+STD_LIB_PROTOTYPES: Dict[str, str] = {
+    "system": "int system(char *command);",
+    "gets": "char *gets(char *str);",
+    "strcpy": "char *strcpy(char *dest, char *src);",
+    "malloc": "void *malloc(int size);",
+    "free": "void free(void *ptr);",
+    "puts": "int puts(char *s);",
+    "strlen": "int strlen(char *s);",
+}
+
+
 def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optional[str]]:
     """
     Main rule-based semantic auto-fixer.
@@ -251,30 +262,21 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
     # 3. Invalid Address-of ('&') and Dereference ('*')
     # -------------------------------------------------------------
     if kind == "invalid_address_of":
-        # Must target unary '&' at/around col, never binary '&' in 'a & b'
+        # col points directly at the unary '&' operator
         target_idx = max(0, col)
-        prefix = text[:target_idx]
-        suffix = text[target_idx:]
-        # Find the unary & in suffix or prefix
-        pos = suffix.find("&")
-        if pos != -1:
-            abs_pos = target_idx + pos
-            # Check unary: preceding char is not alphanumeric or ')'
-            before = text[:abs_pos].rstrip()
+        if target_idx < len(text) and text[target_idx] == '&':
+            before = text[:target_idx].rstrip()
             if not before or before[-1] in "=({[,+-\t ":
-                updated = text[:abs_pos] + text[abs_pos + 1:]
+                updated = text[:target_idx] + text[target_idx + 1:]
                 return _replace_line(source, line, text, updated, "removed invalid address-of operator")
 
     if kind == "invalid_dereference":
-        # Must target unary '*' at/around col, never binary '*' in 'a * b'
+        # col points directly at the unary '*' operator
         target_idx = max(0, col)
-        suffix = text[target_idx:]
-        pos = suffix.find("*")
-        if pos != -1:
-            abs_pos = target_idx + pos
-            before = text[:abs_pos].rstrip()
+        if target_idx < len(text) and text[target_idx] == '*':
+            before = text[:target_idx].rstrip()
             if not before or before[-1] in "=({[,+-\t ":
-                updated = text[:abs_pos] + text[abs_pos + 1:]
+                updated = text[:target_idx] + text[target_idx + 1:]
                 return _replace_line(source, line, text, updated, "removed invalid dereference operator")
 
     # -------------------------------------------------------------
@@ -549,5 +551,61 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
             updated = re.sub(rf"\b{re.escape(name)}\s*\[\s*\d+\s*\]", f"{name}[{new_size}]", text, count=1)
             if updated != text:
                 return _replace_line(source, line, text, updated, f"enlarged array '{name}' dimension to {new_size}")
+
+    # -------------------------------------------------------------
+    # 17. Undeclared Identifier (Rule-first: typo match <= 2, inferable auto-declare, known library, else SUGGESTED)
+    # -------------------------------------------------------------
+    if kind == "undeclared":
+        target_name = (issue.get("name") or "").strip()
+        # 1. Typo correction if close to stdlib or declared symbols
+        from compiler.identifier_corrector import fix_identifier_typo_at
+        typo_src, typo_msg = fix_identifier_typo_at(source, line, col, {}, max_dist=2, expected_name=target_name)
+        if typo_msg is not None and typo_src != source:
+            return typo_src, typo_msg
+
+        # 2. Known library function: inject standard forward prototype
+        if target_name in STD_LIB_PROTOTYPES:
+            proto = STD_LIB_PROTOTYPES[target_name]
+            if proto not in source:
+                return f"{proto}\n" + source, f"added forward declaration for library function '{target_name}'"
+
+        # 3. Auto-declaration only when type is clearly inferable from usage
+        if target_name:
+            # Direct assignment: target_name = <rhs>;
+            assign_pattern = rf"^(?P<indent>\s*){re.escape(target_name)}\s*=\s*(?P<rhs>[^;]+);(?P<rest>.*)$"
+            m_assign = re.match(assign_pattern, text)
+            if m_assign:
+                rhs = m_assign.group("rhs").strip()
+                inferred_type = None
+                if re.match(r"^[+-]?(?:0[xX][0-9a-fA-F]+|\d+)[uUlL]*$", rhs):
+                    inferred_type = "int"
+                elif re.match(r"^[+-]?(?:\d+\.\d*|\.\d+|\d+[eE][+-]?\d+)[fFlL]?$", rhs):
+                    inferred_type = "float" if rhs.endswith(("f", "F")) else "double"
+                elif re.match(r"^'(\\.|[^\\'])'$", rhs):
+                    inferred_type = "char"
+                elif re.match(r'^"([^"\\]|\\.)*"$', rhs):
+                    inferred_type = "char*"
+
+                if inferred_type:
+                    indent = m_assign.group("indent")
+                    rest = m_assign.group("rest")
+                    ending = "\n" if text.endswith("\n") else ""
+                    if inferred_type == "char*":
+                        updated = f"{indent}char *{target_name} = {rhs};{rest}{ending}"
+                    else:
+                        updated = f"{indent}{inferred_type} {target_name} = {rhs};{rest}{ending}"
+                    return _replace_line(source, line, text, updated, f"declared '{target_name}' as '{inferred_type}' inferred from assignment")
+
+            # For loop header: for (target_name = 0; ...)
+            for_pattern = rf"^(?P<before>.*?\bfor\s*\(\s*){re.escape(target_name)}\s*=\s*(?P<rhs>[^;]+);(?P<after>.*)$"
+            m_for = re.match(for_pattern, text)
+            if m_for:
+                rhs = m_for.group("rhs").strip()
+                if re.match(r"^[+-]?\d+$", rhs):
+                    updated = re.sub(rf"\bfor\s*\(\s*{re.escape(target_name)}\s*=", f"for (int {target_name} =", text, count=1)
+                    return _replace_line(source, line, text, updated, f"declared '{target_name}' as 'int' in for loop header")
+
+        # Ambiguous or non-inferable usage remains SUGGESTED / model
+        return source, None
 
     return source, None

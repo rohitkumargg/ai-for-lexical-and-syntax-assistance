@@ -800,3 +800,65 @@ def test_invalid_operand_type_shift_float_returns_none_suggested_2():
     fixed, msg = fix_semantic_issue(src, issue)
     assert msg is None
     assert fixed == src
+
+
+# =====================================================================
+# 17. undeclared (Rule-first: typo match <= 2, inferable auto-declare, else SUGGESTED)
+# =====================================================================
+def test_undeclared_positive_1_infer_int():
+    src = "int main() {\n    x = 42;\n    return x;\n}\n"
+    issue = {"kind": "undeclared", "name": "x", "line": 2, "col": 4, "msg": "Undeclared identifier 'x'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "int x = 42;" in fixed
+
+
+def test_undeclared_positive_2_infer_double():
+    src = "int main() {\n    pi = 3.14159;\n    return 0;\n}\n"
+    issue = {"kind": "undeclared", "name": "pi", "line": 2, "col": 4, "msg": "Undeclared identifier 'pi'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "double pi = 3.14159;" in fixed
+
+
+def test_undeclared_positive_3_typo_printf():
+    src = "int main() {\n    prinft(\"Hello\\n\");\n    return 0;\n}\n"
+    issue = {"kind": "undeclared", "name": "prinft", "line": 2, "col": 4, "msg": "Undeclared identifier 'prinft'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "printf(\"Hello\\n\");" in fixed
+
+
+def test_undeclared_positive_4_for_loop():
+    src = "int main() {\n    for (i = 0; i < 10; i++) {}\n    return 0;\n}\n"
+    issue = {"kind": "undeclared", "name": "i", "line": 2, "col": 9, "msg": "Undeclared identifier 'i'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "for (int i = 0;" in fixed
+
+
+def test_undeclared_negative_1_ambiguous_rhs():
+    src = "int main() {\n    x = y + z;\n    return 0;\n}\n"
+    issue = {"kind": "undeclared", "name": "x", "line": 2, "col": 4, "msg": "Undeclared identifier 'x'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is None
+    assert fixed == src
+
+
+def test_undeclared_negative_2_operand_usage():
+    src = "int main() {\n    return unknown_var;\n}\n"
+    issue = {"kind": "undeclared", "name": "unknown_var", "line": 2, "col": 11, "msg": "Undeclared identifier 'unknown_var'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is None
+    assert fixed == src
+
+
+def test_undeclared_idempotency():
+    src = "int main() {\n    x = 42;\n    return 0;\n}\n"
+    issue = {"kind": "undeclared", "name": "x", "line": 2, "col": 4, "msg": "Undeclared identifier 'x'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    # Running fix on the already declared result
+    fixed2, msg2 = fix_semantic_issue(fixed, issue)
+    assert fixed2 == fixed
+

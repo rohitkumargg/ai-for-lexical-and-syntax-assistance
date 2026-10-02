@@ -1,0 +1,13 @@
+{
+  "base_model": "Salesforce/codet5-base",
+  "epochs": 3,
+  "batch_size": 8,
+  "lr": 0.0003,
+  "train_samples": 180,
+  "target_kinds": [
+    "undeclared",
+    "redeclared",
+    "unknown_member"
+  ],
+  "target_format": "LINE <L>: <repaired_line>"
+}
