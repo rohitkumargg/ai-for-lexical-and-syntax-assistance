@@ -17,6 +17,10 @@ from compiler.string_flow_checker import StringFlowChecker
 from compiler.unused_var_fixer import remove_unused_decl_at
 from compiler.semantic_auto_fixer import fix_semantic_issue
 from compiler.security_auto_fixer import SecurityAutoFixer
+from compiler.pipeline_safety import (
+    apply_security_fixes_with_safety_guard,
+    collect_semantic_issues,
+)
 from compiler.green_energy import GreenEnergyTracker
 from compiler.green_system import GreenSystemTracker
 
@@ -166,7 +170,8 @@ def _collect_security_issues(source_text: str) -> List[str]:
         issues.append(f"[{issue.severity}] {issue.message} (score={issue.score})")
 
     for issue in taint_checker.check(source_text):
-        issues.append(f"[{issue.severity}] {issue.message} (score={issue.score})")
+        sugg = f" | Suggested safer pattern: {issue.suggestion}" if getattr(issue, "suggestion", None) else ""
+        issues.append(f"[{issue.severity}] {issue.message}{sugg} (score={issue.score})")
 
     for issue in string_checker.check(source_text):
         issues.append(f"[{issue.severity}] {issue.message} (score={issue.score})")
@@ -174,33 +179,7 @@ def _collect_security_issues(source_text: str) -> List[str]:
     return issues
 
 
-def _collect_semantic_issues(tree) -> List[Dict[str, Any]]:
-    checker = SemanticChecker()
-    checker.visit(tree)
-    issues = list(checker.get_issues())
-
-    try:
-        symbols = build_symbols(tree)
-        from compiler.undeclared_identifier_checker import UndeclaredIdentifierChecker
-        u_checker = UndeclaredIdentifierChecker(symbols, require_decl_before_use=True)
-        u_checker.visit(tree)
-        u_issues = u_checker.get_issues()
-
-        # If an 'undeclared' issue is actually a 'use_before_declare', refine the kind
-        ubd_by_var = {
-            (ui.get("name"), ui.get("line")): ui
-            for ui in u_issues
-            if ui.get("kind") == "use_before_declare"
-        }
-        for iss in issues:
-            k = (iss.get("name"), iss.get("line"))
-            if iss.get("kind") == "undeclared" and k in ubd_by_var:
-                iss["kind"] = "use_before_declare"
-                iss["msg"] = f"Variable '{iss.get('name')}' used before declaration"
-    except Exception:
-        pass
-
-    return issues
+_collect_semantic_issues = collect_semantic_issues
 
 
 def _status_from_security(security_warnings: List[str]) -> str:
@@ -534,6 +513,7 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", ena
         "ai_fixes": 0,
         "sym_fixes": 0,
         "sem_fixes": 0,
+        "sec_det_fixes": 0,
         "iterations": 0,
     }
 
@@ -806,6 +786,7 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", ena
         + final_result["stats"].get("ai_fixes", 0)
         + final_result["stats"].get("sym_fixes", 0)
         + final_result["stats"].get("sem_fixes", 0)
+        + final_result["stats"].get("sec_det_fixes", 0)
     )
     yield final_result
 
@@ -833,6 +814,7 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
         "ai_fixes": 0,
         "sym_fixes": 0,
         "sem_fixes": 0,
+        "sec_det_fixes": 0,
         "iterations": 0,
     }
 
@@ -1192,14 +1174,23 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
 
             green.start("security_phase")
             security_warnings = _collect_security_issues(working)
+            sem_before_sec = _collect_semantic_issues(tree) if tree is not None else []
+            undecl_before_sec = {str(iss.get("name") or "") for iss in sem_before_sec if iss.get("kind") == "undeclared"}
 
             if security_warnings:
                 logs.append(f"Security issues detected: {len(security_warnings)}")
-                logs.append("Invoking SecurityAutoFixer for GUI parity with CLI.")
+                logs.append("Invoking SecurityAutoFixer with pipeline safety guard.")
 
                 try:
                     auto_fixer = SecurityAutoFixer()
-                    fix_result = auto_fixer.apply_fixes(working)
+                    fix_result = apply_security_fixes_with_safety_guard(
+                        working, filename=filename, auto_fixer=auto_fixer
+                    )
+
+                    if fix_result.suggestions:
+                        for s in fix_result.suggestions:
+                            logs.append(f"Security suggestion: {s}")
+                        result.setdefault("security_suggestions", []).extend(fix_result.suggestions)
 
                     if fix_result.source != working:
                         changed_now = _compute_changed_lines(working, fix_result.source)
@@ -1210,9 +1201,13 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
                             logs.append(f"Applied security fix: {step}")
 
                         ai_sec_count = sum(1 for s in fix_result.applied_steps if s.startswith("AISEC:"))
+                        det_sec_count = len(fix_result.applied_steps) - ai_sec_count
                         stats["ai_fixes"] += ai_sec_count
+                        stats["sec_det_fixes"] = stats.get("sec_det_fixes", 0) + det_sec_count
                         if ai_sec_count > 0:
                             green.inc("ai_fixes", ai_sec_count)
+                        if det_sec_count > 0:
+                            green.inc("sec_det_fixes", det_sec_count)
 
                         working = fix_result.source
                         security_rounds += 1
@@ -1244,11 +1239,17 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
                         green.end("security_phase")
                         continue
 
-                    logs.append("SecurityAutoFixer produced no code change.")
+                    logs.append("SecurityAutoFixer produced no accepted code change.")
                 except Exception as e:
                     logs.append(f"Security auto-fix failed: {str(e)}")
 
             green.end("security_phase")
+
+            sem_after_sec = _collect_semantic_issues(tree) if tree is not None else []
+            undecl_after_sec = {str(iss.get("name") or "") for iss in sem_after_sec if iss.get("kind") == "undeclared"}
+            sec_introduced_names = undecl_after_sec - undecl_before_sec
+            result["sec_undeclared_introduced"] = len(sec_introduced_names)
+            result["sec_introduced_names"] = list(sec_introduced_names)
 
             if semantic_issues:
                 result["status"] = "SEM_ISSUES"
@@ -1268,8 +1269,12 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
 
         result["semantic_issues"] = semantic_issues
         result["security_warnings"] = security_warnings
+        result["security_suggestions"] = result.get("security_suggestions", [])
+        result["suggestions"] = result.get("security_suggestions", [])
+        result["sec_undeclared_introduced"] = result.get("sec_undeclared_introduced", 0)
 
     else:
+        result["sec_undeclared_introduced"] = 0
         result["semantic_issues"] = []
         result["security_warnings"] = _collect_security_issues(working)
         result["success"] = False

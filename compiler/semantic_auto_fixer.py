@@ -558,8 +558,21 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
     if kind == "undeclared":
         target_name = (issue.get("name") or "").strip()
         # 1. Typo correction if close to stdlib or declared symbols
+        symbols = dict(issue.get("symbols") or {})
+        if not symbols:
+            from compiler.security_auto_fixer import _split_lines, _code_mask, _function_spans
+            _lines, _ = _split_lines(source)
+            _mask = _code_mask(_lines)
+            _spans = _function_spans(_lines, _mask)
+            _idx = line - 1
+            _span = next((s for s in _spans if s.open_idx <= _idx <= s.end_idx), None)
+            if _span:
+                for k in range(_span.open_idx, _span.end_idx + 1):
+                    for dm in re.finditer(r'\b(?:char|int|float|double|short|long|unsigned|signed|void)\b[^;()]*\b([A-Za-z_]\w*)\b', _lines[k]):
+                        symbols[dm.group(1)] = {"type": "local", "line": k + 1}
+
         from compiler.identifier_corrector import fix_identifier_typo_at
-        typo_src, typo_msg = fix_identifier_typo_at(source, line, col, {}, max_dist=2, expected_name=target_name)
+        typo_src, typo_msg = fix_identifier_typo_at(source, line, col, symbols, max_dist=2, expected_name=target_name)
         if typo_msg is not None and typo_src != source:
             return typo_src, typo_msg
 
@@ -569,7 +582,61 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
             if proto not in source:
                 return f"{proto}\n" + source, f"added forward declaration for library function '{target_name}'"
 
-        # 3. Auto-declaration only when type is clearly inferable from usage
+        # 3. Undeclared buffer argument rule (gets/fgets/scanf("%s")/strcpy/strcat/sprintf)
+        is_buf_arg = False
+        m_scanf = None
+        if target_name:
+            m_gets = re.search(r'\bgets\s*\(\s*' + re.escape(target_name) + r'\s*\)', text)
+            m_fgets = re.search(r'\bfgets\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            m_scanf = re.search(r'\bscanf\s*\(\s*"(%\d*[dsx])"\s*,\s*' + re.escape(target_name) + r'\s*\)', text)
+            m_strcpy = re.search(r'\bstrcpy\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            m_strcat = re.search(r'\bstrcat\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            m_sprintf = re.search(r'\bsprintf\s*\(\s*' + re.escape(target_name) + r'\s*,', text)
+            is_buf_arg = bool(m_gets or m_fgets or m_scanf or m_strcpy or m_strcat or m_sprintf)
+
+        if is_buf_arg:
+            from compiler.security_auto_fixer import _split_lines, _code_mask, _function_spans
+            lines, _ = _split_lines(source)
+            mask = _code_mask(lines)
+            spans = _function_spans(lines, mask)
+            idx = line - 1
+            span = next((s for s in spans if s.open_idx <= idx <= s.end_idx), None)
+            if span:
+                char_arrays: List[Tuple[str, int]] = []
+                for k in range(span.open_idx, span.end_idx + 1):
+                    for cm in re.finditer(r'\b(?:char)\s+([A-Za-z_]\w*)\s*\[\s*(\d+)\s*\]', lines[k]):
+                        if mask[k][cm.start()]:
+                            char_arrays.append((cm.group(1), int(cm.group(2))))
+
+                if len(char_arrays) == 1:
+                    c_name, c_size = char_arrays[0]
+                    updated_line = text
+                    if m_scanf:
+                        fmt_spec = m_scanf.group(1)
+                        if fmt_spec.endswith("s") and c_size >= 2:
+                            new_fmt = f"%{c_size - 1}s"
+                        else:
+                            new_fmt = fmt_spec
+                        old_call = m_scanf.group(0)
+                        new_call = f'scanf("{new_fmt}", {c_name})'
+                        updated_line = updated_line.replace(old_call, new_call, 1)
+                    else:
+                        updated_line = re.sub(r'\b' + re.escape(target_name) + r'\b', c_name, updated_line, count=1)
+
+                    if updated_line != text:
+                        return _replace_line(
+                            source, line, text, updated_line,
+                            f"replaced undeclared buffer '{target_name}' with local array '{c_name}'"
+                        )
+                elif len(char_arrays) == 0:
+                    issue["suggestion"] = f"undeclared buffer '{target_name}' in buffer API: no char[] found in enclosing function"
+                    return source, None
+                else:
+                    candidates_str = ", ".join(f"'{name}'[{sz}]" for name, sz in char_arrays)
+                    issue["suggestion"] = f"undeclared buffer '{target_name}' in buffer API: multiple char[] candidates ({candidates_str})"
+                    return source, None
+
+        # 4. Auto-declaration only when type is clearly inferable from usage
         if target_name:
             # Direct assignment: target_name = <rhs>;
             assign_pattern = rf"^(?P<indent>\s*){re.escape(target_name)}\s*=\s*(?P<rhs>[^;]+);(?P<rest>.*)$"

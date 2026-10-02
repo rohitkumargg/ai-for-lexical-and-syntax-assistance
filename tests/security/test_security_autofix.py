@@ -253,5 +253,102 @@ class TestSystemSuggestion(unittest.TestCase):
         self.assertTrue(any("TAINTED_POPEN" in s for s in r.suggestions))
 
 
+    def test_unique_char_array_substituted_gets(self):
+        src = ("int helper(int arr[], int n) {\n    return arr[0];\n}\n\n"
+               "int vuln() {\n    char cmd[100];\n    gets(arr);\n    return 0;\n}\n")
+        r = fix(src)
+        self.assertIn("cmd", r.source)
+        self.assertNotIn("arr", r.source.split("int vuln")[1])
+
+    def test_unique_char_array_substituted_strcpy(self):
+        src = ("int helper(int arr[], int n) {\n    return arr[0];\n}\n\n"
+               "int vuln() {\n    char cmd[100];\n    strcpy(arr, \"test\");\n    return 0;\n}\n")
+        r = fix(src)
+        self.assertNotIn("arr", r.source.split("int vuln")[1])
+        self.assertIn("cmd", r.source)
+
+
+class TestSemanticUndeclaredBufferRule(unittest.TestCase):
+    """Semantic repair rule for undeclared buffer arguments."""
+
+    def test_two_char_arrays_suggested(self):
+        from compiler.semantic_auto_fixer import fix_semantic_issue
+        src = ("int main() {\n"
+               "    char a[10];\n"
+               "    char b[20];\n"
+               "    gets(unknown_buf);\n"
+               "    return 0;\n"
+               "}\n")
+        issue = {"kind": "undeclared", "name": "unknown_buf", "line": 4, "col": 10}
+        new_src, msg = fix_semantic_issue(src, issue)
+        self.assertEqual(new_src, src)
+        self.assertIsNone(msg)
+        self.assertIn("suggestion", issue)
+        self.assertIn("multiple", issue["suggestion"])
+
+    def test_typo_wins_over_buffer_fallback(self):
+        from compiler.semantic_auto_fixer import fix_semantic_issue
+        src = ("int main() {\n"
+               "    char buffer[32];\n"
+               "    gets(buffr);\n"
+               "    return 0;\n"
+               "}\n")
+        issue = {"kind": "undeclared", "name": "buffr", "line": 3, "col": 10}
+        new_src, msg = fix_semantic_issue(src, issue)
+        self.assertIn("gets(buffer);", new_src)
+        self.assertIn("typo", msg.lower())
+
+    def test_single_char_array_replaced(self):
+        from compiler.semantic_auto_fixer import fix_semantic_issue
+        src = ("int main() {\n"
+               "    char local_buf[64];\n"
+               "    gets(unknown_buf);\n"
+               "    return 0;\n"
+               "}\n")
+        issue = {"kind": "undeclared", "name": "unknown_buf", "line": 3, "col": 10}
+        new_src, msg = fix_semantic_issue(src, issue)
+        self.assertIn("gets(local_buf);", new_src)
+        self.assertIn("replaced undeclared buffer", msg)
+
+
+class TestPipelineSafetyGuard(unittest.TestCase):
+    """Pipeline safety guard: accept only if clean parse & no new semantic issues."""
+
+    def test_accepts_safe_fix(self):
+        from compiler.pipeline_safety import apply_security_fixes_with_safety_guard
+        src = ("int main() {\n"
+               "    char buf[32];\n"
+               "    gets(buf);\n"
+               "    return 0;\n"
+               "}\n")
+        res = apply_security_fixes_with_safety_guard(src)
+        self.assertIn("fgets(buf, sizeof(buf), stdin);", res.source)
+        self.assertEqual(len(res.applied_steps), 1)
+
+    def test_rolls_back_if_undeclared_introduced(self):
+        from compiler.pipeline_safety import apply_security_fixes_with_safety_guard
+        from compiler.security_auto_fixer import AutoFixResult
+        # Create a mock fixer that attempts to inject an undeclared identifier
+        class CorruptingFixer:
+            def apply_fixes(self, s):
+                bad_src = s.replace("gets(buf);", 'snprintf(ghost_var, sizeof(ghost_var), "%s", ghost_var);')
+                return AutoFixResult(
+                    source=bad_src,
+                    applied_steps=["AISEC: line 3: corrupt fix"],
+                    suggestions=[]
+                )
+
+        src = ("int main() {\n"
+               "    char buf[32];\n"
+               "    gets(buf);\n"
+               "    return 0;\n"
+               "}\n")
+        res = apply_security_fixes_with_safety_guard(src, auto_fixer=CorruptingFixer())
+        # The safety guard must reject the fix and roll back to original line!
+        self.assertEqual(res.source, src)
+        self.assertEqual(len(res.applied_steps), 0)
+        self.assertTrue(any("rejected" in s and "ghost_var" in s for s in res.suggestions))
+
+
 if __name__ == "__main__":
     unittest.main()

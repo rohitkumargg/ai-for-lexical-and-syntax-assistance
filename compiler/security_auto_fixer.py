@@ -283,11 +283,45 @@ class SecurityAutoFixer:
         for idx in range(len(lines)):
             line = lines[idx]
             lineno = idx + 1
-            m = self._CORRUPTED_SCANF_RE.search(line)
-            if m is None or not mask[idx][m.start()]:
+
+            m_scanf = self._CORRUPTED_SCANF_RE.search(line)
+            m_gets = re.search(r'\bgets\s*\(\s*([A-Za-z_]\w*)\s*\)', line)
+            m_fgets = re.search(r'\bfgets\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+            m_strcpy = re.search(r'\bstrcpy\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+            m_strcat = re.search(r'\bstrcat\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+            m_sprintf = re.search(r'\bsprintf\s*\(\s*([A-Za-z_]\w*)\s*,', line)
+
+            match = None
+            api = ""
+            buf_name = ""
+            if m_scanf and mask[idx][m_scanf.start()]:
+                match = m_scanf
+                api = "scanf"
+                buf_name = m_scanf.group(2)
+            elif m_gets and mask[idx][m_gets.start()]:
+                match = m_gets
+                api = "gets"
+                buf_name = m_gets.group(1)
+            elif m_fgets and mask[idx][m_fgets.start()]:
+                match = m_fgets
+                api = "fgets"
+                buf_name = m_fgets.group(1)
+            elif m_strcpy and mask[idx][m_strcpy.start()]:
+                match = m_strcpy
+                api = "strcpy"
+                buf_name = m_strcpy.group(1)
+            elif m_strcat and mask[idx][m_strcat.start()]:
+                match = m_strcat
+                api = "strcat"
+                buf_name = m_strcat.group(1)
+            elif m_sprintf and mask[idx][m_sprintf.start()]:
+                match = m_sprintf
+                api = "sprintf"
+                buf_name = m_sprintf.group(1)
+
+            if not match or not buf_name:
                 continue
 
-            buf_name = m.group(2)
             # Is buf_name declared in this function?
             span = next(
                 (s for s in spans if s.open_idx <= idx <= s.end_idx), None
@@ -326,28 +360,33 @@ class SecurityAutoFixer:
 
             if len(char_arrays) == 1:
                 correct_name, correct_size = char_arrays[0]
-                fmt_spec = m.group(1)
-                # Rewrite the format spec width to match the correct buffer
-                if fmt_spec.endswith("s") and correct_size >= 2:
-                    new_fmt = f"%{correct_size - 1}s"
+                if api == "scanf" and m_scanf:
+                    fmt_spec = m_scanf.group(1)
+                    # Rewrite the format spec width to match the correct buffer
+                    if fmt_spec.endswith("s") and correct_size >= 2:
+                        new_fmt = f"%{correct_size - 1}s"
+                    else:
+                        new_fmt = fmt_spec
+                    new_call = f'scanf("{new_fmt}", {correct_name})'
+                    new_line = line[:match.start()] + new_call + line[match.end():]
                 else:
-                    new_fmt = fmt_spec
-                new_call = f'scanf("{new_fmt}", {correct_name})'
-                new_line = line[:m.start()] + new_call + line[m.end():]
+                    call_fragment = line[match.start():match.end()]
+                    updated_fragment = re.sub(r'\b' + re.escape(buf_name) + r'\b', correct_name, call_fragment, count=1)
+                    new_line = line[:match.start()] + updated_fragment + line[match.end():]
                 lines[idx] = new_line
                 steps.append(
                     f"REPAIR: line {lineno}: fixed corrupted buffer ref "
-                    f"'{buf_name}' -> '{correct_name}' in scanf"
+                    f"'{buf_name}' -> '{correct_name}' in {api}"
                 )
             elif len(char_arrays) == 0:
                 suggestions.append(
-                    f"line {lineno}: scanf uses undeclared buffer '{buf_name}' "
+                    f"line {lineno}: {api} uses undeclared buffer '{buf_name}' "
                     f"— no char[] found in enclosing function; fix manually"
                 )
             else:
                 names = ", ".join(n for n, _ in char_arrays)
                 suggestions.append(
-                    f"line {lineno}: scanf uses undeclared buffer '{buf_name}' "
+                    f"line {lineno}: {api} uses undeclared buffer '{buf_name}' "
                     f"— multiple char[] candidates ({names}); fix manually"
                 )
 

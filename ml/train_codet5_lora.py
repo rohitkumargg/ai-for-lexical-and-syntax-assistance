@@ -6,8 +6,8 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import (
     AutoTokenizer,
     AutoModelForSeq2SeqLM,
-    AdamW,
 )
+from torch.optim import AdamW
 
 from peft import LoraConfig, get_peft_model
 
@@ -68,7 +68,7 @@ def load_model():
     lora_config = LoraConfig(
         r=16,
         lora_alpha=32,
-        target_modules=["q", "v"],
+        target_modules=["q", "k", "v", "o"],
         lora_dropout=0.05,
         bias="none",
         task_type="SEQ_2_SEQ_LM",

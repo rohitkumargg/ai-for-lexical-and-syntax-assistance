@@ -5,13 +5,15 @@
     "success": false,
     "parse_errors": 64,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 0,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 0,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.345
+    "runtime_s": 0.467
   },
   {
     "file": "ademo2.c",
@@ -19,13 +21,15 @@
     "success": false,
     "parse_errors": 89,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 0,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 0,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.537
+    "runtime_s": 0.391
   },
   {
     "file": "ademo3mix.c",
@@ -33,13 +37,15 @@
     "success": false,
     "parse_errors": 20,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 3,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 0,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 2,
-    "runtime_s": 0.256
+    "runtime_s": 0.251
   },
   {
     "file": "arena_500line_final_80_errors.c",
@@ -47,168 +53,68 @@
     "success": true,
     "parse_errors": 0,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 0,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 0,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 65,
-    "runtime_s": 26.108
+    "runtime_s": 27.923
   },
   {
     "file": "asecuritydemo.c",
     "status": "SEM_ISSUES",
     "success": true,
     "parse_errors": 0,
-    "semantic_issues_total": 28,
-    "undeclared_introduced": 28,
-    "undeclared_details": [
-      [
-        "arr",
-        40,
-        18
-      ],
-      [
-        "arr",
-        46,
-        18
-      ],
-      [
-        "arr",
-        66,
-        18
-      ],
-      [
-        "arr",
-        72,
-        18
-      ],
-      [
-        "arr",
-        77,
-        18
-      ],
-      [
-        "arr",
-        89,
-        18
-      ],
-      [
-        "arr",
-        94,
-        18
-      ],
-      [
-        "arr",
-        99,
-        18
-      ],
-      [
-        "arr",
-        104,
-        18
-      ],
-      [
-        "arr",
-        105,
-        18
-      ],
-      [
-        "arr",
-        118,
-        18
-      ],
-      [
-        "arr",
-        119,
-        18
-      ],
-      [
-        "arr",
-        124,
-        18
-      ],
-      [
-        "arr",
-        125,
-        18
-      ],
-      [
-        "arr",
-        137,
-        18
-      ],
-      [
-        "arr",
-        138,
-        18
-      ],
-      [
-        "arr",
-        143,
-        18
-      ],
-      [
-        "arr",
-        148,
-        18
-      ],
-      [
-        "arr",
-        149,
-        18
-      ],
-      [
-        "arr",
-        162,
-        18
-      ],
-      [
-        "arr",
-        163,
-        18
-      ],
-      [
-        "arr",
-        248,
-        18
-      ],
-      [
-        "arr",
-        249,
-        18
-      ],
-      [
-        "arr",
-        254,
-        18
-      ],
-      [
-        "arr",
-        259,
-        18
-      ],
-      [
-        "arr",
-        272,
-        18
-      ],
-      [
-        "arr",
-        284,
-        18
-      ],
-      [
-        "arr",
-        289,
-        18
-      ]
-    ],
+    "semantic_issues_total": 25,
+    "initial_undeclared": 49,
+    "final_undeclared": 25,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 12,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 2,
-    "total_steps": 13,
-    "runtime_s": 4.734
+    "security_suggestions": [
+      "line 73: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 78: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 90: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 95: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 100: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 105: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 106: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 119: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 120: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 125: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 126: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 138: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 139: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 144: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 149: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 150: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 163: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 164: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 249: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 250: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 255: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 260: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 273: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 285: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 290: scanf uses undeclared buffer 'arr' \u2014 no char[] found in enclosing function; fix manually",
+      "line 1: TAINTED_SYSTEM: system(char) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 35: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 54: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 61: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 85: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 114: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 133: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 158: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 229: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 268: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 280: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely"
+    ],
+    "suggestions_count": 36,
+    "total_steps": 16,
+    "runtime_s": 11.422
   },
   {
     "file": "mixed_errors_1.c",
@@ -216,13 +122,15 @@
     "success": false,
     "parse_errors": 0,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 1,
     "security_fixes_applied": 1,
-    "semantic_fixes_applied": 1,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 3,
-    "runtime_s": 0.129
+    "runtime_s": 0.134
   },
   {
     "file": "mixed_errors_2.c",
@@ -230,13 +138,20 @@
     "success": false,
     "parse_errors": 0,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 3,
     "security_fixes_applied": 1,
-    "semantic_fixes_applied": 1,
+    "security_suggestions": [
+      "line 1: TAINTED_SYSTEM: system(char) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 5: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 1: TAINTED_SYSTEM: system(char) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely",
+      "line 5: TAINTED_SYSTEM: system(cmd) uses a variable as command \u2014 consider a whitelist, validated enum dispatch, or removing the system() call entirely"
+    ],
+    "suggestions_count": 4,
     "total_steps": 3,
-    "runtime_s": 0.118
+    "runtime_s": 0.126
   },
   {
     "file": "prof_demo_pack_safe_massfix.c",
@@ -244,12 +159,14 @@
     "success": true,
     "parse_errors": 0,
     "semantic_issues_total": 0,
-    "undeclared_introduced": 0,
-    "undeclared_details": [],
+    "initial_undeclared": 0,
+    "final_undeclared": 0,
+    "undeclared_introduced_by_security": 0,
     "security_warnings": 0,
     "security_fixes_applied": 0,
-    "semantic_fixes_applied": 0,
+    "security_suggestions": [],
+    "suggestions_count": 0,
     "total_steps": 75,
-    "runtime_s": 33.049
+    "runtime_s": 33.972
   }
 ]

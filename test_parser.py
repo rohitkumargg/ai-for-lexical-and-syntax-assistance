@@ -372,7 +372,15 @@ def run_security_checks(source_text: str):
     # Try safe auto-fixes even for blocked cases first.
     # If the fixer changes the source, allow the pipeline to continue
     # with the repaired version. If nothing safe can be done, keep blocked.
-    fix_result = auto_fixer.apply_fixes(source_text)
+    from compiler.pipeline_safety import apply_security_fixes_with_safety_guard
+    fix_result = apply_security_fixes_with_safety_guard(source_text, auto_fixer=auto_fixer)
+
+    if fix_result.suggestions:
+        print("\nSECURITY SUGGESTIONS:")
+        print("-" * 50)
+        for s in fix_result.suggestions:
+            print(f"  - {s}")
+        print("-" * 50)
 
     if fix_result.source != source_text:
         if blocked:
