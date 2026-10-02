@@ -284,57 +284,9 @@ def _run_semantic_phase_for_gui(
         kind = first.get("kind")
 
         if kind == "unused":
-            # Treat all non-conflicting unused removals in one pass as a single batch step
-            unused_to_remove = []
-            for candidate in issues:
-                if candidate.get("kind") != "unused":
-                    continue
-                # Guard: do not remove an unused variable declaration if that variable or line
-                # has other unresolved semantic issues (masking prevention)
-                has_conflicting_issue = any(
-                    other is not candidate
-                    and other.get("kind") != "unused"
-                    and (
-                        other.get("line") == candidate.get("line")
-                        or (candidate.get("name") and other.get("name") == candidate.get("name"))
-                    )
-                    for other in issues
-                )
-                if not has_conflicting_issue:
-                    unused_to_remove.append(candidate)
-
-            # Sort descending by line so removals from the bottom do not invalidate line offsets
-            unused_to_remove.sort(key=lambda x: int(x.get("line", 0) or 0), reverse=True)
-
-            batch_working = working
-            batch_removed = 0
-            for u_iss in unused_to_remove:
-                c_working, c_msg = _try_remove_unused_decl(batch_working, u_iss)
-                if c_msg is not None and c_working != batch_working:
-                    batch_working = c_working
-                    batch_removed += 1
-
-            if batch_removed == 0:
-                failed_issue_keys.add(cid)
-                continue
-
-            tree2, listeners2, parser2 = parse_source(batch_working, f"{filename} (unused-batch-removed)")
-            if tree2 is None or has_any_errors(listeners2):
-                failed_issue_keys.add(cid)
-                continue
-
-            working = batch_working
-            failed_issue_keys.clear()
-            steps.append(f"SEM: batch removed {batch_removed} unused declarations")
-            logs.append(f"Applied batch unused removals: {batch_removed} variables")
-            stats["sem_fixes"] = stats.get("sem_fixes", 0) + batch_removed
-            sem_edits += 1  # Count as single batch step against the edit cap
-
-            if green is not None:
-                for _ in range(batch_removed):
-                    green.inc("sem_fixes")
-
-            tree, listeners, parser = tree2, listeners2, parser2
+            # User requirement: if any variable is not being used, do not remove it.
+            # Unused variables are warnings, not errors to be deleted from user code.
+            failed_issue_keys.add(cid)
             continue
 
         if kind == "undeclared":
