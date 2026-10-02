@@ -194,11 +194,58 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
     text = lines[index]
 
     # -------------------------------------------------------------
-    # 1. Type Mismatches & Lossless Casts
+    # 1. Type Mismatches & Lossless Casts / Explicit Narrowing / Scalar-to-Pointer
     # -------------------------------------------------------------
     if kind in {"type_mismatch", "pointer_type_mismatch", "pointer_assignment_warning", "element_type_mismatch"}:
         expected = _expected_type(message)
         from_t = _source_type(message)
+
+        # 1A. Scalar-to-Pointer Assignment
+        # Example: int value = 7; int *pointer = value; -> int *pointer = &value;
+        # Only when RHS is a simple scalar identifier whose type matches LHS pointee type
+        if expected and from_t and expected.endswith("*") and not expected.endswith("**"):
+            pointee = expected[:-1].strip()
+            if from_t == pointee:
+                m_ptr = re.search(r"(?P<prefix>=\s*)(?P<rhs>[A-Za-z_]\w*)(?P<end>\s*;)", text)
+                if m_ptr:
+                    rhs_ident = m_ptr.group("rhs").strip()
+                    KEYWORD_EXCLUSIONS = {
+                        "sizeof", "NULL", "nullptr", "return", "true", "false",
+                        "default", "case", "if", "else", "switch", "while", "for"
+                    }
+                    if rhs_ident not in KEYWORD_EXCLUSIONS:
+                        prefix_text = text[:m_ptr.start("rhs")]
+                        if not prefix_text.rstrip().endswith("&"):
+                            updated = text[:m_ptr.start("rhs")] + f"&{rhs_ident}" + text[m_ptr.end("rhs"):]
+                            return _replace_line(source, line, text, updated, f"assigned address of '{rhs_ident}' to pointer")
+
+        # 1B. Explicit Narrowing Conversion (float/double -> integral)
+        # Example: double d = 10.5; int i = d; -> int i = (int)d;
+        # Example: float f = 5.5; short s = f; -> short s = (short)f;
+        INTEGRAL_TYPES = {
+            "char", "signed char", "unsigned char",
+            "short", "unsigned short",
+            "int", "unsigned int",
+            "long", "unsigned long",
+            "long long", "unsigned long long",
+        }
+        is_narrowing = (from_t in {"float", "double"} and expected in INTEGRAL_TYPES)
+
+        if is_narrowing:
+            match = re.search(r"(?P<prefix>=\s*)(?P<rhs>[^;]+)(?P<end>;)", text)
+            if match:
+                rhs_str = match.group("rhs").strip()
+                if not rhs_str.startswith(f"({expected})"):
+                    # Check RHS is a simple scalar expression (identifier, float literal, simple arithmetic)
+                    is_simple_scalar = bool(
+                        re.match(r"^[A-Za-z_]\w*$", rhs_str)
+                        or re.match(r"^[+-]?(?:\d+\.\d*|\.\d+|\d+[eE][+-]?\d+)[fFlL]?$", rhs_str)
+                        or re.match(r"^[A-Za-z_]\w*\s*[\+\-\*\/]\s*[A-Za-z_0-9\.]+$", rhs_str)
+                    )
+                    if is_simple_scalar:
+                        replacement = f"{match.group('prefix')}({expected}){rhs_str}{match.group('end')}"
+                        updated = text[:match.start()] + replacement + text[match.end():]
+                        return _replace_line(source, line, text, updated, f"explicit narrowing conversion from '{from_t}' to '{expected}'")
 
         # Enforce Lossless Casts Table: lossy conversions are SUGGESTED, not auto-fixed
         if expected and from_t and not is_lossless_cast(from_t, expected):
@@ -264,13 +311,34 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                 return _replace_line(source, line, text, updated, "removed invalid address-of operator")
 
     if kind == "invalid_dereference":
-        # col points directly at the unary '*' operator
-        target_idx = max(0, col)
-        if target_idx < len(text) and text[target_idx] == '*':
+        # col points to the unary '*' operator
+        target_idx = -1
+        if 0 <= col < len(text) and text[col] == '*':
+            target_idx = col
+        else:
+            # find unary * in text
+            for m in re.finditer(r"\*", text):
+                idx = m.start()
+                bef = text[:idx].rstrip()
+                if not bef or bef[-1] in "=({[,+-\t ":
+                    target_idx = idx
+                    break
+
+        if target_idx != -1:
             before = text[:target_idx].rstrip()
             if not before or before[-1] in "=({[,+-\t ":
-                updated = text[:target_idx] + text[target_idx + 1:]
-                return _replace_line(source, line, text, updated, "removed invalid dereference operator")
+                after_star = text[target_idx + 1:]
+                m_ident = re.match(r"^\s*(?P<ident>[A-Za-z_]\w*)\b", after_star)
+                if m_ident:
+                    ident = m_ident.group("ident")
+                    rest_after = after_star[m_ident.end():].lstrip()
+                    # Operand must be a simple scalar identifier (not a function call or array index)
+                    if not rest_after.startswith(("(", "[")):
+                        iss_name = (issue.get("name") or "").strip()
+                        if not iss_name or iss_name == ident:
+                            updated = text[:target_idx] + text[target_idx + 1:]
+                            return _replace_line(source, line, text, updated, f"removed invalid dereference '*' on scalar '{ident}'")
+        return source, None
 
     # -------------------------------------------------------------
     # 4. Return Type Mismatch
@@ -742,6 +810,37 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                     return _replace_line(source, line, text, updated, f"declared '{target_name}' as 'int' in for loop header")
 
         # Ambiguous or non-inferable usage remains SUGGESTED / model
+        return source, None
+
+    # -------------------------------------------------------------
+    # 18. Non-void function missing return (Detection & suggestion only)
+    # -------------------------------------------------------------
+    if kind == "missing_return":
+        fname = issue.get("name") or "function"
+        issue["suggestion"] = f"Non-void function '{fname}' does not return a value; consider adding a return statement"
+        return source, None
+
+    # -------------------------------------------------------------
+    # 19. Constant division by zero (Detection & suggestion only)
+    # -------------------------------------------------------------
+    if kind == "division_by_zero":
+        issue["suggestion"] = "Division or modulo by zero in constant expression; specify a non-zero denominator"
+        return source, None
+
+    # -------------------------------------------------------------
+    # 20. Uninitialized variable (Detection & suggestion only)
+    # -------------------------------------------------------------
+    if kind == "uninitialized_variable":
+        vname = issue.get("name") or "variable"
+        issue["suggestion"] = f"Variable '{vname}' may be uninitialized when used here; consider initializing before use"
+        return source, None
+
+    # -------------------------------------------------------------
+    # 21. Constant array out of bounds (Detection & suggestion only)
+    # -------------------------------------------------------------
+    if kind == "out_of_bounds":
+        aname = issue.get("name") or "array"
+        issue["suggestion"] = f"Array index is out of bounds for '{aname}'; check array dimension or subscript"
         return source, None
 
     return source, None

@@ -362,9 +362,33 @@ def _run_semantic_phase_for_gui(
         if candidate_tree is None or has_any_errors(candidate_listeners):
             failed_issue_keys.add(cid)
             continue
-        if len(_collect_semantic_issues(candidate_tree)) >= before_count:
+        candidate_issues = _collect_semantic_issues(candidate_tree)
+        # 5. Confirm the targeted issue disappeared
+        target_kind = first.get("kind")
+        target_line = first.get("line")
+        target_name = first.get("name")
+        target_still_present = any(
+            ci.get("kind") == target_kind
+            and (target_line is None or ci.get("line") == target_line)
+            and (not target_name or ci.get("name") == target_name)
+            for ci in candidate_issues
+        )
+        if target_still_present:
             failed_issue_keys.add(cid)
             continue
+
+        # 6. Confirm no new semantic issue kinds were introduced
+        old_kinds = {iss.get("kind") for iss in issues if iss.get("kind")}
+        new_kinds = {ci.get("kind") for ci in candidate_issues if ci.get("kind")}
+        if new_kinds - old_kinds:
+            failed_issue_keys.add(cid)
+            continue
+
+        # 7. Confirm total semantic issue count does not increase
+        if len(candidate_issues) >= before_count:
+            failed_issue_keys.add(cid)
+            continue
+
         failed_issue_keys.clear()
         working = corrected
         tree, listeners, parser = candidate_tree, candidate_listeners, candidate_parser

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from antlr4.tree.Tree import TerminalNodeImpl
@@ -34,6 +35,8 @@ class _DeclInfo:
     line: int
     col: int
     used: bool = False
+    initialized: bool = False
+    array_size: Optional[int] = None
 
 
 @dataclass
@@ -491,8 +494,20 @@ class SemanticChecker(_VISITOR_BASE):
                 base = self._infer_expr_type(ctx.primaryExpression())
                 for part in ctx.postfixPart():
                     txt = part.getText()
-                    if txt.startswith("[") and base and self._is_pointer_type(base):
-                        base = self._pointer_target(base)
+                    if txt.startswith("["):
+                        if base and self._is_pointer_type(base):
+                            base = self._pointer_target(base)
+                        primary = getattr(ctx, "primaryExpression", lambda: None)()
+                        if primary is not None:
+                            arr_name = primary.getText()
+                            arr_info = self._lookup(arr_name)
+                            if arr_info and arr_info.array_size is not None:
+                                expr_node = getattr(part, "expression", lambda: None)()
+                                if expr_node is not None:
+                                    idx_val = _get_int_constant_value(expr_node)
+                                    if idx_val is not None and (idx_val < 0 or idx_val >= arr_info.array_size):
+                                        line, col = _tok_line_col(part)
+                                        self._add_issue("out_of_bounds", arr_name, line, col, f"Array index '{idx_val}' is out of bounds for array '{arr_name}' of size {arr_info.array_size}", severity="warning")
                     elif txt.startswith(".") and not txt.startswith(".."):
                         m_ident = getattr(part, "IDENTIFIER", lambda: None)()
                         mname = m_ident.getText() if m_ident else txt[1:].strip()
@@ -576,7 +591,10 @@ class SemanticChecker(_VISITOR_BASE):
                     elif op == "*":
                         if not self._is_pointer_type(t):
                             line, col = _tok_line_col(op_node)
-                            self._add_issue("invalid_dereference", "", line, col, f"Cannot dereference non-pointer type '{t or '?'}'")
+                            operand_name = sub_ctx.getText() if sub_ctx is not None else ""
+                            if not re.match(r"^[A-Za-z_]\w*$", operand_name):
+                                operand_name = ""
+                            self._add_issue("invalid_dereference", operand_name, line, col, f"Cannot dereference non-pointer type '{t or '?'}'")
                             return None
                         return self._pointer_target(t)
                 return t
@@ -593,7 +611,15 @@ class SemanticChecker(_VISITOR_BASE):
                     return None
                 i = 2
                 while i < ctx.getChildCount():
-                    rhs = self._infer_expr_type(ctx.getChild(i))
+                    op_node = ctx.getChild(i - 1)
+                    op_txt = op_node.getText() if op_node is not None else ""
+                    rhs_node = ctx.getChild(i)
+                    if op_txt in {"/", "%"}:
+                        rhs_val = _get_int_constant_value(rhs_node)
+                        if rhs_val == 0:
+                            line, col = _tok_line_col(op_node)
+                            self._add_issue("division_by_zero", "", line, col, "Division or modulo by zero in constant expression", severity="warning")
+                    rhs = self._infer_expr_type(rhs_node)
                     if rhs is not None:
                         if self._is_pointer_type(t) or self._is_pointer_type(rhs):
                             # Pointer arithmetic is deliberately outside this
@@ -751,6 +777,10 @@ class SemanticChecker(_VISITOR_BASE):
                         line, col = _tok_line_col(rhs_ctx)
                         self._add_issue("invalid_operand_type", "", line, col, f"Operator '{op}' requires integral operands, got '{rhs_t}'")
                 elif op == "=":
+                    lhs_txt = lhs_ctx.getText()
+                    info = self._lookup(lhs_txt)
+                    if info:
+                        info.initialized = True
                     rhs_val = _get_int_constant_value(rhs_ctx)
                     if lhs_t and rhs_t and not self._can_assign(lhs_t, rhs_t, rhs_val=rhs_val):
                         line, col = _tok_line_col(op_ctx)
@@ -905,6 +935,11 @@ class SemanticChecker(_VISITOR_BASE):
             self.visit(pl)
 
         out = self.visit(ctx.block())
+        if rtype != "void" and fname != "main":
+            block_txt = ctx.block().getText() if ctx.block() is not None else ""
+            if "return" not in block_txt:
+                line, col = _tok_line_col(fname_node) if fname_node is not None else _tok_line_col(ctx)
+                self._add_issue("missing_return", fname or "", line, col, f"Non-void function '{fname}' does not return a value", severity="warning")
         self._emit_unused_for_scope(self._cur_scope())
         self._pop_scope()
 
@@ -927,7 +962,7 @@ class SemanticChecker(_VISITOR_BASE):
             return None
 
         depth = len(self._scopes) - 1
-        self._cur_scope()[name] = _DeclInfo(name=name, ctype=ctype, line=line, col=col, used=False)
+        self._cur_scope()[name] = _DeclInfo(name=name, ctype=ctype, line=line, col=col, used=False, initialized=True)
         self._decl_pos[(depth, name)] = (line, col)
         return None
 
@@ -1058,11 +1093,22 @@ class SemanticChecker(_VISITOR_BASE):
         if ctx.arraySuffix() is not None:
             suffix_depth += 1
         decl_type = _canonical_type(ctype + ("*" * suffix_depth))
-        self._cur_scope()[name] = _DeclInfo(name=name, ctype=decl_type, line=line, col=col, used=False)
+        decl_size = None
+        arr_suffix = getattr(ctx, "arraySuffix", lambda: None)()
+        if arr_suffix is not None:
+            try:
+                exprs = arr_suffix.expression()
+                if exprs:
+                    decl_size = _get_int_constant_value(exprs[0])
+            except Exception:
+                pass
+
+        init_node = getattr(ctx, "initializer", lambda: None)()
+        has_init = (init_node is not None)
+        self._cur_scope()[name] = _DeclInfo(name=name, ctype=decl_type, line=line, col=col, used=False, initialized=has_init, array_size=decl_size)
         self._decl_pos[(depth, name)] = (line, col)
 
         # initializer check (handles expression and array initializers)
-        init_node = getattr(ctx, "initializer", lambda: None)()
         if init_node is not None:
             if getattr(init_node, "LBRACE", lambda: None)() is not None:
                 elem_inits = getattr(init_node, "initializer", lambda: [])()
@@ -1383,6 +1429,28 @@ class SemanticChecker(_VISITOR_BASE):
 
         if decl.ctype != "func":
             decl.used = True
+            if depth > 0 and not decl.initialized and (decl.ctype in _INTEGRAL_TYPES or decl.ctype in {"float", "double"}):
+                curr = node
+                is_lhs_assign = False
+                is_address_of = False
+                while curr is not None:
+                    p = getattr(curr, "parentCtx", None)
+                    if p is not None:
+                        p_cls = p.__class__.__name__
+                        if p_cls == "AssignmentExpressionContext":
+                            if p.getChildCount() >= 2 and p.getChild(0) == curr:
+                                is_lhs_assign = True
+                            break
+                        elif p_cls == "UnaryExpressionContext":
+                            if p.getChildCount() == 2 and p.getChild(0).getText() == "&":
+                                is_address_of = True
+                                break
+                    curr = p
+                if is_address_of:
+                    decl.initialized = True
+                elif not is_lhs_assign:
+                    decl.initialized = True
+                    self._add_issue("uninitialized_variable", name, line, col, f"Variable '{name}' may be uninitialized when used here", severity="warning")
 
         return None
 

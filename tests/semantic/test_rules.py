@@ -29,17 +29,25 @@ def test_type_mismatch_positive_3_short_to_long():
     assert "(long)s;" in fixed
 
 
-def test_type_mismatch_negative_1_lossy_double_to_int():
+def test_type_mismatch_positive_narrowing_double_to_int():
     src = "int main() {\n    double d = 3.14;\n    int x = d;\n    return 0;\n}\n"
     issue = {"kind": "type_mismatch", "line": 3, "col": 8, "msg": "Cannot assign 'double' to 'int' for variable 'x'"}
     fixed, msg = fix_semantic_issue(src, issue)
-    assert msg is None
-    assert fixed == src
+    assert msg is not None
+    assert "(int)d;" in fixed
 
 
-def test_type_mismatch_negative_2_lossy_float_to_short():
+def test_type_mismatch_positive_narrowing_float_to_short():
     src = "int main() {\n    float f = 2.5;\n    short s = f;\n    return 0;\n}\n"
     issue = {"kind": "type_mismatch", "line": 3, "col": 10, "msg": "Cannot assign 'float' to 'short' for variable 's'"}
+    fixed, msg = fix_semantic_issue(src, issue)
+    assert msg is not None
+    assert "(short)f;" in fixed
+
+
+def test_type_mismatch_negative_pointer_to_int():
+    src = "int main() {\n    int *ptr = 0;\n    int x = ptr;\n    return 0;\n}\n"
+    issue = {"kind": "type_mismatch", "line": 3, "col": 8, "msg": "Cannot assign 'int*' to 'int' for variable 'x'"}
     fixed, msg = fix_semantic_issue(src, issue)
     assert msg is None
     assert fixed == src
@@ -733,12 +741,12 @@ def test_invalid_dereference_positive_2_preserves_multiplication():
     assert "int val = a;" in fixed
 
 
-def test_invalid_dereference_positive_3_nested_expression():
+def test_invalid_dereference_negative_arbitrary_nested_expression():
     src = "int main() {\n    int x = 10;\n    int y = *(x + 1);\n    return 0;\n}\n"
     issue = {"kind": "invalid_dereference", "line": 3, "col": 12, "msg": "Cannot dereference non-pointer type 'int'"}
     fixed, msg = fix_semantic_issue(src, issue)
-    assert msg is not None
-    assert "int y = (x + 1);" in fixed
+    assert msg is None
+    assert fixed == src
 
 
 def test_invalid_dereference_negative_1_no_asterisk():
