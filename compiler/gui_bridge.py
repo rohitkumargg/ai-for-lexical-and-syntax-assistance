@@ -182,7 +182,7 @@ def _collect_security_issues(source_text: str) -> List[str]:
 _collect_semantic_issues = collect_semantic_issues
 
 
-def _status_from_security(security_warnings: List[str]) -> str:
+def _status_from_security(security_warnings: List[Any]) -> str:
     if not security_warnings:
         return "SUCCESS"
 
@@ -190,16 +190,25 @@ def _status_from_security(security_warnings: List[str]) -> str:
     total_score = 0
 
     for item in security_warnings:
-        if "[CRITICAL]" in item:
+        if isinstance(item, dict):
+            sev = item.get("severity", "")
+            if sev == "CRITICAL" or "[CRITICAL]" in str(item.get("message", "")):
+                blocked = True
+            if item.get("action") == "warned":
+                total_score += 1
+            continue
+
+        item_str = str(item)
+        if "[CRITICAL]" in item_str:
             blocked = True
 
         marker = "(score="
-        pos = item.find(marker)
+        pos = item_str.find(marker)
         if pos != -1:
-            end = item.find(")", pos)
+            end = item_str.find(")", pos)
             if end != -1:
                 try:
-                    total_score += int(item[pos + len(marker):end])
+                    total_score += int(item_str[pos + len(marker):end])
                 except ValueError:
                     pass
 
@@ -1149,12 +1158,65 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
                 break
 
             green.start("security_phase")
-            security_warnings = _collect_security_issues(working)
+            from compiler.security_rules import run_security_rules
+            sec_source, sec_findings, sec_steps = run_security_rules(working)
+
+            if sec_source != working:
+                changed_now = _compute_changed_lines(working, sec_source)
+                security_changed_lines = sorted(set(security_changed_lines + changed_now))
+
+                for step in sec_steps:
+                    steps.append(step)
+                    logs.append(f"Applied security fix: {step}")
+
+                stats["sec_det_fixes"] = stats.get("sec_det_fixes", 0) + len(sec_steps)
+                green.inc("sec_det_fixes", len(sec_steps))
+
+                working = sec_source
+                security_rounds += 1
+
+                if security_rounds > MAX_SECURITY_ROUNDS:
+                    green.end("security_phase")
+                    logs.append("Stopping: exceeded maximum security reparse rounds.")
+                    result["status"] = "STOPPED"
+                    result["success"] = False
+                    break
+
+                tree2, listeners2, parser2 = parse_source(
+                    working,
+                    f"{filename} (gui-after-security-{security_rounds})",
+                )
+
+                if tree2 is None or has_any_errors(listeners2):
+                    green.end("security_phase")
+                    logs.append("Stopping: security fix broke parsing.")
+                    parse_errors = get_all_error_strings(listeners2) if tree2 is not None else []
+                    result["status"] = "STOPPED"
+                    result["success"] = False
+                    tree = tree2
+                    listeners = listeners2
+                    parser = parser2
+                    break
+
+                tree, listeners, parser = tree2, listeners2, parser2
+                green.end("security_phase")
+                continue
+
+            # Build combined security warnings with findings from SEC rules
+            existing_sec_warnings = _collect_security_issues(working)
+            security_warnings = []
+            for f in sec_findings:
+                security_warnings.append(f)
+                if getattr(f, "suggestion", None):
+                    result.setdefault("security_suggestions", []).append(f.suggestion)
+            for w in existing_sec_warnings:
+                security_warnings.append(w)
+
             sem_before_sec = _collect_semantic_issues(tree) if tree is not None else []
             undecl_before_sec = {str(iss.get("name") or "") for iss in sem_before_sec if iss.get("kind") == "undeclared"}
 
-            if security_warnings:
-                logs.append(f"Security issues detected: {len(security_warnings)}")
+            if existing_sec_warnings:
+                logs.append(f"Security issues detected: {len(existing_sec_warnings)}")
                 logs.append("Invoking SecurityAutoFixer with pipeline safety guard.")
 
                 try:
@@ -1252,7 +1314,11 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
     else:
         result["sec_undeclared_introduced"] = 0
         result["semantic_issues"] = []
-        result["security_warnings"] = _collect_security_issues(working)
+        from compiler.security_rules import run_security_rules
+        _, sec_findings, _ = run_security_rules(working)
+        all_sec = list(sec_findings)
+        all_sec.extend(_collect_security_issues(working))
+        result["security_warnings"] = all_sec
         result["success"] = False
 
     # ---------------------------------------------------------

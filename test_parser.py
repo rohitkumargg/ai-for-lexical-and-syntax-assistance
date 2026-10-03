@@ -356,6 +356,29 @@ def run_security_checks(source_text: str):
         final_source: str
         auto_steps: List[str]
     """
+    from compiler.security_rules import run_security_rules
+    sec_source, sec_findings, sec_steps = run_security_rules(source_text)
+
+    if sec_findings:
+        print("\nSECURITY RULES ANALYSIS (SEC-01..SEC-10):")
+        print("-" * 50)
+        for f in sec_findings:
+            if getattr(f, "suggestion", None):
+                print(f"  [{f.rule}] line {f.line}: {f.message} ({f.action}) -> {f.suggestion}")
+            else:
+                print(f"  [{f.rule}] line {f.line}: {f.message} ({f.action})")
+        print("-" * 50)
+
+    if sec_source != source_text:
+        print("\nAUTO SECURITY FIX APPLIED (SEC RULES)")
+        print("-" * 50)
+        for step in sec_steps:
+            print(step)
+        print("-" * 50)
+        print(sec_source.rstrip())
+        print("-" * 50)
+        return True, sec_source, sec_steps
+
     engine = SecurityEngine()
     auto_fixer = SecurityAutoFixer()
 

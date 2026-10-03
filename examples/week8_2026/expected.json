@@ -1,0 +1,98 @@
+{
+  "01_integer_overflow_broken.c": {
+    "rule": "SEC-01",
+    "finding": "integer_overflow",
+    "line": 2,
+    "action": "auto_fixed",
+    "fixed_file": "01_integer_overflow_fixed.c"
+  },
+  "02_signed_to_unsigned_broken.c": {
+    "rule": "SEC-02",
+    "finding": "signed_to_unsigned",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "02_signed_to_unsigned_fixed.c",
+    "suggestion_contains": "x >= 0"
+  },
+  "03_null_dereference_broken.c": {
+    "rule": "SEC-03",
+    "finding": "null_dereference",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "03_null_dereference_fixed.c"
+  },
+  "04_uninitialized_variable_broken.c": {
+    "rule": "SEC-04",
+    "finding": "uninitialized_variable",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "04_uninitialized_variable_fixed.c"
+  },
+  "05_array_out_of_bounds_broken.c": {
+    "rule": "SEC-05",
+    "finding": "array_out_of_bounds",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "05_array_out_of_bounds_fixed.c",
+    "suggestion_contains": "0..2"
+  },
+  "06_off_by_one_broken.c": {
+    "rule": "SEC-06",
+    "finding": "off_by_one",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "06_off_by_one_fixed.c"
+  },
+  "07_unsafe_memcpy_broken.c": {
+    "rule": "SEC-07",
+    "finding": "unsafe_memcpy",
+    "line": 4,
+    "action": "auto_fixed",
+    "fixed_file": "07_unsafe_memcpy_fixed.c"
+  },
+  "08_format_mismatch_broken.c": {
+    "rule": "SEC-08",
+    "finding": "format_type_mismatch",
+    "line": 2,
+    "action": "auto_fixed",
+    "fixed_file": "08_format_mismatch_fixed.c"
+  },
+  "09_unsafe_scanf_broken.c": {
+    "rule": "SEC-09",
+    "finding": "unsafe_scanf",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "09_unsafe_scanf_fixed.c"
+  },
+  "10_uninitialized_pointer_broken.c": {
+    "rule": "SEC-10",
+    "finding": "uninitialized_pointer",
+    "line": 3,
+    "action": "auto_fixed",
+    "fixed_file": "10_uninitialized_pointer_fixed.c",
+    "also_reports": [
+      "SEC-03"
+    ]
+  },
+  "02_signed_to_unsigned_suggested.c": {
+    "rule": null,
+    "finding": null,
+    "line": null,
+    "action": "unchanged",
+    "fixed_file": null
+  },
+  "05_array_out_of_bounds_suggested.c": {
+    "rule": null,
+    "finding": null,
+    "line": null,
+    "action": "unchanged",
+    "fixed_file": null
+  },
+  "clean_guard.c": {
+    "rule": null,
+    "finding": null,
+    "line": null,
+    "action": "unchanged",
+    "fixed_file": null
+  }
+}

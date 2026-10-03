@@ -1,0 +1,2477 @@
+{
+  "examples/main.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 11.1
+  },
+  "examples/semantic/arrow_on_value.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "arrow_on_value",
+        "name": "x",
+        "line": 8,
+        "col": 6,
+        "msg": "'->' used on non-pointer 'struct Point'; did you mean '.'?"
+      }
+    ],
+    "elapsed_ms": 7.1
+  },
+  "examples/semantic/call_arity.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "call_arity_mismatch",
+        "name": "add",
+        "line": 6,
+        "col": 14,
+        "msg": "Function 'add' expects 2 argument(s) but got 3"
+      }
+    ],
+    "elapsed_ms": 8.41
+  },
+  "examples/semantic/case_outside_switch.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "case_outside_switch",
+        "name": "",
+        "line": 3,
+        "col": 4,
+        "msg": "'case' or 'default' label outside of switch statement"
+      }
+    ],
+    "elapsed_ms": 2.22
+  },
+  "examples/semantic/dot_on_pointer.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 3,
+    "semantic_issues": [
+      {
+        "kind": "dot_on_pointer",
+        "name": "x",
+        "line": 9,
+        "col": 5,
+        "msg": "'.' used on pointer 'struct point*'; did you mean '->'?"
+      },
+      {
+        "kind": "unknown_struct_type",
+        "name": "point",
+        "line": 9,
+        "col": 5,
+        "msg": "request for member 'x' in unknown or incomplete type 'struct point'"
+      },
+      {
+        "kind": "unknown_struct_type",
+        "name": "point",
+        "line": 10,
+        "col": 12,
+        "msg": "request for member 'x' in unknown or incomplete type 'struct point'"
+      }
+    ],
+    "elapsed_ms": 3.69
+  },
+  "examples/semantic/duplicate_member.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "duplicate_member",
+        "name": "id",
+        "line": 4,
+        "col": 8,
+        "msg": "Duplicate member 'id' in 'struct Data'"
+      }
+    ],
+    "elapsed_ms": 2.73
+  },
+  "examples/semantic/redeclared_struct.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "redeclared_struct",
+        "name": "Node",
+        "line": 5,
+        "col": 0,
+        "msg": "Redeclaration of 'struct Node'"
+      }
+    ],
+    "elapsed_ms": 1.93
+  },
+  "examples/semantic/too_many_initializers.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "too_many_initializers",
+        "name": "arr",
+        "line": 2,
+        "col": 8,
+        "msg": "too many initializers for array 'arr' (expected at most 2, got 3)"
+      }
+    ],
+    "elapsed_ms": 4.91
+  },
+  "examples/semantic/use_before_declare.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 2,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "val",
+        "line": 2,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'val'"
+      },
+      {
+        "kind": "uninitialized_variable",
+        "name": "val",
+        "line": 4,
+        "col": 11,
+        "msg": "Variable 'val' may be uninitialized when used here",
+        "severity": "warning"
+      }
+    ],
+    "elapsed_ms": 1.32
+  },
+  "examples/user_tests/ff.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.38
+  },
+  "examples/user_tests/gh.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.94
+  },
+  "examples/user_tests/test_clean.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.12
+  },
+  "examples/user_tests/week11_2026.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.54
+  },
+  "examples/week10_security/check1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: mismatched input '<EOF>' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: <EOF>)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.16
+  },
+  "examples/week10_security/tainted_system.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      }
+    ],
+    "elapsed_ms": 6.86
+  },
+  "examples/week10_security/unsafe_gets.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "gets",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'gets'"
+      }
+    ],
+    "elapsed_ms": 1.44
+  },
+  "examples/week11_testing/ademo.c": {
+    "initial_clean": false,
+    "error_count": 81,
+    "errors": [
+      "Line 19:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 23:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 28:20 - PARSE Error: no viable alternative at input 'add(3,4;' (offending: ;)",
+      "Line 33:18 - PARSE Error: no viable alternative at input 'add(45' (offending: 5)",
+      "Line 33:18 - PARSE Error: missing ';' at '5' (offending: 5)",
+      "Line 33:19 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 37:22 - PARSE Error: no viable alternative at input 'intbad_param_5(intaint' (offending: int)",
+      "Line 67:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 76:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 76:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 85:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 94:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 105:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 113:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 121:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 129:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 134:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 138:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 143:22 - PARSE Error: no viable alternative at input 'add(add(118' (offending: 18)",
+      "Line 143:22 - PARSE Error: missing ';' at '18' (offending: 18)",
+      "Line 143:24 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 143:28 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 148:29 - PARSE Error: no viable alternative at input 'add(add(1,19),3;' (offending: ;)",
+      "Line 152:31 - PARSE Error: no viable alternative at input 'intbad_param3_20(inta,intbint' (offending: int)",
+      "Line 152:25 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 152:31 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 157:21 - PARSE Error: no viable alternative at input 'mix(1,221' (offending: 21)",
+      "Line 157:21 - PARSE Error: missing ';' at '21' (offending: 21)",
+      "Line 157:23 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 163:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 171:17 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 182:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 194:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 201:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 207:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 211:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 216:22 - PARSE Error: no viable alternative at input 'add(29,30;' (offending: ;)",
+      "Line 221:19 - PARSE Error: no viable alternative at input 'add(3031' (offending: 31)",
+      "Line 221:19 - PARSE Error: missing ';' at '31' (offending: 31)",
+      "Line 221:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 225:23 - PARSE Error: no viable alternative at input 'intbad_param_31(intaint' (offending: int)",
+      "Line 255:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 264:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 264:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 273:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 282:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 293:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 301:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 309:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 317:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 322:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 326:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 331:22 - PARSE Error: no viable alternative at input 'add(add(144' (offending: 44)",
+      "Line 331:22 - PARSE Error: missing ';' at '44' (offending: 44)",
+      "Line 331:24 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 331:28 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 336:29 - PARSE Error: no viable alternative at input 'add(add(1,45),3;' (offending: ;)",
+      "Line 340:31 - PARSE Error: no viable alternative at input 'intbad_param3_46(inta,intbint' (offending: int)",
+      "Line 340:25 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 340:31 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 345:21 - PARSE Error: no viable alternative at input 'mix(1,247' (offending: 47)",
+      "Line 345:21 - PARSE Error: missing ';' at '47' (offending: 47)",
+      "Line 345:23 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 351:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 359:17 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 370:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 382:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 389:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 395:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 399:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 404:22 - PARSE Error: no viable alternative at input 'add(55,56;' (offending: ;)",
+      "Line 409:19 - PARSE Error: no viable alternative at input 'add(5657' (offending: 57)",
+      "Line 409:19 - PARSE Error: missing ';' at '57' (offending: 57)",
+      "Line 409:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 413:23 - PARSE Error: no viable alternative at input 'intbad_param_57(intaint' (offending: int)",
+      "Line 443:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 452:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 452:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 461:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 470:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 481:9 - PARSE Error: missing ';' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 146.7
+  },
+  "examples/week11_testing/ademo2.c": {
+    "initial_clean": false,
+    "error_count": 112,
+    "errors": [
+      "Line 19:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 23:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 28:19 - PARSE Error: no viable alternative at input 'add(1020' (offending: 20)",
+      "Line 28:19 - PARSE Error: missing ';' at '20' (offending: 20)",
+      "Line 28:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 32:17 - PARSE Error: no viable alternative at input 'inttask04(intaint' (offending: int)",
+      "Line 48:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 67:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 76:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 76:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 85:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 94:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 103:8 - PARSE Error: missing '(' at 'i' (offending: i)",
+      "Line 112:33 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 123:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 135:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 145:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 153:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 161:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 168:20 - PARSE Error: no viable alternative at input 'add(3,4;' (offending: ;)",
+      "Line 173:22 - PARSE Error: no viable alternative at input 'add(add(12' (offending: 2)",
+      "Line 173:22 - PARSE Error: missing ';' at '2' (offending: 2)",
+      "Line 173:23 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 173:27 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 178:28 - PARSE Error: no viable alternative at input 'add(add(1,2),3;' (offending: ;)",
+      "Line 182:24 - PARSE Error: no viable alternative at input 'inttask22(inta,intbint' (offending: int)",
+      "Line 182:18 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 182:24 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 187:22 - PARSE Error: no viable alternative at input 'mix3(1,23' (offending: 3)",
+      "Line 187:22 - PARSE Error: missing ';' at '3' (offending: 3)",
+      "Line 187:23 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 193:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 199:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 203:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 209:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 217:17 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 236:19 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 245:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 249:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 254:19 - PARSE Error: no viable alternative at input 'add(3334' (offending: 34)",
+      "Line 254:19 - PARSE Error: missing ';' at '34' (offending: 34)",
+      "Line 254:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 258:17 - PARSE Error: no viable alternative at input 'inttask34(intaint' (offending: int)",
+      "Line 274:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 293:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 302:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 302:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 311:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 320:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 329:8 - PARSE Error: missing '(' at 'i' (offending: i)",
+      "Line 338:33 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 349:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 361:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 371:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 379:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 387:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 394:22 - PARSE Error: no viable alternative at input 'add(49,50;' (offending: ;)",
+      "Line 399:22 - PARSE Error: no viable alternative at input 'add(add(50' (offending: 0)",
+      "Line 399:22 - PARSE Error: missing ';' at '0' (offending: 0)",
+      "Line 399:23 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 399:27 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 404:28 - PARSE Error: no viable alternative at input 'add(add(1,2),5;' (offending: ;)",
+      "Line 408:24 - PARSE Error: no viable alternative at input 'inttask52(inta,intbint' (offending: int)",
+      "Line 408:18 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 408:24 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 413:22 - PARSE Error: no viable alternative at input 'mix3(1,253' (offending: 53)",
+      "Line 413:22 - PARSE Error: missing ';' at '53' (offending: 53)",
+      "Line 413:24 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 419:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 425:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 429:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 435:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 443:17 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 460:18 - PARSE Error: no viable alternative at input 'fro(score=0;' (offending: ;)",
+      "Line 460:48 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 468:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 472:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 477:19 - PARSE Error: no viable alternative at input 'add(6364' (offending: 64)",
+      "Line 477:19 - PARSE Error: missing ';' at '64' (offending: 64)",
+      "Line 477:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 481:17 - PARSE Error: no viable alternative at input 'inttask64(intaint' (offending: int)",
+      "Line 497:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 516:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 525:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 525:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 534:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 543:15 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 552:8 - PARSE Error: missing '(' at 'i' (offending: i)",
+      "Line 561:33 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 572:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 584:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 594:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 602:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 610:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 617:22 - PARSE Error: no viable alternative at input 'add(79,80;' (offending: ;)",
+      "Line 622:22 - PARSE Error: no viable alternative at input 'add(add(80' (offending: 0)",
+      "Line 622:22 - PARSE Error: missing ';' at '0' (offending: 0)",
+      "Line 622:23 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 622:27 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 627:28 - PARSE Error: no viable alternative at input 'add(add(1,2),8;' (offending: ;)",
+      "Line 631:24 - PARSE Error: no viable alternative at input 'inttask82(inta,intbint' (offending: int)",
+      "Line 631:18 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 631:24 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 636:22 - PARSE Error: no viable alternative at input 'mix3(1,283' (offending: 83)",
+      "Line 636:22 - PARSE Error: missing ';' at '83' (offending: 83)",
+      "Line 636:24 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 642:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 648:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 652:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 658:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 666:17 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 685:19 - PARSE Error: missing ';' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 213.72
+  },
+  "examples/week11_testing/ademo3mix.c": {
+    "initial_clean": false,
+    "error_count": 27,
+    "errors": [
+      "Line 15:4 - PARSE Error: missing ';' at 'return' (offending: return)",
+      "Line 19:13 - PARSE Error: missing ']' at ';' (offending: ;)",
+      "Line 24:19 - PARSE Error: no viable alternative at input 'add(1020' (offending: 20)",
+      "Line 24:19 - PARSE Error: missing ';' at '20' (offending: 20)",
+      "Line 24:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 28:18 - PARSE Error: no viable alternative at input 'intsyntax4(intaint' (offending: int)",
+      "Line 34:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 43:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 43:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 52:22 - PARSE Error: missing ';' at 'i' (offending: i)",
+      "Line 63:9 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 71:7 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 79:14 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 90:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 102:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 108:9 - PARSE Error: missing ';' at 'x' (offending: x)",
+      "Line 112:0 - PARSE Error: extraneous input 'viod' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)",
+      "Line 117:20 - PARSE Error: no viable alternative at input 'add(3,4;' (offending: ;)",
+      "Line 122:22 - PARSE Error: no viable alternative at input 'add(add(12' (offending: 2)",
+      "Line 122:22 - PARSE Error: missing ';' at '2' (offending: 2)",
+      "Line 122:23 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 122:27 - PARSE Error: extraneous input ')' expecting ';' (offending: ))",
+      "Line 127:28 - PARSE Error: no viable alternative at input 'add(add(1,2),3;' (offending: ;)",
+      "Line 133:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)",
+      "Line 139:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 145:10 - PARSE Error: missing '(' at 'a' (offending: a)",
+      "Line 176:4 - PARSE Error: missing ';' at 'char' (offending: char)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 295.02
+  },
+  "examples/week11_testing/arena_500line_final_80_errors.c": {
+    "initial_clean": false,
+    "error_count": 81,
+    "errors": [
+      "Line 20:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 22:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 24:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 28:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 35:23 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 50:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 52:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 54:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 58:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 67:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 80:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 82:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 84:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 88:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 110:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 112:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 114:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 118:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 127:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 140:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 142:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 144:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 148:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 170:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 172:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 174:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 178:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 187:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 200:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 202:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 204:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 208:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 230:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 232:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 234:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 238:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 247:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 248:22 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 260:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 262:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 264:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 268:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 290:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 292:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 294:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 298:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 307:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 320:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 322:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 324:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 328:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 350:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 352:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 354:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 358:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 367:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 380:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 382:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 384:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 388:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 410:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 412:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 414:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 418:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 440:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 442:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 444:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 448:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 470:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 472:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 474:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 478:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 500:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 502:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 504:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 508:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 530:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 532:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 545:23 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 562:4 - PARSE Error: missing ';' at 'prinft' (offending: prinft)",
+      "Line 563:18 - PARSE Error: missing ')' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 309.87
+  },
+  "examples/week11_testing/asecuritydemo.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 80,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 33,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 34,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 40,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "buf",
+        "line": 39,
+        "col": 9,
+        "msg": "Variable 'buf' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 47,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "buf",
+        "line": 46,
+        "col": 9,
+        "msg": "Variable 'buf' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 53,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 54,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 60,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 61,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 68,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 66,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 75,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 74,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 81,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 80,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 87,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 88,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 94,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 93,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 100,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 99,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 107,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "dst",
+        "line": 105,
+        "col": 9,
+        "msg": "Variable 'dst' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "src",
+        "line": 106,
+        "col": 9,
+        "msg": "Variable 'src' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 114,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 115,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "name",
+        "line": 112,
+        "col": 9,
+        "msg": "Variable 'name' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "out",
+        "line": 113,
+        "col": 9,
+        "msg": "Variable 'out' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 122,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 123,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 124,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "unused",
+        "name": "logbuf",
+        "line": 121,
+        "col": 9,
+        "msg": "Variable 'logbuf' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 131,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 132,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "a",
+        "line": 129,
+        "col": 9,
+        "msg": "Variable 'a' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "b",
+        "line": 130,
+        "col": 9,
+        "msg": "Variable 'b' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 139,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 140,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "user",
+        "line": 137,
+        "col": 9,
+        "msg": "Variable 'user' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "msg",
+        "line": 138,
+        "col": 9,
+        "msg": "Variable 'msg' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 146,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 147,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 154,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 155,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "one",
+        "line": 152,
+        "col": 9,
+        "msg": "Variable 'one' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "two",
+        "line": 153,
+        "col": 9,
+        "msg": "Variable 'two' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 161,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "data",
+        "line": 160,
+        "col": 9,
+        "msg": "Variable 'data' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 168,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 169,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "source",
+        "line": 166,
+        "col": 9,
+        "msg": "Variable 'source' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "dest",
+        "line": 167,
+        "col": 9,
+        "msg": "Variable 'dest' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 176,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 177,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 183,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 184,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 182,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 248,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 249,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 258,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 272,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 273,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "dst",
+        "line": 270,
+        "col": 9,
+        "msg": "Variable 'dst' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "src",
+        "line": 271,
+        "col": 9,
+        "msg": "Variable 'src' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 279,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 278,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 285,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 284,
+        "col": 9,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 292,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 293,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 299,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "line",
+        "line": 298,
+        "col": 9,
+        "msg": "Variable 'line' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 305,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 306,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 313,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "a",
+        "line": 311,
+        "col": 9,
+        "msg": "Variable 'a' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "b",
+        "line": 312,
+        "col": 9,
+        "msg": "Variable 'b' declared but never used"
+      },
+      {
+        "kind": "undeclared",
+        "name": "arr",
+        "line": 319,
+        "col": 18,
+        "msg": "Use of undeclared identifier 'arr'"
+      },
+      {
+        "kind": "unused",
+        "name": "x",
+        "line": 318,
+        "col": 9,
+        "msg": "Variable 'x' declared but never used"
+      }
+    ],
+    "elapsed_ms": 151.21
+  },
+  "examples/week11_testing/mixed_errors_1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'char' (offending: char)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.73
+  },
+  "examples/week11_testing/mixed_errors_2.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: mismatched input 'innt' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: innt)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.52
+  },
+  "examples/week11_testing/prof_demo_pack_safe_massfix.c": {
+    "initial_clean": false,
+    "error_count": 94,
+    "errors": [
+      "Line 20:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 22:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 24:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 28:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 35:23 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 50:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 52:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 54:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 58:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 67:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 80:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 82:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 84:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 88:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 110:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 112:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 114:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 118:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 127:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 140:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 142:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 144:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 148:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 170:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 172:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 174:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 178:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 187:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 200:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 202:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 204:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 208:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 230:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 232:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 234:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 238:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 247:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 248:22 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 260:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 262:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 264:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 268:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 290:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 292:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 294:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 298:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 307:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 320:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 322:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 324:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 328:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 350:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 352:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 354:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 358:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 367:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 380:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 382:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 384:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 388:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 410:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 412:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 414:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 418:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 427:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 440:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 442:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 444:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 448:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 470:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 472:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 474:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 478:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 487:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 500:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 502:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 504:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 508:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 530:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 532:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 534:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 538:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 545:23 - PARSE Error: missing ')' at '{' (offending: {)",
+      "Line 547:8 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 560:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 562:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 564:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 568:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 590:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 592:4 - PARSE Error: missing ';' at 'for' (offending: for)",
+      "Line 594:4 - PARSE Error: missing ';' at '}' (offending: })",
+      "Line 598:18 - PARSE Error: missing ';' at '{' (offending: {)",
+      "Line 622:4 - PARSE Error: missing ';' at 'prinft' (offending: prinft)",
+      "Line 623:18 - PARSE Error: missing ')' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 294.05
+  },
+  "examples/week12_benchmark/benchmark_1.c": {
+    "initial_clean": false,
+    "error_count": 2,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 4:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.47
+  },
+  "examples/week12_benchmark/benchmark_2.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      }
+    ],
+    "elapsed_ms": 2.04
+  },
+  "examples/week12_benchmark/breka.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "breka",
+        "line": 5,
+        "col": 12,
+        "msg": "Use of undeclared identifier 'breka'"
+      }
+    ],
+    "elapsed_ms": 2.95
+  },
+  "examples/week12_benchmark/cahr.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:9 - PARSE Error: missing ';' at 'x' (offending: x)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.34
+  },
+  "examples/week12_benchmark/contniue.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "contniue",
+        "line": 7,
+        "col": 12,
+        "msg": "Use of undeclared identifier 'contniue'"
+      }
+    ],
+    "elapsed_ms": 6.5
+  },
+  "examples/week12_benchmark/controlflowtpo.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:18 - PARSE Error: missing ';' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.76
+  },
+  "examples/week12_benchmark/error1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:22 - PARSE Error: missing ';' at 'i' (offending: i)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.95
+  },
+  "examples/week12_benchmark/error2.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 5:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.9
+  },
+  "examples/week12_benchmark/error4.c": {
+    "initial_clean": false,
+    "error_count": 6,
+    "errors": [
+      "Line 1:22 - PARSE Error: no viable alternative at input 'intadd3(intx,intyint' (offending: int)",
+      "Line 1:16 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 1:22 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 5:21 - PARSE Error: no viable alternative at input 'add3(1,23' (offending: 3)",
+      "Line 5:21 - PARSE Error: missing ';' at '3' (offending: 3)",
+      "Line 5:22 - PARSE Error: extraneous input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.48
+  },
+  "examples/week12_benchmark/esle.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 6:9 - PARSE Error: missing ';' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.72
+  },
+  "examples/week12_benchmark/fro.c": {
+    "initial_clean": false,
+    "error_count": 2,
+    "errors": [
+      "Line 4:14 - PARSE Error: no viable alternative at input 'fro(i=0;' (offending: ;)",
+      "Line 4:32 - PARSE Error: mismatched input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 5.29
+  },
+  "examples/week12_benchmark/gets.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "gets",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'gets'"
+      }
+    ],
+    "elapsed_ms": 2.19
+  },
+  "examples/week12_benchmark/missing(infor.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:8 - PARSE Error: missing '(' at 'i' (offending: i)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.27
+  },
+  "examples/week12_benchmark/missing(inwhile.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:10 - PARSE Error: missing '(' at 'a' (offending: a)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.04
+  },
+  "examples/week12_benchmark/missing)infncall.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 6:20 - PARSE Error: no viable alternative at input 'add(3,4;' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.58
+  },
+  "examples/week12_benchmark/missing)infor.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:33 - PARSE Error: missing ')' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.67
+  },
+  "examples/week12_benchmark/missing)innested.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 5:28 - PARSE Error: no viable alternative at input 'add(add(1,2),3;' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.0
+  },
+  "examples/week12_benchmark/missing)inwhile.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:17 - PARSE Error: missing ')' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.57
+  },
+  "examples/week12_benchmark/missing;afterbreak.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 6:8 - PARSE Error: missing ';' at '}' (offending: })"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.76
+  },
+  "examples/week12_benchmark/missing;aftercontinue.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 7:8 - PARSE Error: missing ';' at '}' (offending: })"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.33
+  },
+  "examples/week12_benchmark/missing]afteruse.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:15 - PARSE Error: no viable alternative at input 'a[0;' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.07
+  },
+  "examples/week12_benchmark/missing]inarrdec.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:11 - PARSE Error: missing ']' at ';' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.59
+  },
+  "examples/week12_benchmark/missingbracketright.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 6:1 - PARSE Error: extraneous input '<EOF>' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'return', 'if', 'while', 'do', 'for', 'break', 'continue', 'sizeof', 'NULL', 'switch', 'case', 'default', 'struct', '++', '--', '&', '~', '+', '-', '*', '!', ';', '(', '{', '}', IDENTIFIER, INTEGER, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL} (offending: <EOF>)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.97
+  },
+  "examples/week12_benchmark/missingcommafuncarg.c": {
+    "initial_clean": false,
+    "error_count": 3,
+    "errors": [
+      "Line 6:18 - PARSE Error: no viable alternative at input 'add(34' (offending: 4)",
+      "Line 6:18 - PARSE Error: missing ';' at '4' (offending: 4)",
+      "Line 6:19 - PARSE Error: extraneous input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.97
+  },
+  "examples/week12_benchmark/missingcommafunparam.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:14 - PARSE Error: no viable alternative at input 'intadd(intxint' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.15
+  },
+  "examples/week12_benchmark/missingcommain3paramlist.c": {
+    "initial_clean": false,
+    "error_count": 3,
+    "errors": [
+      "Line 1:22 - PARSE Error: no viable alternative at input 'intadd3(intx,intyint' (offending: int)",
+      "Line 1:16 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 1:22 - PARSE Error: missing ';' at 'int' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.56
+  },
+  "examples/week12_benchmark/missingcommainarg.c": {
+    "initial_clean": false,
+    "error_count": 3,
+    "errors": [
+      "Line 6:22 - PARSE Error: no viable alternative at input 'add3(1,23' (offending: 3)",
+      "Line 6:22 - PARSE Error: missing ';' at '3' (offending: 3)",
+      "Line 6:23 - PARSE Error: extraneous input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.63
+  },
+  "examples/week12_benchmark/missingcommainnested.c": {
+    "initial_clean": false,
+    "error_count": 4,
+    "errors": [
+      "Line 5:22 - PARSE Error: no viable alternative at input 'add(add(12' (offending: 2)",
+      "Line 5:22 - PARSE Error: missing ';' at '2' (offending: 2)",
+      "Line 5:23 - PARSE Error: mismatched input ')' expecting ';' (offending: ))",
+      "Line 5:27 - PARSE Error: extraneous input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 4.78
+  },
+  "examples/week12_benchmark/missingcommainparamlist.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:14 - PARSE Error: no viable alternative at input 'intadd(intxint' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.18
+  },
+  "examples/week12_benchmark/missingleftbrace.c": {
+    "initial_clean": false,
+    "error_count": 2,
+    "errors": [
+      "Line 2:4 - PARSE Error: no viable alternative at input 'intmain()int' (offending: int)",
+      "Line 3:4 - PARSE Error: extraneous input 'return' expecting {<EOF>, 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.66
+  },
+  "examples/week12_benchmark/missingleftparenthesis.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:7 - PARSE Error: missing '(' at 'a' (offending: a)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.33
+  },
+  "examples/week12_benchmark/missingrightparen.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:14 - PARSE Error: missing ')' at '{' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.38
+  },
+  "examples/week12_benchmark/missingsemicolon.c": {
+    "initial_clean": false,
+    "error_count": 2,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'int' (offending: int)",
+      "Line 5:0 - PARSE Error: missing ';' at '}' (offending: })"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.67
+  },
+  "examples/week12_benchmark/missingsemicoloninsidefor.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:15 - PARSE Error: missing ';' at 'i' (offending: i)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.27
+  },
+  "examples/week12_benchmark/missingsemicoloninwhile.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 5:8 - PARSE Error: missing ';' at 'a' (offending: a)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.18
+  },
+  "examples/week12_benchmark/missing{afterif.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.63
+  },
+  "examples/week12_benchmark/missing{afterwhile.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.19
+  },
+  "examples/week12_benchmark/missing}afterwhile.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 6:1 - PARSE Error: missing '}' at '<EOF>' (offending: <EOF>)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.44
+  },
+  "examples/week12_benchmark/printf.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "prinft",
+        "line": 2,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'prinft'"
+      }
+    ],
+    "elapsed_ms": 1.26
+  },
+  "examples/week12_benchmark/redclaration.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "redeclared",
+        "name": "a",
+        "line": 3,
+        "col": 8,
+        "msg": "Redeclaration of 'a' in the same scope"
+      }
+    ],
+    "elapsed_ms": 1.14
+  },
+  "examples/week12_benchmark/scnaf.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "scnaf",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'scnaf'"
+      }
+    ],
+    "elapsed_ms": 2.27
+  },
+  "examples/week12_benchmark/sprintfmultipleargs.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "sprintf",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'sprintf'"
+      }
+    ],
+    "elapsed_ms": 2.93
+  },
+  "examples/week12_benchmark/unsafeapi.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "system",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'system'"
+      }
+    ],
+    "elapsed_ms": 2.96
+  },
+  "examples/week12_benchmark/unsafesprintf.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "sprintf",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'sprintf'"
+      }
+    ],
+    "elapsed_ms": 2.06
+  },
+  "examples/week12_benchmark/unsafestrcpy.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "gets",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'gets'"
+      }
+    ],
+    "elapsed_ms": 1.42
+  },
+  "examples/week12_benchmark/unsafestrcpy2.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "strcpy",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'strcpy'"
+      }
+    ],
+    "elapsed_ms": 3.61
+  },
+  "examples/week12_benchmark/viod.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: mismatched input 'viod' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.71
+  },
+  "examples/week12_phase4/autofix_gets.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "gets",
+        "line": 3,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'gets'"
+      }
+    ],
+    "elapsed_ms": 2.34
+  },
+  "examples/week12_phase4/autofix_printf.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.29
+  },
+  "examples/week12_phase4/autofix_sprintf.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "undeclared",
+        "name": "sprintf",
+        "line": 4,
+        "col": 4,
+        "msg": "Use of undeclared identifier 'sprintf'"
+      }
+    ],
+    "elapsed_ms": 2.78
+  },
+  "examples/week12_phase4/autofix_strcpy.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 12.41
+  },
+  "examples/week5_grammar_2026/bitwise_ops_broken_2.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:16 - PARSE Error: extraneous input '=' expecting {'sizeof', 'NULL', '++', '--', '&', '~', '+', '-', '*', '!', '(', IDENTIFIER, INTEGER, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL} (offending: =)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.68
+  },
+  "examples/week5_grammar_2026/bitwise_ops_broken_3.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:13 - PARSE Error: missing ';' at 'int' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.62
+  },
+  "examples/week5_grammar_2026/bitwise_ops_valid.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 4,
+    "semantic_issues": [
+      {
+        "kind": "unused",
+        "name": "c",
+        "line": 4,
+        "col": 8,
+        "msg": "Variable 'c' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "d",
+        "line": 5,
+        "col": 8,
+        "msg": "Variable 'd' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "e",
+        "line": 6,
+        "col": 8,
+        "msg": "Variable 'e' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "f",
+        "line": 7,
+        "col": 8,
+        "msg": "Variable 'f' declared but never used"
+      }
+    ],
+    "elapsed_ms": 5.7
+  },
+  "examples/week5_grammar_2026/globals_broken_1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:0 - PARSE Error: missing ';' at 'int' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.06
+  },
+  "examples/week5_grammar_2026/globals_broken_3.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: extraneous input 'unsinged' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: unsinged)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.74
+  },
+  "examples/week5_grammar_2026/globals_valid.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.55
+  },
+  "examples/week5_grammar_2026/prototype_broken_1.c": {
+    "initial_clean": false,
+    "error_count": 3,
+    "errors": [
+      "Line 2:0 - PARSE Error: no viable alternative at input 'intadd(inta,intb)int' (offending: int)",
+      "Line 1:15 - PARSE Error: extraneous input 'int' expecting {'*', IDENTIFIER} (offending: int)",
+      "Line 1:20 - PARSE Error: mismatched input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.15
+  },
+  "examples/week5_grammar_2026/prototype_broken_3.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: mismatched input 'viod' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: viod)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.54
+  },
+  "examples/week5_grammar_2026/prototype_valid.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 10,
+        "col": 8,
+        "msg": "Variable 's' declared but never used"
+      }
+    ],
+    "elapsed_ms": 6.27
+  },
+  "examples/week5_grammar_2026/semantics/invalid_operand_type_err.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 12,
+    "semantic_issues": [
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 4,
+        "col": 13,
+        "msg": "Bitwise operator '&' requires integral operands, got 'float'"
+      },
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 5,
+        "col": 13,
+        "msg": "Bitwise operator '|' requires integral operands, got 'float'"
+      },
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 6,
+        "col": 13,
+        "msg": "Bitwise operator '^' requires integral operands, got 'float'"
+      },
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 7,
+        "col": 15,
+        "msg": "Bitwise NOT operator '~' requires integral operand, got 'float'"
+      },
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 8,
+        "col": 13,
+        "msg": "Shift operator requires integral operands, got 'float'"
+      },
+      {
+        "kind": "invalid_operand_type",
+        "name": "",
+        "line": 9,
+        "col": 13,
+        "msg": "Shift operator requires integral operands, got 'float'"
+      },
+      {
+        "kind": "unused",
+        "name": "r1",
+        "line": 4,
+        "col": 8,
+        "msg": "Variable 'r1' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "r2",
+        "line": 5,
+        "col": 8,
+        "msg": "Variable 'r2' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "r3",
+        "line": 6,
+        "col": 8,
+        "msg": "Variable 'r3' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "r4",
+        "line": 7,
+        "col": 10,
+        "msg": "Variable 'r4' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "r5",
+        "line": 8,
+        "col": 8,
+        "msg": "Variable 'r5' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "r6",
+        "line": 9,
+        "col": 8,
+        "msg": "Variable 'r6' declared but never used"
+      }
+    ],
+    "elapsed_ms": 6.6
+  },
+  "examples/week5_grammar_2026/semantics/invalid_operand_type_guard.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 4.89
+  },
+  "examples/week5_grammar_2026/semantics/narrowing_err.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 4,
+    "semantic_issues": [
+      {
+        "kind": "type_mismatch",
+        "name": "x",
+        "line": 3,
+        "col": 8,
+        "msg": "Cannot assign 'double' to 'int' for variable 'x'"
+      },
+      {
+        "kind": "type_mismatch",
+        "name": "s",
+        "line": 5,
+        "col": 10,
+        "msg": "Cannot assign 'float' to 'short' for variable 's'"
+      },
+      {
+        "kind": "unused",
+        "name": "x",
+        "line": 3,
+        "col": 8,
+        "msg": "Variable 'x' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 5,
+        "col": 10,
+        "msg": "Variable 's' declared but never used"
+      }
+    ],
+    "elapsed_ms": 2.44
+  },
+  "examples/week5_grammar_2026/semantics/narrowing_guard.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.35
+  },
+  "examples/week5_grammar_2026/semantics/prototype_mismatch_err.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 2,
+    "semantic_issues": [
+      {
+        "kind": "prototype_mismatch",
+        "name": "add",
+        "line": 3,
+        "col": 4,
+        "msg": "Definition parameter 2 type 'float' does not match prototype type 'int'"
+      },
+      {
+        "kind": "unused",
+        "name": "b",
+        "line": 3,
+        "col": 21,
+        "msg": "Variable 'b' declared but never used"
+      }
+    ],
+    "elapsed_ms": 1.64
+  },
+  "examples/week5_grammar_2026/semantics/prototype_mismatch_guard.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.79
+  },
+  "examples/week5_grammar_2026/semantics/shadow_warning_err.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "shadow_warning",
+        "name": "count",
+        "line": 4,
+        "col": 8,
+        "msg": "Declaration of 'count' shadows global variable"
+      }
+    ],
+    "elapsed_ms": 1.46
+  },
+  "examples/week5_grammar_2026/semantics/shadow_warning_guard.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.95
+  },
+  "examples/week5_grammar_2026/shift_ops_broken_1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 4:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.92
+  },
+  "examples/week5_grammar_2026/shift_ops_broken_2.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:16 - PARSE Error: extraneous input '<' expecting {'sizeof', 'NULL', '++', '--', '&', '~', '+', '-', '*', '!', '(', IDENTIFIER, INTEGER, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL} (offending: <)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.28
+  },
+  "examples/week5_grammar_2026/shift_ops_broken_3.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:10 - PARSE Error: missing ';' at 'x' (offending: x)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.0
+  },
+  "examples/week5_grammar_2026/shift_ops_valid.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 2,
+    "semantic_issues": [
+      {
+        "kind": "unused",
+        "name": "y",
+        "line": 3,
+        "col": 8,
+        "msg": "Variable 'y' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "z",
+        "line": 4,
+        "col": 8,
+        "msg": "Variable 'z' declared but never used"
+      }
+    ],
+    "elapsed_ms": 3.11
+  },
+  "examples/week5_grammar_2026/types_broken_1.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.45
+  },
+  "examples/week5_grammar_2026/types_broken_3.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:10 - PARSE Error: missing ';' at 's' (offending: s)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.54
+  },
+  "examples/week5_grammar_2026/types_valid.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 5,
+    "semantic_issues": [
+      {
+        "kind": "unused",
+        "name": "u",
+        "line": 2,
+        "col": 17,
+        "msg": "Variable 'u' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "sl",
+        "line": 3,
+        "col": 16,
+        "msg": "Variable 'sl' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "s",
+        "line": 4,
+        "col": 10,
+        "msg": "Variable 's' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "ll",
+        "line": 5,
+        "col": 14,
+        "msg": "Variable 'll' declared but never used"
+      },
+      {
+        "kind": "unused",
+        "name": "d",
+        "line": 6,
+        "col": 11,
+        "msg": "Variable 'd' declared but never used"
+      }
+    ],
+    "elapsed_ms": 5.99
+  },
+  "examples/week6_grammar_2026/address_deref.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "invalid_dereference",
+        "name": "value",
+        "line": 3,
+        "col": 15,
+        "msg": "Cannot dereference non-pointer type 'int'"
+      }
+    ],
+    "elapsed_ms": 4.62
+  },
+  "examples/week6_grammar_2026/casts.c": {
+    "initial_clean": false,
+    "error_count": 2,
+    "errors": [
+      "Line 3:28 - PARSE Error: no viable alternative at input '(doublevalue' (offending: value)",
+      "Line 3:34 - PARSE Error: mismatched input '/' expecting ';' (offending: /)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 4.44
+  },
+  "examples/week6_grammar_2026/do_while.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 5:22 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 2.17
+  },
+  "examples/week6_grammar_2026/nullpointer.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 2,
+    "semantic_issues": [
+      {
+        "kind": "pointer_assignment_warning",
+        "name": "pointer",
+        "line": 3,
+        "col": 7,
+        "msg": "Cannot assign 'int' to 'int*' for variable 'pointer'",
+        "severity": "warning"
+      },
+      {
+        "kind": "unused",
+        "name": "pointer",
+        "line": 3,
+        "col": 7,
+        "msg": "Variable 'pointer' declared but never used"
+      }
+    ],
+    "elapsed_ms": 3.17
+  },
+  "examples/week6_grammar_2026/pointer_errors.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 1,
+    "semantic_issues": [
+      {
+        "kind": "unused",
+        "name": "pointer",
+        "line": 3,
+        "col": 7,
+        "msg": "Variable 'pointer' declared but never used"
+      }
+    ],
+    "elapsed_ms": 1.62
+  },
+  "examples/week6_grammar_2026/sizeof.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:26 - PARSE Error: no viable alternative at input 'sizeof(int;' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.8
+  },
+  "examples/week8_ir/missing_semicolon.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 4.33
+  },
+  "examples/week8_ir/valid_simple.c": {
+    "initial_clean": true,
+    "error_count": 0,
+    "errors": [],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.34
+  },
+  "examples/week9_ai/ai_mismatch_brackets.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 2:13 - PARSE Error: missing ']' at ';' (offending: ;)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.75
+  },
+  "examples/week9_ai/ai_missing_comma_args.c": {
+    "initial_clean": false,
+    "error_count": 3,
+    "errors": [
+      "Line 6:19 - PARSE Error: no viable alternative at input 'add(1020' (offending: 20)",
+      "Line 6:19 - PARSE Error: missing ';' at '20' (offending: 20)",
+      "Line 6:21 - PARSE Error: extraneous input ')' expecting ';' (offending: ))"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 3.97
+  },
+  "examples/week9_ai/ai_missing_comma_params.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:14 - PARSE Error: no viable alternative at input 'intadd(intaint' (offending: int)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.49
+  },
+  "examples/week9_ai/missing_bracket.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:10 - PARSE Error: no viable alternative at input 'intmain({' (offending: {)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.38
+  },
+  "examples/week9_ai/missing_semicolon.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 3:4 - PARSE Error: missing ';' at 'return' (offending: return)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 1.06
+  },
+  "examples/week9_ai/typo_keyword.c": {
+    "initial_clean": false,
+    "error_count": 1,
+    "errors": [
+      "Line 1:0 - PARSE Error: mismatched input 'innt' expecting {'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: innt)"
+    ],
+    "semantic_issue_count": 0,
+    "semantic_issues": [],
+    "elapsed_ms": 0.24
+  }
+}

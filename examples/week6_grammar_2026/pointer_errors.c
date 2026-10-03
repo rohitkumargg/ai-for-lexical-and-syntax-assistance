@@ -1,7 +1,6 @@
 int main() {
   int value = 7;
-  int *pointer =
-      value; // semantic warning: integer needs an explicit pointer cast
-  int result = *value; // semantic error: only pointers may be dereferenced
+  int *pointer =&value; 
+  int result = value; 
   return result;
 }

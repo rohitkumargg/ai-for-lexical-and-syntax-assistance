@@ -62,5 +62,12 @@ def check_baseline(baseline_file="examples/baseline_before_week5.json", verbose=
 
 if __name__ == "__main__":
     verbose = "--verbose" in sys.argv or "-v" in sys.argv
-    success, count = check_baseline(verbose=verbose)
+    baseline_file = "examples/baseline_before_week8.json"
+    for arg in sys.argv[1:]:
+        if not arg.startswith("-"):
+            baseline_file = arg
+            break
+    if not os.path.exists(baseline_file) and os.path.exists("examples/baseline_before_week5.json"):
+        baseline_file = "examples/baseline_before_week5.json"
+    success, count = check_baseline(baseline_file=baseline_file, verbose=verbose)
     sys.exit(0 if success else 1)

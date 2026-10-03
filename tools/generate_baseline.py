@@ -10,10 +10,14 @@ from test_parser import parse_source, has_any_errors, get_all_error_strings
 from compiler.semantic_checker import SemanticChecker
 
 def main():
+    out_file = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else "examples/baseline_before_week8.json"
     files = sorted(glob.glob("examples/**/*.c", recursive=True))
-    files = [f for f in files if "week5_" not in f and "week6_" not in f and "week7_" not in f]
+    if "week8" in out_file:
+        files = [f for f in files if "week8_2026" not in f.replace("\\", "/")]
+    else:
+        files = [f for f in files if "week5_" not in f and "week6_" not in f and "week7_" not in f]
     
-    print(f"Collecting baseline for {len(files)} existing example files...")
+    print(f"Collecting baseline for {len(files)} existing example files into {out_file}...")
     baseline = {}
     
     clean_count = 0
@@ -59,7 +63,6 @@ def main():
         }
         print(f"[{idx}/{len(files)}] {rel_path}: clean={is_clean}, errors={len(errs) if not is_clean else 0}, sem_issues={len(sem_issues)} ({elapsed_ms}ms)")
 
-    out_file = "examples/baseline_before_week5.json"
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(baseline, f, indent=2)

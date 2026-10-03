@@ -48,6 +48,26 @@ class _FuncSig:
     col: int
 
 
+BUILTIN_LIBRARY_SIGNATURES: Dict[str, _FuncSig] = {
+    "printf": _FuncSig("printf", "int", ["char*"], 0, 0),
+    "scanf": _FuncSig("scanf", "int", ["char*"], 0, 0),
+    "snprintf": _FuncSig("snprintf", "int", ["char*", "int", "char*"], 0, 0),
+    "vsnprintf": _FuncSig("vsnprintf", "int", ["char*", "int", "char*"], 0, 0),
+    "fgets": _FuncSig("fgets", "char*", ["char*", "int", "void*"], 0, 0),
+    "strlen": _FuncSig("strlen", "int", ["char*"], 0, 0),
+    "memcpy": _FuncSig("memcpy", "void*", ["void*", "void*", "int"], 0, 0),
+    "memmove": _FuncSig("memmove", "void*", ["void*", "void*", "int"], 0, 0),
+    "memset": _FuncSig("memset", "void*", ["void*", "int", "int"], 0, 0),
+    "malloc": _FuncSig("malloc", "void*", ["int"], 0, 0),
+    "calloc": _FuncSig("calloc", "void*", ["int", "int"], 0, 0),
+    "free": _FuncSig("free", "void", ["void*"], 0, 0),
+    "strncpy": _FuncSig("strncpy", "char*", ["char*", "char*", "int"], 0, 0),
+    "strncat": _FuncSig("strncat", "char*", ["char*", "char*", "int"], 0, 0),
+    "sizeof": _FuncSig("sizeof", "int", [], 0, 0),
+    "stdin": _FuncSig("stdin", "void*", [], 0, 0),
+}
+
+
 def _tok_line_col(node: Any) -> Tuple[int, int]:
     try:
         sym = node.getSymbol()
@@ -335,9 +355,13 @@ class SemanticChecker(_VISITOR_BASE):
             # NULL and the literal 0 are accepted as null pointer constants.
             if c_rhs == "null" or (c_rhs == "int" and rhs_val == 0):
                 return True
+            if c_lhs == "void*" or c_rhs == "void*":
+                return True
             # Pointer conversions require an explicit cast unless targets match.
             return False
         if self._is_pointer_type(c_rhs):
+            if c_rhs == "null" or (c_rhs == "void*" and self._is_pointer_type(c_lhs)):
+                return True
             return False
 
         if rhs_val is not None:
@@ -486,6 +510,8 @@ class SemanticChecker(_VISITOR_BASE):
                             sig = self._funcs.get(fname)
                             if sig:
                                 return sig.ret_type
+                            if fname in BUILTIN_LIBRARY_SIGNATURES:
+                                return BUILTIN_LIBRARY_SIGNATURES[fname].ret_type
                             return None
             except Exception:
                 pass
@@ -666,8 +692,9 @@ class SemanticChecker(_VISITOR_BASE):
                             and self._is_pointer_type(right_t)
                             and _canonical_type(left_t) != _canonical_type(right_t)
                         ):
-                            line, col = _tok_line_col(right_ctx)
-                            self._add_issue("pointer_type_mismatch", "", line, col, f"Cannot compare '{left_t}' with '{right_t}'")
+                            if "void*" not in (_canonical_type(left_t), _canonical_type(right_t)) and "null" not in (left_t, right_t):
+                                line, col = _tok_line_col(right_ctx)
+                                self._add_issue("pointer_type_mismatch", "", line, col, f"Cannot compare '{left_t}' with '{right_t}'")
                         left_t = right_t
                 return "int"
             except Exception:
@@ -1103,15 +1130,24 @@ class SemanticChecker(_VISITOR_BASE):
             except Exception:
                 pass
 
-        init_node = getattr(ctx, "initializer", lambda: None)()
-        has_init = (init_node is not None)
+        expr = None
+        for _getter in ("assignmentExpression", "initializer", "expression"):
+            _fn = getattr(ctx, _getter, None)
+            if _fn is not None:
+                try:
+                    expr = _fn()
+                except Exception:
+                    expr = None
+                break
+
+        has_init = (expr is not None)
         self._cur_scope()[name] = _DeclInfo(name=name, ctype=decl_type, line=line, col=col, used=False, initialized=has_init, array_size=decl_size)
         self._decl_pos[(depth, name)] = (line, col)
 
         # initializer check (handles expression and array initializers)
-        if init_node is not None:
-            if getattr(init_node, "LBRACE", lambda: None)() is not None:
-                elem_inits = getattr(init_node, "initializer", lambda: [])()
+        if expr is not None:
+            if getattr(expr, "LBRACE", lambda: None)() is not None:
+                elem_inits = getattr(expr, "initializer", lambda: [])()
                 arr_suffix = getattr(ctx, "arraySuffix", lambda: None)()
                 if arr_suffix is not None:
                     try:
@@ -1132,34 +1168,24 @@ class SemanticChecker(_VISITOR_BASE):
                             sub_line, sub_col = _tok_line_col(sub_init)
                             self._add_issue("element_type_mismatch", name, sub_line, sub_col, f"element type mismatch in array initializer: cannot convert '{sub_t}' to '{base_elem_type}'")
             else:
-                sub_expr = getattr(init_node, "assignmentExpression", lambda: None)()
-                if sub_expr is not None:
-                    self.visit(sub_expr)
-                    rhs_t = self._infer_expr_type(sub_expr)
-                    rhs_val = _get_int_constant_value(sub_expr)
-                    if self._is_pointer_type(decl_type) and "char" in decl_type and rhs_t == "string":
-                        arr_suffix = getattr(ctx, "arraySuffix", lambda: None)()
-                        if arr_suffix is not None:
-                            try:
-                                exprs = arr_suffix.expression()
-                                if exprs:
-                                    decl_size = _get_int_constant_value(exprs[0])
-                                    str_len = len(sub_expr.getText()) - 2 + 1
-                                    if decl_size is not None and str_len > decl_size:
-                                        self._add_issue("too_many_initializers", name, line, col, f"initializer-string for char array '{name}' is too long (size {decl_size}, string with null requires {str_len})")
-                            except Exception:
-                                pass
-                    elif rhs_t is not None and not self._can_assign(decl_type, rhs_t, rhs_val=rhs_val):
-                        pointer_from_integer = self._is_pointer_type(decl_type) and self._is_integral_type(rhs_t)
-                        kind = "pointer_assignment_warning" if pointer_from_integer else ("pointer_type_mismatch" if self._is_pointer_type(decl_type) or self._is_pointer_type(rhs_t) else "type_mismatch")
-                        self._add_issue(kind, name, line, col, f"Cannot assign '{rhs_t}' to '{decl_type}' for variable '{name}'", "warning" if pointer_from_integer else None)
-        else:
-            expr = getattr(ctx, "assignmentExpression", lambda: None)()
-            if expr is not None:
-                self.visit(expr)
-                rhs_t = self._infer_expr_type(expr)
-                rhs_val = _get_int_constant_value(expr)
-                if rhs_t is not None and not self._can_assign(decl_type, rhs_t, rhs_val=rhs_val):
+                sub_expr = getattr(expr, "assignmentExpression", lambda: None)()
+                val_node = sub_expr if sub_expr is not None else expr
+                self.visit(val_node)
+                rhs_t = self._infer_expr_type(val_node)
+                rhs_val = _get_int_constant_value(val_node)
+                if self._is_pointer_type(decl_type) and "char" in decl_type and rhs_t == "string":
+                    arr_suffix = getattr(ctx, "arraySuffix", lambda: None)()
+                    if arr_suffix is not None:
+                        try:
+                            exprs = arr_suffix.expression()
+                            if exprs:
+                                decl_size = _get_int_constant_value(exprs[0])
+                                str_len = len(val_node.getText()) - 2 + 1
+                                if decl_size is not None and str_len > decl_size:
+                                    self._add_issue("too_many_initializers", name, line, col, f"initializer-string for char array '{name}' is too long (size {decl_size}, string with null requires {str_len})")
+                        except Exception:
+                            pass
+                elif rhs_t is not None and not self._can_assign(decl_type, rhs_t, rhs_val=rhs_val):
                     pointer_from_integer = self._is_pointer_type(decl_type) and self._is_integral_type(rhs_t)
                     kind = "pointer_assignment_warning" if pointer_from_integer else ("pointer_type_mismatch" if self._is_pointer_type(decl_type) or self._is_pointer_type(rhs_t) else "type_mismatch")
                     self._add_issue(kind, name, line, col, f"Cannot assign '{rhs_t}' to '{decl_type}' for variable '{name}'", "warning" if pointer_from_integer else None)
@@ -1395,7 +1421,6 @@ class SemanticChecker(_VISITOR_BASE):
         name = node.getText()
         line, col = _tok_line_col(node)
 
-        # hard allowlist for builtin/library functions
         # hard allowlist for builtin/library functions & keywords
         if name in {
             "printf",
@@ -1407,7 +1432,15 @@ class SemanticChecker(_VISITOR_BASE):
             "strncat",
             "sizeof",
             "stdin",
-        }:
+            "NULL",
+            "memcpy",
+            "memmove",
+            "memset",
+            "malloc",
+            "calloc",
+            "free",
+            "strlen",
+        } or name in BUILTIN_LIBRARY_SIGNATURES:
             return None
 
         decl = self._lookup(name)

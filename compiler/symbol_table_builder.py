@@ -7,6 +7,18 @@ from generated.SimpleCParser import SimpleCParser
 BUILTIN_FUNCTIONS = {
     "printf": {"kind": "func", "type": "int", "line": 0, "builtin": True},
     "scanf": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "snprintf": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "vsnprintf": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "fgets": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
+    "strlen": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "memcpy": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "memmove": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "memset": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "malloc": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "calloc": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "free": {"kind": "func", "type": "void", "line": 0, "builtin": True},
+    "strncpy": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
+    "strncat": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
 }
 
 
