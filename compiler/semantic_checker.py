@@ -49,23 +49,46 @@ class _FuncSig:
 
 
 BUILTIN_LIBRARY_SIGNATURES: Dict[str, _FuncSig] = {
+    "strcmp": _FuncSig("strcmp", "int", ["char*", "char*"], 0, 0),
+    "strncmp": _FuncSig("strncmp", "int", ["char*", "char*", "int"], 0, 0),
+    "strlen": _FuncSig("strlen", "int", ["char*"], 0, 0),
+    "strcpy": _FuncSig("strcpy", "char*", ["char*", "char*"], 0, 0),
+    "strncpy": _FuncSig("strncpy", "char*", ["char*", "char*", "int"], 0, 0),
+    "strcat": _FuncSig("strcat", "char*", ["char*", "char*"], 0, 0),
+    "strncat": _FuncSig("strncat", "char*", ["char*", "char*", "int"], 0, 0),
+    "snprintf": _FuncSig("snprintf", "int", ["char*", "int", "char*"], 0, 0),
+    "sprintf": _FuncSig("sprintf", "int", ["char*", "char*"], 0, 0),
+    "fgets": _FuncSig("fgets", "char*", ["char*", "int", "void*"], 0, 0),
     "printf": _FuncSig("printf", "int", ["char*"], 0, 0),
     "scanf": _FuncSig("scanf", "int", ["char*"], 0, 0),
-    "snprintf": _FuncSig("snprintf", "int", ["char*", "int", "char*"], 0, 0),
-    "vsnprintf": _FuncSig("vsnprintf", "int", ["char*", "int", "char*"], 0, 0),
-    "fgets": _FuncSig("fgets", "char*", ["char*", "int", "void*"], 0, 0),
-    "strlen": _FuncSig("strlen", "int", ["char*"], 0, 0),
-    "memcpy": _FuncSig("memcpy", "void*", ["void*", "void*", "int"], 0, 0),
-    "memmove": _FuncSig("memmove", "void*", ["void*", "void*", "int"], 0, 0),
-    "memset": _FuncSig("memset", "void*", ["void*", "int", "int"], 0, 0),
+    "getenv": _FuncSig("getenv", "char*", ["char*"], 0, 0),
     "malloc": _FuncSig("malloc", "void*", ["int"], 0, 0),
     "calloc": _FuncSig("calloc", "void*", ["int", "int"], 0, 0),
     "free": _FuncSig("free", "void", ["void*"], 0, 0),
-    "strncpy": _FuncSig("strncpy", "char*", ["char*", "char*", "int"], 0, 0),
-    "strncat": _FuncSig("strncat", "char*", ["char*", "char*", "int"], 0, 0),
+    "memcpy": _FuncSig("memcpy", "void*", ["void*", "void*", "int"], 0, 0),
+    "memset": _FuncSig("memset", "void*", ["void*", "int", "int"], 0, 0),
+    "memmove": _FuncSig("memmove", "void*", ["void*", "void*", "int"], 0, 0),
+    "vsnprintf": _FuncSig("vsnprintf", "int", ["char*", "int", "char*"], 0, 0),
     "sizeof": _FuncSig("sizeof", "int", [], 0, 0),
     "stdin": _FuncSig("stdin", "void*", [], 0, 0),
+    "stdout": _FuncSig("stdout", "void*", [], 0, 0),
+    "stderr": _FuncSig("stderr", "void*", [], 0, 0),
+    "NULL": _FuncSig("NULL", "void*", [], 0, 0),
+    "putchar": _FuncSig("putchar", "int", ["int"], 0, 0),
+    "getchar": _FuncSig("getchar", "int", [], 0, 0),
+    "puts": _FuncSig("puts", "int", ["char*"], 0, 0),
+    "system": _FuncSig("system", "int", ["char*"], 0, 0),
+    "popen": _FuncSig("popen", "void*", ["char*", "char*"], 0, 0),
+    "pclose": _FuncSig("pclose", "int", ["void*"], 0, 0),
+    "execv": _FuncSig("execv", "int", ["char*", "char**"], 0, 0),
+    "execvp": _FuncSig("execvp", "int", ["char*", "char**"], 0, 0),
+    "fork": _FuncSig("fork", "int", [], 0, 0),
+    "waitpid": _FuncSig("waitpid", "int", ["int", "int*", "int"], 0, 0),
+    "exit": _FuncSig("exit", "void", ["int"], 0, 0),
+    "_exit": _FuncSig("_exit", "void", ["int"], 0, 0),
 }
+
+
 
 
 def _tok_line_col(node: Any) -> Tuple[int, int]:
@@ -101,53 +124,64 @@ def _infer_literal_type_from_token_type(tok_type: int) -> Optional[str]:
         return "float"
     if tok_type == SimpleCParser.CHAR_LITERAL:
         return "char"
+    if tok_type == SimpleCParser.STRING_LITERAL:
+        return "char*"
     return None
+
 
 
 def _canonical_type(t: Optional[str]) -> str:
     if not t:
         return "?"
-    s = t.replace(" ", "").lower()
-    # Keep pointer depth in the type system instead of treating it as text that
-    # happens to be attached to a declaration.
-    pointer_depth = len(s) - len(s.rstrip("*"))
-    if pointer_depth:
-        return _canonical_type(s[:-pointer_depth]) + ("*" * pointer_depth)
+    t_str = t.strip()
+    pointer_depth = 0
+    while t_str.endswith("*"):
+        pointer_depth += 1
+        t_str = t_str[:-1].strip()
+
+    # Preserve exact case and identity for struct types
+    if t_str.startswith("struct ") or t_str.startswith("struct\t") or t_str == "struct":
+        sname = t_str[6:].strip()
+        base = f"struct {sname}" if sname else "struct"
+        return base + ("*" * pointer_depth)
+    if t_str.startswith("struct") and len(t_str) > 6 and (t_str[6].isalnum() or t_str[6] == '_'):
+        sname = t_str[6:].strip()
+        base = f"struct {sname}"
+        return base + ("*" * pointer_depth)
+
+    s = t_str.replace(" ", "").lower()
     if s in {"unsigned", "unsignedint"}:
-        return "unsigned int"
-    if s in {"signed", "signedint", "int"}:
-        return "int"
-    if s in {"short", "shortint", "signedshort", "signedshortint"}:
-        return "short"
-    if s in {"unsignedshort", "unsignedshortint"}:
-        return "unsigned short"
-    if s in {"long", "longint", "signedlong", "signedlongint"}:
-        return "long"
-    if s in {"unsignedlong", "unsignedlongint"}:
-        return "unsigned long"
-    if s in {"longlong", "longlongint", "signedlonglong", "signedlonglongint"}:
-        return "long long"
-    if s in {"unsignedlonglong", "unsignedlonglongint"}:
-        return "unsigned long long"
-    if s in {"signedchar"}:
-        return "signed char"
-    if s in {"unsignedchar"}:
-        return "unsigned char"
-    if s in {"char"}:
-        return "char"
-    if s in {"float"}:
-        return "float"
-    if s in {"double"}:
-        return "double"
-    if s in {"void"}:
-        return "void"
-    if s.startswith("struct"):
-        pointer_depth = len(s) - len(s.rstrip("*"))
-        base_s = s[:-pointer_depth] if pointer_depth else s
-        parts = t.split("*")[0].split()
-        struct_name = parts[1] if len(parts) > 1 else base_s[6:]
-        return f"struct {struct_name}" + ("*" * pointer_depth)
-    return t.strip()
+        base = "unsigned int"
+    elif s in {"signed", "signedint", "int"}:
+        base = "int"
+    elif s in {"short", "shortint", "signedshort", "signedshortint"}:
+        base = "short"
+    elif s in {"unsignedshort", "unsignedshortint"}:
+        base = "unsigned short"
+    elif s in {"long", "longint", "signedlong", "signedlongint"}:
+        base = "long"
+    elif s in {"unsignedlong", "unsignedlongint"}:
+        base = "unsigned long"
+    elif s in {"longlong", "longlongint", "signedlonglong", "signedlonglongint"}:
+        base = "long long"
+    elif s in {"unsignedlonglong", "unsignedlonglongint"}:
+        base = "unsigned long long"
+    elif s in {"signedchar"}:
+        base = "signed char"
+    elif s in {"unsignedchar"}:
+        base = "unsigned char"
+    elif s in {"char"}:
+        base = "char"
+    elif s in {"float"}:
+        base = "float"
+    elif s in {"double"}:
+        base = "double"
+    elif s in {"void"}:
+        base = "void"
+    else:
+        base = t_str
+
+    return base + ("*" * pointer_depth)
 
 
 _TYPE_RANKS = {
@@ -353,12 +387,17 @@ class SemanticChecker(_VISITOR_BASE):
 
         if self._is_pointer_type(c_lhs):
             # NULL and the literal 0 are accepted as null pointer constants.
-            if c_rhs == "null" or (c_rhs == "int" and rhs_val == 0):
+            if c_rhs in ("null", "NULL") or (c_rhs == "int" and rhs_val == 0) or (rhs_val == 0 and rhs_val is not None):
                 return True
             if c_lhs == "void*" or c_rhs == "void*":
                 return True
+            # Passing a char array, a string literal, NULL, 0 or a char* to a char* parameter (array-to-pointer decay)
+            if c_lhs in ("char*", "signed char*", "unsigned char*"):
+                if c_rhs in ("char*", "signed char*", "unsigned char*", "string") or c_rhs.startswith("char["):
+                    return True
             # Pointer conversions require an explicit cast unless targets match.
             return False
+
         if self._is_pointer_type(c_rhs):
             if c_rhs == "null" or (c_rhs == "void*" and self._is_pointer_type(c_lhs)):
                 return True
@@ -458,18 +497,29 @@ class SemanticChecker(_VISITOR_BASE):
             try:
                 ident = ctx.IDENTIFIER()
                 if ident is not None:
-                    d = self._lookup(ident.getText())
+                    txt = ident.getText()
+                    if txt == "NULL":
+                        return "null"
+                    if txt in ("stdin", "stdout", "stderr"):
+                        return "void*"
+                    d = self._lookup(txt)
                     return d.ctype if d else None
             except Exception:
                 pass
             try:
                 # literals
-                for tok_attr, tname in [("INTEGER", "int"), ("FLOAT_LITERAL", "float"), ("CHAR_LITERAL", "char")]:
+                for tok_attr, tname in [
+                    ("INTEGER", "int"),
+                    ("FLOAT_LITERAL", "float"),
+                    ("CHAR_LITERAL", "char"),
+                    ("STRING_LITERAL", "char*"),
+                ]:
                     fn = getattr(ctx, tok_attr, None)
                     if callable(fn) and fn() is not None:
                         return tname
             except Exception:
                 pass
+
             try:
                 inner = ctx.expression()
                 if inner is not None:
@@ -1173,19 +1223,22 @@ class SemanticChecker(_VISITOR_BASE):
                 self.visit(val_node)
                 rhs_t = self._infer_expr_type(val_node)
                 rhs_val = _get_int_constant_value(val_node)
-                if self._is_pointer_type(decl_type) and "char" in decl_type and rhs_t == "string":
+                raw_txt = val_node.getText().strip() if hasattr(val_node, "getText") else ""
+                is_literal = raw_txt.startswith('"') and raw_txt.endswith('"')
+                if self._is_pointer_type(decl_type) and "char" in decl_type and (rhs_t in ("string", "char*") or is_literal):
                     arr_suffix = getattr(ctx, "arraySuffix", lambda: None)()
                     if arr_suffix is not None:
                         try:
                             exprs = arr_suffix.expression()
                             if exprs:
                                 decl_size = _get_int_constant_value(exprs[0])
-                                str_len = len(val_node.getText()) - 2 + 1
-                                if decl_size is not None and str_len > decl_size:
-                                    self._add_issue("too_many_initializers", name, line, col, f"initializer-string for char array '{name}' is too long (size {decl_size}, string with null requires {str_len})")
+                                str_len = (len(raw_txt) - 2 + 1) if is_literal else None
+                                if decl_size is not None and str_len is not None and str_len > decl_size:
+                                    self._add_issue("type_mismatch", name, line, col, f"initializer-string for char array '{name}' is too long (size {decl_size}, string with null requires {str_len})")
                         except Exception:
                             pass
                 elif rhs_t is not None and not self._can_assign(decl_type, rhs_t, rhs_val=rhs_val):
+
                     pointer_from_integer = self._is_pointer_type(decl_type) and self._is_integral_type(rhs_t)
                     kind = "pointer_assignment_warning" if pointer_from_integer else ("pointer_type_mismatch" if self._is_pointer_type(decl_type) or self._is_pointer_type(rhs_t) else "type_mismatch")
                     self._add_issue(kind, name, line, col, f"Cannot assign '{rhs_t}' to '{decl_type}' for variable '{name}'", "warning" if pointer_from_integer else None)
@@ -1517,7 +1570,55 @@ class SemanticChecker(_VISITOR_BASE):
         for p in call_parts:
             txt = p.getText()
             if txt.startswith("(") and txt.endswith(")"):
-                sig = self._funcs.get(fname)
+                # Validate scanf format specifiers vs argument types
+                if fname == "scanf":
+                    try:
+                        al = p.argumentList()
+                        if al is not None:
+                            aes = list(al.assignmentExpression())
+                            if len(aes) >= 2:
+                                fmt_node = aes[0]
+                                fmt_txt = fmt_node.getText().strip()
+                                if fmt_txt.startswith('"') and fmt_txt.endswith('"'):
+                                    raw_fmt = fmt_txt[1:-1]
+                                    active_specs = []
+                                    for m in re.finditer(r"%(?:\*?)([0-9]*)(?:hh|h|ll|l|j|z|t|L)?([%diuoxXfFeEgGaAcspn\[])", raw_fmt):
+                                        full = m.group(0)
+                                        conv = m.group(2)
+                                        if full.startswith("%*") or conv == "%":
+                                            continue
+                                        active_specs.append((full, conv))
+                                    for idx, (spec_full, spec_conv) in enumerate(active_specs):
+                                        arg_idx = idx + 1
+                                        if arg_idx < len(aes):
+                                            arg_expr = aes[arg_idx]
+                                            got_type = self._infer_expr_type(arg_expr)
+                                            if got_type is not None:
+                                                if spec_conv == "s":
+                                                    if got_type not in ("char*", "signed char*", "unsigned char*"):
+                                                        line, col = _tok_line_col(prim.IDENTIFIER())
+                                                        self._add_issue(
+                                                            "call_type_mismatch",
+                                                            "scanf",
+                                                            line,
+                                                            col,
+                                                            f"Invalid argument type for scanf format %s: expected 'char*', got '{got_type}'",
+                                                        )
+                                                elif spec_conv in ("d", "i"):
+                                                    if not (self._is_pointer_type(got_type) and self._is_integral_type(self._pointer_target(got_type))):
+                                                        line, col = _tok_line_col(prim.IDENTIFIER())
+                                                        self._add_issue(
+                                                            "call_type_mismatch",
+                                                            "scanf",
+                                                            line,
+                                                            col,
+                                                            f"Invalid argument type for scanf format %{spec_conv}: expected 'int*', got '{got_type}'",
+                                                        )
+                    except Exception:
+                        pass
+                    continue
+
+                sig = self._funcs.get(fname) or BUILTIN_LIBRARY_SIGNATURES.get(fname)
                 if sig is None:
                     # if it's not a known function, treat as undeclared use of identifier (already handled by visitTerminal)
                     continue
@@ -1537,8 +1638,9 @@ class SemanticChecker(_VISITOR_BASE):
                     except Exception:
                         pass
 
+                is_variadic = fname in ("printf", "scanf", "sprintf", "snprintf", "vsnprintf")
                 # arity check
-                if len(arg_types) != len(sig.param_types):
+                if (is_variadic and len(arg_types) < len(sig.param_types)) or (not is_variadic and len(arg_types) != len(sig.param_types)):
                     line, col = _tok_line_col(prim.IDENTIFIER())
                     self._add_issue(
                         "call_arity_mismatch",
@@ -1549,7 +1651,7 @@ class SemanticChecker(_VISITOR_BASE):
                     )
                 else:
                     # type check
-                    for i, (got, expected) in enumerate(zip(arg_types, sig.param_types), start=1):
+                    for i, (got, expected) in enumerate(zip(arg_types[:len(sig.param_types)], sig.param_types), start=1):
                         if got is None:
                             continue
                         ae_node = None

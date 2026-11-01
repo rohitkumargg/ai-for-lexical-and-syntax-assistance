@@ -70,7 +70,7 @@ def classify_error_message(msg: str) -> ErrorClassification:
         return ErrorClassification(True, "MISSING_TOKEN", "missing_rparen_cast_or_sizeof")
     if "no viable alternative" in lower and re.search(r"sizeof\([^)]*[;]", lower):
         return ErrorClassification(True, "MISSING_TOKEN", "missing_rparen_cast_or_sizeof")
-    if "'*'" in lower and ("extraneous input" in lower or "mismatched input" in lower):
+    if re.search(r"(?:extraneous|mismatched)\s+input\s+'\*'", lower):
         return ErrorClassification(False, "POINTER_ERROR", "pointer_star_misuse")
 
     # token families

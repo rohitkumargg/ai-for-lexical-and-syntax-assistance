@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Optional, Tuple, List
 
+
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from peft import PeftModel
@@ -13,8 +14,16 @@ from peft import PeftModel
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 
-BASE_MODEL_NAME = "Salesforce/codet5-base"
-ADAPTER_DIR = os.getenv("CD_PATCH_ADAPTER_DIR", "models/codet5_patch_adapter")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOCAL_BASE_MODEL_DIR = os.path.join(PROJECT_ROOT, "models", "codet5-base")
+BASE_MODEL_NAME = os.getenv(
+    "CD_BASE_MODEL_NAME",
+    LOCAL_BASE_MODEL_DIR if os.path.isdir(LOCAL_BASE_MODEL_DIR) else "Salesforce/codet5-base",
+)
+ADAPTER_DIR = os.getenv(
+    "CD_PATCH_ADAPTER_DIR",
+    os.path.join(PROJECT_ROOT, "models", "codet5_patch_adapter"),
+)
 
 MAX_SOURCE_LEN = 256
 MAX_NEW_TOKENS = 16
@@ -48,9 +57,9 @@ DEL_RE = re.compile(r"^\s*DEL\s+(\d+)\s+(\d+)\s*$", re.IGNORECASE)
 REP_RE = re.compile(r"^\s*REP\s+(\d+)\s+(\d+)\s+(.+?)\s*$", re.IGNORECASE)
 
 # Line-column commands actually being predicted by your model
-INS_LC_RE = re.compile(r"^\s*INS_LC\s+(\d+)\s+(\d+)\s*([^\d\s].*?)\s*$", re.IGNORECASE)
+INS_LC_RE = re.compile(r"^\s*INS_LC\s+(\d+)\s+(\d+)\s+(.+?)\s*$", re.IGNORECASE)
 DEL_LC_RE = re.compile(r"^\s*DEL_LC\s+(\d+)\s+(\d+)\s*$", re.IGNORECASE)
-REP_LC_RE = re.compile(r"^\s*REP_LC\s+(\d+)\s+(\d+)\s*([^\d\s].*?)\s*$", re.IGNORECASE)
+REP_LC_RE = re.compile(r"^\s*REP_LC\s+(\d+)\s+(\d+)\s+(.+?)\s*$", re.IGNORECASE)
 
 @dataclass(frozen=True)
 class PatchCommand:
@@ -86,17 +95,21 @@ def _resolve_adapter_dir(path: str) -> str:
     Accept either:
       - models/codet5_patch_adapter
       - models/codet5_patch_adapter/adapter
-    and return the directory that contains adapter_config.json.
+    relative or absolute, and return the directory that contains adapter_config.json.
     """
-    if os.path.isdir(path) and os.path.isfile(os.path.join(path, "adapter_config.json")):
-        return path
+    candidates = [path]
+    if not os.path.isabs(path):
+        candidates.append(os.path.join(PROJECT_ROOT, path))
 
-    alt = os.path.join(path, "adapter")
-    if os.path.isdir(alt) and os.path.isfile(os.path.join(alt, "adapter_config.json")):
-        return alt
+    for cand in candidates:
+        if os.path.isdir(cand) and os.path.isfile(os.path.join(cand, "adapter_config.json")):
+            return os.path.abspath(cand)
+        alt = os.path.join(cand, "adapter")
+        if os.path.isdir(alt) and os.path.isfile(os.path.join(alt, "adapter_config.json")):
+            return os.path.abspath(alt)
 
     raise FileNotFoundError(
-        f"Could not find adapter_config.json in '{path}' or '{alt}'.\n"
+        f"Could not find adapter_config.json in '{path}'.\n"
         f"Fix by either:\n"
         f"  1) Setting env var CD_PATCH_ADAPTER_DIR to your adapter folder, OR\n"
         f"  2) Placing files so that adapter_config.json exists at:\n"
@@ -106,24 +119,57 @@ def _resolve_adapter_dir(path: str) -> str:
     )
 
 
-def _load_model_once() -> Tuple[AutoTokenizer, torch.nn.Module, str]:
+def _load_model_once(
+    base_model_path: Optional[str] = None,
+    adapter_dir: Optional[str] = None,
+) -> Tuple[AutoTokenizer, torch.nn.Module, str]:
     global _TOKENIZER, _MODEL, _DEVICE
 
     if _TOKENIZER is not None and _MODEL is not None and _DEVICE is not None:
         return _TOKENIZER, _MODEL, _DEVICE
 
     device = _get_device()
-    adapter_path = _resolve_adapter_dir(ADAPTER_DIR)
+    adapter_path = _resolve_adapter_dir(adapter_dir or ADAPTER_DIR)
+    target_base = base_model_path or BASE_MODEL_NAME
+    local_only = os.path.isdir(target_base)
 
-    tokenizer = AutoTokenizer.from_pretrained(adapter_path)
-    base = AutoModelForSeq2SeqLM.from_pretrained(BASE_MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(adapter_path, local_files_only=True)
+    base = AutoModelForSeq2SeqLM.from_pretrained(target_base, local_files_only=local_only)
 
-    model = PeftModel.from_pretrained(base, adapter_path)
+    model = PeftModel.from_pretrained(base, adapter_path, local_files_only=True)
     model.to(device)
     model.eval()
 
     _TOKENIZER, _MODEL, _DEVICE = tokenizer, model, device
     return tokenizer, model, device
+
+
+def unload_model() -> None:
+    """Explicitly unload CodeT5 model and tokenizer from memory to free VRAM/RAM."""
+    global _TOKENIZER, _MODEL, _DEVICE
+    if _MODEL is not None:
+        try:
+            del _MODEL
+        except Exception:
+            pass
+        _MODEL = None
+    if _TOKENIZER is not None:
+        try:
+            del _TOKENIZER
+        except Exception:
+            pass
+        _TOKENIZER = None
+    _DEVICE = None
+
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except Exception:
+        pass
+
+    import gc
+    gc.collect()
 
 
 # ------------------------------------------------------------------
@@ -405,19 +451,20 @@ def infer_training_family(reason: str, source_text: str, error_line: int, error_
     # ----------------------------------------------------------
     # Direct runtime reason mappings
     # ----------------------------------------------------------
-    if reason == "missing_semicolon":
+    reason_lower = (reason or "").lower()
+    if reason == "missing_semicolon" or "missing_semicolon" in reason_lower or "missing ';'" in reason_lower:
         return "missing_semicolon"
 
-    if reason == "missing_lbrace":
+    if reason == "missing_lbrace" or "missing_lbrace" in reason_lower or "missing '{'" in reason_lower:
         return "missing_lbrace"
 
-    if reason == "missing_rbrace":
+    if reason == "missing_rbrace" or "missing_rbrace" in reason_lower or "missing '}'" in reason_lower:
         return "missing_rbrace"
 
-    if reason == "missing_rparen":
+    if reason == "missing_rparen" or "missing_rparen" in reason_lower or "missing ')'" in reason_lower:
         return "missing_rparen"
 
-    if reason == "missing_lparen":
+    if reason == "missing_lparen" or "missing_lparen" in reason_lower or "missing '('" in reason_lower:
         return "missing_lparen_general"
 
     if reason == "illegal_token":
@@ -678,12 +725,8 @@ def _family_compatible(
         return patch.op in {"DEL", "REP"}
 
     if family == "missing_operand":
-        if patch.op == "INS":
-            if payload in {";", "{", "}", ")", "]"}:
-                return False
-            return True
-        if patch.op == "REP":
-            if payload in {";", "{", "}", ")", "]"}:
+        if patch.op in {"INS", "REP"}:
+            if payload in {";", "{", "}", ")", "]", "=", "=="}:
                 return False
             return True
         return False
@@ -813,6 +856,8 @@ def ai_generate_patch_candidates(
     reason: str = "unknown",
     top_k: int = 5,
     debug: bool = True,
+    base_model_path: Optional[str] = None,
+    adapter_dir: Optional[str] = None,
 ) -> List[Tuple[str, str, int]]:
     """
     Returns a ranked list of candidate repairs:
@@ -829,7 +874,10 @@ def ai_generate_patch_candidates(
 
     Final parse-based selection should happen in test_parser.py.
     """
-    tokenizer, model, device = _load_model_once()
+    tokenizer, model, device = _load_model_once(
+        base_model_path=base_model_path,
+        adapter_dir=adapter_dir,
+    )
 
     family = infer_training_family(reason, source_text, error_line, error_column)
     prompt = build_training_style_prompt(
@@ -856,8 +904,9 @@ def ai_generate_patch_candidates(
         max_length=MAX_SOURCE_LEN,
     ).to(device)
 
-    num_return_sequences = max(1, min(int(top_k or 1), 5))
-    num_beams = max(4, num_return_sequences)
+    cfg_beams = int(os.environ.get("CODET5_NUM_BEAMS", "1"))
+    num_return_sequences = max(1, min(int(top_k or 1), 5)) if cfg_beams > 1 else 1
+    num_beams = max(cfg_beams, num_return_sequences)
 
     with torch.no_grad():
         outputs = model.generate(
@@ -866,7 +915,7 @@ def ai_generate_patch_candidates(
             num_beams=num_beams,
             num_return_sequences=num_return_sequences,
             do_sample=False,
-            early_stopping=True,
+            early_stopping=(num_beams > 1),
         )
 
     preds = [
@@ -964,6 +1013,8 @@ def ai_correct_source_patch_mode(
     reason: str = "unknown",
     top_k: int = 5,
     debug: bool = True,
+    base_model_path: Optional[str] = None,
+    adapter_dir: Optional[str] = None,
 ) -> Tuple[str, Optional[str]]:
     """
     Backward-compatible wrapper:
@@ -979,6 +1030,8 @@ def ai_correct_source_patch_mode(
         reason=reason,
         top_k=top_k,
         debug=debug,
+        base_model_path=base_model_path,
+        adapter_dir=adapter_dir,
     )
 
     if not candidates:

@@ -1,0 +1,24 @@
+{
+  "semantic/m07_call_arity.py": {
+    "action": "reported",
+    "kind": "call_arity_mismatch",
+    "line": 3
+  },
+  "semantic/m08_return_outside.py": {
+    "action": "reported",
+    "kind": "return_outside_function",
+    "line": 2
+  },
+  "security/x07_hardcoded_password.py": {
+    "action": "reported",
+    "rule": "PY-SEC-07",
+    "line": 1,
+    "suggestion_contains": "os.environ"
+  },
+  "security/x08_sql_injection.py": {
+    "action": "reported",
+    "rule": "PY-SEC-08",
+    "line": 2,
+    "suggestion_contains": "parameterized"
+  }
+}

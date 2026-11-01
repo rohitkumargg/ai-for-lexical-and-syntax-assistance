@@ -161,20 +161,13 @@ def _compute_changed_lines(old_text: str, new_text: str) -> List[int]:
 
 def _collect_security_issues(source_text: str) -> List[str]:
     issues = []
+    from compiler.security_engine import SecurityEngine
+    engine = SecurityEngine()
+    engine_issues, _, _ = engine.analyze(source_text)
 
-    security_checker = SecurityChecker()
-    taint_checker = TaintChecker()
-    string_checker = StringFlowChecker()
-
-    for issue in security_checker.check(source_text):
-        issues.append(f"[{issue.severity}] {issue.message} (score={issue.score})")
-
-    for issue in taint_checker.check(source_text):
+    for issue in engine_issues:
         sugg = f" | Suggested safer pattern: {issue.suggestion}" if getattr(issue, "suggestion", None) else ""
         issues.append(f"[{issue.severity}] {issue.message}{sugg} (score={issue.score})")
-
-    for issue in string_checker.check(source_text):
-        issues.append(f"[{issue.severity}] {issue.message} (score={issue.score})")
 
     return issues
 
@@ -186,36 +179,30 @@ def _status_from_security(security_warnings: List[Any]) -> str:
     if not security_warnings:
         return "SUCCESS"
 
-    blocked = False
-    total_score = 0
+    has_critical = False
+    has_warning_or_high = False
 
     for item in security_warnings:
         if isinstance(item, dict):
             sev = item.get("severity", "")
-            if sev == "CRITICAL" or "[CRITICAL]" in str(item.get("message", "")):
-                blocked = True
-            if item.get("action") == "warned":
-                total_score += 1
+            msg = str(item.get("message", ""))
+            if sev == "CRITICAL" or "[CRITICAL]" in msg:
+                has_critical = True
+            elif sev in ("WARNING", "HIGH") or "[WARNING]" in msg or "[HIGH]" in msg:
+                has_warning_or_high = True
             continue
 
         item_str = str(item)
         if "[CRITICAL]" in item_str:
-            blocked = True
+            has_critical = True
+        elif "[WARNING]" in item_str or "[HIGH]" in item_str:
+            has_warning_or_high = True
 
-        marker = "(score="
-        pos = item_str.find(marker)
-        if pos != -1:
-            end = item_str.find(")", pos)
-            if end != -1:
-                try:
-                    total_score += int(item_str[pos + len(marker):end])
-                except ValueError:
-                    pass
-
-    if blocked or total_score >= 6:
+    if has_critical:
         return "BLOCKED_SECURITY"
-
-    return "SUCCESS_WITH_WARNINGS"
+    if has_warning_or_high:
+        return "SUCCESS_WITH_WARNINGS"
+    return "SUCCESS"
 
 
 def _try_remove_unused_decl(
@@ -465,6 +452,46 @@ def _finalize_green_report(
     result["green_report"] = build_green_report(metrics)
 
     try:
+        from compiler.code_quality import CodeQualityScorer
+        scorer = CodeQualityScorer()
+        q_rep = scorer.analyze_source(
+            source_code=result.get("corrected_code", ""),
+            filename=filename,
+            syntax_errors=result.get("errors", []),
+            semantic_issues=result.get("semantic_issues", []),
+            security_findings=result.get("security_warnings", []),
+            green_metrics=result.get("green_report", {}),
+        )
+        result["quality_report"] = q_rep.to_dict()
+    except Exception as e:
+        result["quality_report"] = None
+
+    try:
+        from compiler.optimization_potential import OptimizationPotentialAnalyzer
+        analyzer = OptimizationPotentialAnalyzer()
+        opt_rep = analyzer.analyze(
+            source_code=result.get("corrected_code", ""),
+            filename=filename,
+            green_metrics=result.get("green_report", {}),
+        )
+        result["optimization_report"] = opt_rep.to_dict()
+    except Exception as e:
+        result["optimization_report"] = None
+
+    try:
+        from compiler.security_risk import SecurityRiskScorer
+        sec_scorer = SecurityRiskScorer()
+        sec_findings = result.get("security_warnings", [])
+        risk_rep = sec_scorer.assess(
+            findings=sec_findings,
+            source_code=result.get("corrected_code", ""),
+            filename=filename,
+        )
+        result["security_risk_report"] = risk_rep.to_dict()
+    except Exception as e:
+        result["security_risk_report"] = None
+
+    try:
         logger = GreenLogger()
         logger.log_run({
             "filename": filename,
@@ -476,7 +503,37 @@ def _finalize_green_report(
         pass
 
 
-def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", enable_ai: bool = True):
+def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", enable_ai: bool = True, language: Optional[str] = None):
+    from compiler.languages import detect_language
+    lang_id = detect_language(filename, language)
+
+    # Mandatory Pre-Execution Security Gate
+    from compiler.security_gate import PreExecutionSecurityGate
+    gate_verdict = PreExecutionSecurityGate.check_submission(source_text, filename=filename, language=lang_id, action="repair_stream")
+    if gate_verdict.is_blocked:
+        yield {
+            "type": "error",
+            "status": "BLOCKED_SECURITY_POLICY",
+            "blocked": True,
+            "is_blocked": True,
+            "message": gate_verdict.message,
+            "explanation": gate_verdict.explanation,
+            "reason_code": gate_verdict.reason_code,
+            "evidence": gate_verdict.evidence,
+            "threat_category": gate_verdict.threat_category,
+            "corrected_code": source_text,
+            "applied_steps": [],
+            "stats": {},
+            "total_repairs": 0,
+        }
+        return
+
+    if lang_id == "python":
+        from compiler.languages.python_lang import repair_python_stream
+        for event in repair_python_stream(source_text, filename):
+            yield event
+        return
+
     original_source = source_text
     working = source_text
 
@@ -559,6 +616,7 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", ena
             "changed_lines": _compute_changed_lines(original_source, working),
             "security_changed_lines": [],
             "success": False,
+            "language": "c",
         }
         _finalize_green_report(green, filename, final_payload)
         yield final_payload
@@ -776,7 +834,36 @@ def repair_source_for_gui_stream(source_text: str, filename: str = "main.c", ena
     yield final_result
 
 
-def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai: bool = True) -> Dict[str, Any]:
+def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai: bool = True, language: Optional[str] = None, enable_sec_fix: bool = True) -> Dict[str, Any]:
+    from compiler.languages import detect_language
+    lang_id = detect_language(filename, language)
+
+    # Mandatory Pre-Execution Security Gate
+    from compiler.security_gate import PreExecutionSecurityGate
+    gate_verdict = PreExecutionSecurityGate.check_submission(source_text, filename=filename, language=lang_id, action="repair")
+    if gate_verdict.is_blocked:
+        return {
+            "status": "BLOCKED_SECURITY_POLICY",
+            "blocked": True,
+            "is_blocked": True,
+            "success": False,
+            "reason_code": gate_verdict.reason_code,
+            "message": gate_verdict.message,
+            "explanation": gate_verdict.explanation,
+            "evidence": gate_verdict.evidence,
+            "threat_category": gate_verdict.threat_category,
+            "original_code": source_text,
+            "corrected_code": source_text,
+            "applied_steps": [],
+            "logs": [f"Pre-execution security gate blocked: {gate_verdict.message}"],
+            "errors": [gate_verdict.explanation],
+            "stats": {"lex_fixes": 0, "rule_fixes": 0, "ai_fixes": 0, "sem_fixes": 0, "sec_det_fixes": 0},
+        }
+
+    if lang_id == "python":
+        from compiler.languages.python_lang import repair_python
+        return repair_python(source_text, filename)
+
     original_source = source_text
     working = source_text
 
@@ -824,6 +911,7 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
         "success": False,
         "status": "STOPPED",
         "filename": filename,
+        "language": "c",
         "corrected_code": working,
         "applied_steps": [],
         "logs": [],
@@ -835,6 +923,17 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
         "stats": stats,
         "green_report": {},
     }
+
+    # Run multi-agent orchestrator analysis
+    try:
+        from compiler.orchestrator import AgentOrchestrator
+        orchestrator = AgentOrchestrator()
+        orch_res = orchestrator.run_analysis(working, filename=filename)
+        result["orchestrator_analysis"] = orch_res.to_dict()
+        if orch_res.root_cause_findings:
+            logs.append(f"Orchestrator identified {len(orch_res.root_cause_findings)} root cause finding(s).")
+    except Exception as orch_err:
+        pass
 
     # ---------------------------------------------------------
     # Phase 1: lexical cleanup
@@ -1065,16 +1164,41 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
                         result["status"] = "UNFIXABLE"
                         break
 
-                    logs.append("Invoking AI patch-based correction.")
+                    logs.append("Invoking multi-tier RepairWorkflowEngine (CodeT5 + Local Qwen2.5-Coder).")
+                    workflow_applied = False
+                    try:
+                        from compiler.repair_workflow import RepairWorkflowEngine
+                        wf_engine = RepairWorkflowEngine()
+                        wf_res = wf_engine.run_workflow(working, filename=filename)
+                        if wf_res.status in ("REPAIRED", "PARTIALLY_REPAIRED") and wf_res.final_source != working:
+                            tree_wf, listeners_wf, parser_wf = parse_source(wf_res.final_source, f"{filename} (gui-workflow-fixed)")
+                            if tree_wf is not None and not has_any_errors(listeners_wf):
+                                working = wf_res.final_source
+                                tree, listeners, parser = tree_wf, listeners_wf, parser_wf
+                                for p in wf_res.attempted_patches:
+                                    if p.validation_passed:
+                                        steps.append(f"{p.tier.value.upper()}: {p.explanation}")
+                                        logs.append(f"Applied {p.tier.value.upper()} validated patch: {p.explanation}")
+                                        stats["ai_fixes"] += 1
+                                        green.inc("ai_fixes")
+                                edits += 1
+                                workflow_applied = True
+                                result["workflow_result"] = wf_res.to_dict()
+                                if not has_any_errors(listeners):
+                                    break
+                                continue
+                    except Exception as wf_err:
+                        logs.append(f"RepairWorkflowEngine note: {wf_err}")
 
-                    candidates = ai_generate_patch_candidates(
-                        working,
-                        line,
-                        col,
-                        reason=classification.reason,
-                        top_k=5,
-                        debug=False,
-                    )
+                    if not workflow_applied:
+                        candidates = ai_generate_patch_candidates(
+                            working,
+                            line,
+                            col,
+                            reason=classification.reason,
+                            top_k=5,
+                            debug=False,
+                        )
 
                     ai_src, cmd, tree2, listeners2, parser2 = _select_best_ai_candidate_by_reparse(
                         filename,
@@ -1215,7 +1339,7 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
             sem_before_sec = _collect_semantic_issues(tree) if tree is not None else []
             undecl_before_sec = {str(iss.get("name") or "") for iss in sem_before_sec if iss.get("kind") == "undeclared"}
 
-            if existing_sec_warnings:
+            if existing_sec_warnings and enable_sec_fix:
                 logs.append(f"Security issues detected: {len(existing_sec_warnings)}")
                 logs.append("Invoking SecurityAutoFixer with pipeline safety guard.")
 
@@ -1278,6 +1402,45 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
                         continue
 
                     logs.append("SecurityAutoFixer produced no accepted code change.")
+                    if enable_ai:
+                        logs.append("Invoking Qwen2.5-Coder for AI security repair...")
+                        try:
+                            from compiler.local_models import OllamaClient
+                            ollama = OllamaClient()
+                            if ollama.is_available():
+                                qwen_res = ollama.coordinate_repair_decision(
+                                    source_text=working,
+                                    findings=existing_sec_warnings,
+                                    filename=filename,
+                                    language="c",
+                                )
+                                q_cand = qwen_res.get("candidate_code")
+                                q_expl = qwen_res.get("explanation") or "Qwen AI security repair"
+                                if q_cand and q_cand.strip() != working.strip():
+                                    from compiler.patch_validator import PatchValidator
+                                    val_rep = PatchValidator().validate_patch(
+                                        original_code=working,
+                                        candidate_code=q_cand,
+                                        filename=filename,
+                                        language="c",
+                                    )
+                                    if val_rep.is_valid:
+                                        tree_q, listeners_q, parser_q = parse_source(q_cand, f"{filename} (gui-qwen-sec)")
+                                        step_msg = f"AISEC: {q_expl}"
+                                        steps.append(step_msg)
+                                        logs.append(f"Applied validated Qwen security fix: {step_msg}")
+                                        stats["ai_fixes"] = stats.get("ai_fixes", 0) + 1
+                                        green.inc("ai_fixes")
+                                        changed_now = _compute_changed_lines(working, q_cand)
+                                        security_changed_lines = sorted(set(security_changed_lines + changed_now))
+                                        working = q_cand
+                                        tree, listeners, parser = tree_q, listeners_q, parser_q
+                                        green.end("security_phase")
+                                        continue
+                                    else:
+                                        logs.append(f"Rejected unvalidated Qwen candidate ({val_rep.verdict.value}): {val_rep.explanation}")
+                        except Exception as q_err:
+                            logs.append(f"Qwen security auto-fix note: {str(q_err)}")
                 except Exception as e:
                     logs.append(f"Security auto-fix failed: {str(e)}")
 
@@ -1289,12 +1452,17 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
             result["sec_undeclared_introduced"] = len(sec_introduced_names)
             result["sec_introduced_names"] = list(sec_introduced_names)
 
+            final_status = _status_from_security(security_warnings)
+
+            if final_status == "BLOCKED_SECURITY":
+                result["status"] = "BLOCKED_SECURITY"
+                result["success"] = False
+                break
+
             if semantic_issues:
                 result["status"] = "SEM_ISSUES"
                 result["success"] = True
                 break
-
-            final_status = _status_from_security(security_warnings)
 
             if security_warnings:
                 logs.append(f"Security warnings remaining: {len(security_warnings)}")
@@ -1349,5 +1517,9 @@ def repair_source_for_gui(source_text: str, filename: str = "main.c", enable_ai:
         green.set(k, v)
 
     _finalize_green_report(green, filename, result)
+
+    if "analysis_mode" not in result:
+        from compiler.call_extractor import get_extraction_mode
+        result["analysis_mode"] = get_extraction_mode(original_source) if lang_id == "c" else "AST"
 
     return result

@@ -117,12 +117,15 @@ def eval_const_int_expr(node: Any) -> Optional[int]:
     if cls == "PrimaryExpressionContext":
         if node.INTEGER() is not None:
             txt = node.INTEGER().getText()
+            import re
+            clean_txt = re.sub(r"[uUlL]+$", "", txt)
+            clean_txt = re.sub(r"(ui64|i64)$", "", clean_txt, flags=re.IGNORECASE)
             try:
-                if txt.startswith(("0x", "0X")):
-                    return int(txt, 16)
-                if txt.startswith("0") and len(txt) > 1 and txt.isdigit():
-                    return int(txt, 8)
-                return int(txt)
+                if clean_txt.startswith(("0x", "0X")):
+                    return int(clean_txt, 16)
+                if clean_txt.startswith("0") and len(clean_txt) > 1 and clean_txt.isdigit():
+                    return int(clean_txt, 8)
+                return int(clean_txt)
             except ValueError:
                 return None
         if node.expression() is not None:
@@ -244,6 +247,166 @@ def find_token_by_text(node: Any, text: str) -> Optional[Any]:
     return None
 
 
+def is_single_literal_or_var_expr(node: Any) -> bool:
+    """Returns True if node represents a single literal or identifier (no binary operations)."""
+    if node is None:
+        return False
+    cls = node.__class__.__name__
+    if cls == "PrimaryExpressionContext":
+        if getattr(node, "INTEGER", lambda: None)() is not None:
+            return True
+        if getattr(node, "IDENTIFIER", lambda: None)() is not None:
+            return True
+        expr = getattr(node, "expression", lambda: None)()
+        if expr is not None:
+            return is_single_literal_or_var_expr(expr)
+        return False
+    if cls == "UnaryExpressionContext":
+        if getattr(node, "typeSpecifier", lambda: None)() is not None:
+            return False
+        sub = getattr(node, "unaryExpression", lambda: None)()
+        if sub is not None:
+            return is_single_literal_or_var_expr(sub)
+        post = getattr(node, "postfixExpression", lambda: None)()
+        if post is not None:
+            return is_single_literal_or_var_expr(post)
+        return False
+    if cls == "PostfixExpressionContext":
+        parts = getattr(node, "postfixPart", lambda: [])()
+        if parts:
+            return False
+        prim = getattr(node, "primaryExpression", lambda: None)()
+        if prim is not None:
+            return is_single_literal_or_var_expr(prim)
+        return False
+    if cls in ("MultiplicativeExpressionContext", "AdditiveExpressionContext", "ShiftExpressionContext",
+               "RelationalExpressionContext", "EqualityExpressionContext", "AndExpressionContext",
+               "ExclusiveOrExpressionContext", "InclusiveOrExpressionContext", "LogicalAndExpressionContext",
+               "LogicalOrExpressionContext"):
+        if node.getChildCount() > 1:
+            return False
+        if node.getChildCount() == 1:
+            return is_single_literal_or_var_expr(node.getChild(0))
+        return False
+    if node.getChildCount() == 1:
+        return is_single_literal_or_var_expr(node.getChild(0))
+    return False
+
+
+def find_outer_cast_wrapping_binary_op(node: Any) -> Optional[Tuple[Any, Any, str, Any, Any]]:
+    """
+    Detects if node has an explicit 64-bit cast wrapping a parenthesized binary arithmetic operation.
+    e.g. (long long)(a + b) or (long long)(2147483647 + 1).
+    Returns (cast_unary_node, inner_op_node, op_symbol, left_operand_node, right_operand_node) or None.
+    """
+    if node is None:
+        return None
+    curr = node
+    while curr is not None and curr.getChildCount() == 1 and curr.__class__.__name__ != "UnaryExpressionContext":
+        curr = curr.getChild(0)
+
+    if curr is None or curr.__class__.__name__ != "UnaryExpressionContext":
+        return None
+
+    type_spec = getattr(curr, "typeSpecifier", lambda: None)()
+    if type_spec is None:
+        return None
+
+    cast_type = type_spec.getText().replace(" ", "").lower()
+    if cast_type not in ("longlong", "signedlonglong", "unsignedlonglong", "int64_t", "uint64_t", "long", "unsignedlong"):
+        return None
+
+    inner_unary = getattr(curr, "unaryExpression", lambda: None)()
+    if inner_unary is None:
+        return None
+
+    post = getattr(inner_unary, "postfixExpression", lambda: None)()
+    if post is None:
+        return None
+    prim = getattr(post, "primaryExpression", lambda: None)()
+    if prim is None:
+        return None
+
+    if prim.getChildCount() < 3 or prim.getChild(0).getText() != "(" or prim.getChild(prim.getChildCount() - 1).getText() != ")":
+        return None
+
+    inner_expr = getattr(prim, "expression", lambda: None)()
+    if inner_expr is None:
+        inner_expr = prim.getChild(1)
+    inner_curr = inner_expr
+    while inner_curr is not None and inner_curr.getChildCount() == 1:
+        inner_curr = inner_curr.getChild(0)
+
+    if inner_curr is not None and inner_curr.__class__.__name__ in ("AdditiveExpressionContext", "MultiplicativeExpressionContext"):
+        if inner_curr.getChildCount() >= 3:
+            left_op = inner_curr.getChild(0)
+            op_sym = inner_curr.getChild(1).getText()
+            right_op = inner_curr.getChild(2)
+            if op_sym in ("+", "-", "*"):
+                return (curr, inner_curr, op_sym, left_op, right_op)
+
+    return None
+
+
+def is_operand_64bit_promoted(op_node: Any, local_vars: Dict[str, Any], global_vars: Dict[str, Any], source_text: str) -> bool:
+    """
+    Checks if an operand node promotes the binary operation to 64-bit in C:
+    1. Literal with 64-bit suffix (e.g. 2147483647LL, 1ull, 1i64).
+    2. Explicit 64-bit cast directly on this operand: (long long)x.
+    3. Variable with 64-bit declared type.
+    """
+    if op_node is None:
+        return False
+    raw_text = source_text[op_node.start.start : op_node.stop.stop + 1] if (hasattr(op_node, "start") and hasattr(op_node, "stop") and op_node.start and op_node.stop) else op_node.getText()
+
+    import re
+    if re.search(r"\b\d+([uU]?(ll|LL)|(ll|LL)[uU]?|i64|ui64)\b", raw_text) or \
+       re.search(r"\b0[xX][0-9a-fA-F]+([uU]?(ll|LL)|(ll|LL)[uU]?|i64|ui64)\b", raw_text):
+        return True
+
+    curr = op_node
+    while curr is not None and curr.getChildCount() == 1 and curr.__class__.__name__ != "UnaryExpressionContext":
+        curr = curr.getChild(0)
+    if curr is not None and curr.__class__.__name__ == "UnaryExpressionContext":
+        t_spec = getattr(curr, "typeSpecifier", lambda: None)()
+        if t_spec is not None:
+            c_type = t_spec.getText().replace(" ", "").lower()
+            if c_type in ("longlong", "signedlonglong", "unsignedlonglong", "int64_t", "uint64_t", "long", "unsignedlong"):
+                return True
+
+    var_name = raw_text.strip()
+    v_info = local_vars.get(var_name) or global_vars.get(var_name)
+    if v_info:
+        ftype = v_info.get("full_type", "")
+        if ftype in ("long long", "signed long long", "unsigned long long", "int64_t", "uint64_t", "long", "unsigned long", "double"):
+            return True
+
+    return False
+
+
+def has_token_64bit_promotion(expr_str: str) -> bool:
+    """
+    Token-based detection for 64-bit promotion in C constant expressions.
+    Checks:
+    1. Integer literal tokens with 64-bit suffixes (e.g. 2147483647LL, 1ull, 100i64).
+    2. Explicit casts to 64-bit types: (long long), (unsigned long long), (int64_t), (uint64_t).
+    Does NOT match identifiers containing 'll' such as 'call' or 'small'.
+    """
+    if not expr_str:
+        return False
+    import re
+    if re.search(r"\b\d+([uU]?(ll|LL)|(ll|LL)[uU]?|i64|ui64)\b", expr_str) or \
+       re.search(r"\b0[xX][0-9a-fA-F]+([uU]?(ll|LL)|(ll|LL)[uU]?|i64|ui64)\b", expr_str):
+        return True
+
+    if re.search(r"\(\s*(signed\s+)?long\s+long\s*\)", expr_str) or \
+       re.search(r"\(\s*(unsigned\s+)?long\s+long\s*\)", expr_str) or \
+       re.search(r"\(\s*(u)?int64(_t)?\s*\)", expr_str):
+        return True
+
+    return False
+
+
 class SecurityRulesCollector(SimpleCVisitor):
     """
     Visitor that detects SEC-01 through SEC-10 issues across the AST.
@@ -264,6 +427,25 @@ class SecurityRulesCollector(SimpleCVisitor):
         self.known_negative_vars: Set[str] = set()
         self.null_pointers: Set[str] = set()
         self.guarded_pointers: Set[str] = set()
+
+        # Struct definitions: struct_name -> [member_names...]
+        self.struct_defs: Dict[str, List[str]] = {}
+
+    def visitStructSpecifier(self, ctx: SimpleCParser.StructSpecifierContext):
+        ident = getattr(ctx, "IDENTIFIER", lambda: None)()
+        sname = ident.getText() if ident else None
+        member_decls = getattr(ctx, "structMemberDeclaration", lambda: [])()
+        if sname and member_decls:
+            members = []
+            for m in member_decls:
+                decl_list = getattr(m, "structDeclarator", lambda: [])()
+                for d in decl_list:
+                    m_ident = getattr(d, "IDENTIFIER", lambda: None)()
+                    if m_ident:
+                        members.append(m_ident.getText())
+            if members:
+                self.struct_defs[sname] = members
+        return self.visitChildren(ctx)
 
     def _get_line_indent(self, char_idx: int) -> str:
         line_start = self.source.rfind("\n", 0, char_idx)
@@ -343,12 +525,26 @@ class SecurityRulesCollector(SimpleCVisitor):
                     except Exception:
                         pass
 
+            s_spec = getattr(type_spec, "structSpecifier", lambda: None)() if type_spec else None
+            s_name = None
+            if s_spec:
+                s_ident = getattr(s_spec, "IDENTIFIER", lambda: None)()
+                s_name = s_ident.getText() if s_ident else None
+            elif base_type.startswith("struct"):
+                s_name = base_type[6:].strip()
+
+            is_struct = (s_name is not None and ptr_depth == 0 and arr_suffix is None)
+            struct_fields = list(self.struct_defs.get(s_name, [])) if is_struct else []
+
             var_info = {
                 "name": name,
                 "base_type": base_type,
                 "full_type": full_type,
                 "is_pointer": (ptr_depth > 0),
                 "is_array": (arr_suffix is not None),
+                "is_struct": is_struct,
+                "struct_name": s_name,
+                "struct_fields": struct_fields,
                 "array_size": arr_size,
                 "line": line,
                 "ident_token": sym,
@@ -361,60 +557,97 @@ class SecurityRulesCollector(SimpleCVisitor):
                 self.local_vars[name] = var_info
 
                 # Rule SEC-01 check on local variable initialization:
-                # int x = 2147483647 + 1;
-                if full_type in ("int", "signed int") and init_expr is not None:
+                is_64bit_dest = full_type in ("long long", "signed long long", "unsigned long long", "int64_t", "uint64_t")
+
+                # Subcase A: explicit 64-bit cast wrapping 32-bit parenthesized binary operation, e.g. (long long)(a + b)
+                wrapped_info = find_outer_cast_wrapping_binary_op(init_expr) if init_expr is not None else None
+                if wrapped_info is not None:
+                    cast_unary, inner_op, op_sym, left_op, right_op = wrapped_info
+                    left_promoted = is_operand_64bit_promoted(left_op, self.local_vars, self.global_vars, self.source)
+                    right_promoted = is_operand_64bit_promoted(right_op, self.local_vars, self.global_vars, self.source)
+                    if not left_promoted and not right_promoted:
+                        cast_start = cast_unary.start.start
+                        cast_stop = cast_unary.stop.stop + 1
+                        inner_txt = self.source[inner_op.start.start : inner_op.stop.stop + 1]
+                        left_txt = self.source[left_op.start.start : left_op.stop.stop + 1]
+                        right_txt = self.source[right_op.start.start : right_op.stop.stop + 1]
+                        new_expr = f"(long long){left_txt} {op_sym} {right_txt}"
+                        edits = [(cast_start, cast_stop, new_expr)]
+                        self.findings.append(Finding(
+                            rule="SEC-01",
+                            kind="integer_overflow",
+                            line=line,
+                            message=f"Cast '(long long)' wraps 32-bit arithmetic operation '({inner_txt})'; operation overflows before widening",
+                            severity="HIGH",
+                            action="auto_fixed",
+                            suggestion=f"cast operand '{left_txt}' to (long long) directly",
+                            fix_edits=edits,
+                            what_changed=f"promoted operand '{left_txt}' to (long long) before operation",
+                        ))
+
+                # Subcase B: Constant integer expression overflow
+                if init_expr is not None and wrapped_info is None:
                     exact_val = eval_const_int_expr(init_expr)
                     if exact_val is not None and (exact_val < INT32_MIN or exact_val > INT32_MAX):
-                        first_lit = get_first_integer_literal_token(init_expr)
-                        if first_lit is not None and type_spec is not None:
-                            t_start = type_spec.start.start
-                            t_stop = type_spec.stop.stop + 1
-                            lit_start = first_lit.start
-                            lit_stop = first_lit.stop + 1
-                            edits = [
-                                (t_start, t_stop, "long long"),
-                                (lit_start, lit_stop, f"(long long){first_lit.text}"),
-                            ]
-                            self.findings.append(Finding(
-                                rule="SEC-01",
-                                kind="integer_overflow",
-                                line=line,
-                                message=f"Constant integer expression overflow in initialization of '{name}' (value {exact_val})",
-                                severity="HIGH",
-                                action="auto_fixed",
-                                suggestion="use long long and cast literal operand to (long long)",
-                                fix_edits=edits,
-                                what_changed=f"changed type of '{name}' to long long and cast literal to (long long)",
-                            ))
+                        is_single = is_single_literal_or_var_expr(init_expr)
+                        expr_raw = self.source[init_expr.start.start : init_expr.stop.stop + 1] if (hasattr(init_expr, "start") and hasattr(init_expr, "stop") and init_expr.start and init_expr.stop) else init_expr.getText()
+                        has_64bit_literal = has_token_64bit_promotion(expr_raw)
+                        if is_64bit_dest and (is_single or has_64bit_literal):
+                            # Single 64-bit literal or promoted 64-bit operation: SAFE
+                            pass
+                        else:
+                            first_lit = get_first_integer_literal_token(init_expr)
+                            if first_lit is not None and type_spec is not None:
+                                t_start = type_spec.start.start
+                                t_stop = type_spec.stop.stop + 1
+                                lit_start = first_lit.start
+                                lit_stop = first_lit.stop + 1
+                                edits = []
+                                if full_type in ("int", "signed int"):
+                                    edits.append((t_start, t_stop, "long long"))
+                                edits.append((lit_start, lit_stop, f"(long long){first_lit.text}"))
+                                self.findings.append(Finding(
+                                    rule="SEC-01",
+                                    kind="integer_overflow",
+                                    line=line,
+                                    message=f"Constant integer expression overflow in initialization of '{name}' (value {exact_val})",
+                                    severity="HIGH",
+                                    action="auto_fixed",
+                                    suggestion="use long long and cast literal operand to (long long)",
+                                    fix_edits=edits,
+                                    what_changed=f"cast literal to (long long) in '{name}' initialization",
+                                ))
 
-                # Rule SEC-01 inline test case:
-                # long long r = a * b; with int a, b -> long long r = (long long)a * b;
-                if full_type in ("long long", "signed long long") and init_expr is not None:
+                # Subcase C: Variable arithmetic without 64-bit promotion assigned to long long
+                # e.g. long long r = a * b; with int a, b
+                if is_64bit_dest and init_expr is not None and wrapped_info is None and eval_const_int_expr(init_expr) is None:
                     curr = init_expr
                     while curr is not None and curr.getChildCount() == 1:
                         curr = curr.getChild(0)
                     if curr is not None and curr.__class__.__name__ == "MultiplicativeExpressionContext":
                         subs = getattr(curr, "unaryExpression", lambda: [])()
-                        if len(subs) == 2 and curr.getChild(1).getText() == "*":
-                            t1 = subs[0].getText()
-                            t2 = subs[1].getText()
-                            info1 = self.local_vars.get(t1) or self.global_vars.get(t1)
-                            info2 = self.local_vars.get(t2) or self.global_vars.get(t2)
-                            if info1 and info2 and info1.get("full_type") == "int" and info2.get("full_type") == "int":
-                                op1_start = subs[0].start.start
-                                op1_stop = subs[0].stop.stop + 1
-                                edits = [(op1_start, op1_stop, f"(long long){t1}")]
-                                self.findings.append(Finding(
-                                    rule="SEC-01",
-                                    kind="integer_overflow",
-                                    line=line,
-                                    message=f"Multiplication '{t1} * {t2}' of 32-bit ints overflows before conversion to long long",
-                                    severity="HIGH",
-                                    action="auto_fixed",
-                                    suggestion=f"cast '{t1}' to (long long)",
-                                    fix_edits=edits,
-                                    what_changed=f"cast '{t1}' to (long long) in multiplication",
-                                ))
+                        if len(subs) == 2:
+                            op_str = curr.getChild(1).getText()
+                            if op_str == "*":
+                                t1 = subs[0].getText()
+                                t2 = subs[1].getText()
+                                left_promoted = is_operand_64bit_promoted(subs[0], self.local_vars, self.global_vars, self.source)
+                                right_promoted = is_operand_64bit_promoted(subs[1], self.local_vars, self.global_vars, self.source)
+                                if not left_promoted and not right_promoted:
+                                    op1_start = subs[0].start.start
+                                    op1_stop = subs[0].stop.stop + 1
+                                    edits = [(op1_start, op1_stop, f"(long long){t1}")]
+                                    self.findings.append(Finding(
+                                        rule="SEC-01",
+                                        kind="integer_overflow",
+                                        line=line,
+                                        message=f"Arithmetic '{t1} {op_str} {t2}' of 32-bit ints overflows before conversion to long long",
+                                        severity="HIGH",
+                                        action="auto_fixed",
+                                        suggestion=f"cast '{t1}' to (long long)",
+                                        fix_edits=edits,
+                                        what_changed=f"cast '{t1}' to (long long) in operation",
+                                    ))
 
                 # Track negative values for SEC-02:
                 if init_expr is not None:
@@ -543,32 +776,68 @@ class SecurityRulesCollector(SimpleCVisitor):
             rhs_node = assign_ctx.assignmentExpression()
 
             # SEC-01 check on assignment:
-            v_info = self.local_vars.get(lhs)
-            if v_info and v_info.get("full_type") in ("int", "signed int"):
-                exact_val = eval_const_int_expr(rhs_node)
-                if exact_val is not None and (exact_val < INT32_MIN or exact_val > INT32_MAX):
-                    first_lit = get_first_integer_literal_token(rhs_node)
-                    type_spec = v_info.get("type_spec_node")
-                    if first_lit is not None and type_spec is not None:
-                        t_start = type_spec.start.start
-                        t_stop = type_spec.stop.stop + 1
-                        lit_start = first_lit.start
-                        lit_stop = first_lit.stop + 1
-                        edits = [
-                            (t_start, t_stop, "long long"),
-                            (lit_start, lit_stop, f"(long long){first_lit.text}"),
-                        ]
+            v_info = self.local_vars.get(lhs) or self.global_vars.get(lhs)
+            if v_info and rhs_node is not None:
+                lhs_type = v_info.get("full_type", "int")
+                is_64bit_lhs = lhs_type in ("long long", "signed long long", "unsigned long long", "int64_t", "uint64_t")
+
+                # Subcase A: (long long)(a + b) outer cast wrapping binary op
+                wrapped_info = find_outer_cast_wrapping_binary_op(rhs_node)
+                if wrapped_info is not None:
+                    cast_unary, inner_op, op_sym, left_op, right_op = wrapped_info
+                    left_promoted = is_operand_64bit_promoted(left_op, self.local_vars, self.global_vars, self.source)
+                    right_promoted = is_operand_64bit_promoted(right_op, self.local_vars, self.global_vars, self.source)
+                    if not left_promoted and not right_promoted:
+                        cast_start = cast_unary.start.start
+                        cast_stop = cast_unary.stop.stop + 1
+                        inner_txt = self.source[inner_op.start.start : inner_op.stop.stop + 1]
+                        left_txt = self.source[left_op.start.start : left_op.stop.stop + 1]
+                        right_txt = self.source[right_op.start.start : right_op.stop.stop + 1]
+                        new_expr = f"(long long){left_txt} {op_sym} {right_txt}"
+                        edits = [(cast_start, cast_stop, new_expr)]
                         self.findings.append(Finding(
                             rule="SEC-01",
                             kind="integer_overflow",
                             line=line,
-                            message=f"Constant integer expression overflow in assignment to '{lhs}' (value {exact_val})",
+                            message=f"Cast '(long long)' wraps 32-bit arithmetic operation '({inner_txt})'; operation overflows before widening",
                             severity="HIGH",
                             action="auto_fixed",
-                            suggestion="use long long and cast literal operand to (long long)",
+                            suggestion=f"cast operand '{left_txt}' to (long long) directly",
                             fix_edits=edits,
-                            what_changed=f"changed type of '{lhs}' to long long and cast literal to (long long)",
+                            what_changed=f"promoted operand '{left_txt}' to (long long) before operation",
                         ))
+
+                # Subcase B: Constant integer expression overflow
+                if wrapped_info is None:
+                    exact_val = eval_const_int_expr(rhs_node)
+                    if exact_val is not None and (exact_val < INT32_MIN or exact_val > INT32_MAX):
+                        is_single = is_single_literal_or_var_expr(rhs_node)
+                        if is_64bit_lhs and is_single:
+                            # Single 64-bit literal assigned to 64-bit destination: SAFE
+                            pass
+                        else:
+                            first_lit = get_first_integer_literal_token(rhs_node)
+                            type_spec = v_info.get("type_spec_node")
+                            if first_lit is not None:
+                                lit_start = first_lit.start
+                                lit_stop = first_lit.stop + 1
+                                edits = []
+                                if type_spec is not None and lhs_type in ("int", "signed int"):
+                                    t_start = type_spec.start.start
+                                    t_stop = type_spec.stop.stop + 1
+                                    edits.append((t_start, t_stop, "long long"))
+                                edits.append((lit_start, lit_stop, f"(long long){first_lit.text}"))
+                                self.findings.append(Finding(
+                                    rule="SEC-01",
+                                    kind="integer_overflow",
+                                    line=line,
+                                    message=f"Constant integer expression overflow in assignment to '{lhs}' (value {exact_val})",
+                                    severity="HIGH",
+                                    action="auto_fixed",
+                                    suggestion="use long long and cast literal operand to (long long)",
+                                    fix_edits=edits,
+                                    what_changed=f"cast literal to (long long) in assignment to '{lhs}'",
+                                ))
 
             # SEC-02 check on assignment:
             if v_info and "unsigned" in v_info.get("full_type", ""):
@@ -672,6 +941,36 @@ class SecurityRulesCollector(SimpleCVisitor):
 
         return self.visitChildren(ctx)
 
+    def visitReturnStatement(self, ctx: SimpleCParser.ReturnStatementContext):
+        expr_node = ctx.expression() if hasattr(ctx, "expression") else None
+        if expr_node is not None:
+            wrapped_info = find_outer_cast_wrapping_binary_op(expr_node)
+            if wrapped_info is not None:
+                cast_unary, inner_op, op_sym, left_op, right_op = wrapped_info
+                left_promoted = is_operand_64bit_promoted(left_op, self.local_vars, self.global_vars, self.source)
+                right_promoted = is_operand_64bit_promoted(right_op, self.local_vars, self.global_vars, self.source)
+                if not left_promoted and not right_promoted:
+                    line = ctx.start.line
+                    cast_start = cast_unary.start.start
+                    cast_stop = cast_unary.stop.stop + 1
+                    inner_txt = self.source[inner_op.start.start : inner_op.stop.stop + 1]
+                    left_txt = self.source[left_op.start.start : left_op.stop.stop + 1]
+                    right_txt = self.source[right_op.start.start : right_op.stop.stop + 1]
+                    new_expr = f"(long long){left_txt} {op_sym} {right_txt}"
+                    edits = [(cast_start, cast_stop, new_expr)]
+                    self.findings.append(Finding(
+                        rule="SEC-01",
+                        kind="integer_overflow",
+                        line=line,
+                        message=f"Cast '(long long)' wraps 32-bit arithmetic operation '({inner_txt})'; operation overflows before widening",
+                        severity="HIGH",
+                        action="auto_fixed",
+                        suggestion=f"cast operand '{left_txt}' to (long long) directly",
+                        fix_edits=edits,
+                        what_changed=f"promoted operand '{left_txt}' to (long long) before operation",
+                    ))
+        return self.visitChildren(ctx)
+
     def visitForStatement(self, ctx: SimpleCParser.ForStatementContext):
         line = ctx.start.line
         exprs = getattr(ctx, "expression", lambda: [])()
@@ -745,8 +1044,8 @@ class SecurityRulesCollector(SimpleCVisitor):
                                     what_changed=f"changed array index '{idx_val}' to '{fixed_idx}'",
                                 ))
 
-        # Function call checks: memcpy, memmove, memset, printf, scanf
-        if prim_text in ("memcpy", "memmove", "memset", "printf", "scanf"):
+        # Function call checks: memcpy, memmove, memset, printf, scanf-family
+        if prim_text in ("memcpy", "memmove", "memset", "printf", "scanf", "fscanf", "sscanf", "vscanf", "vfscanf", "vsscanf"):
             for p in parts:
                 al = getattr(p, "argumentList", lambda: None)()
                 if al is None:
@@ -908,54 +1207,58 @@ class SecurityRulesCollector(SimpleCVisitor):
                                     what_changed=f"fixed format specifier in printf",
                                 ))
 
-                # Rule SEC-09: unsafe_scanf
-                if prim_text == "scanf" and len(args) >= 2:
-                    fmt_node = args[0]
-                    fmt_text = fmt_node.getText()
-                    if fmt_text.startswith('"') and fmt_text.endswith('"'):
-                        raw_fmt = fmt_text[1:-1]
-                        arg1_node = args[1]
-                        arg1_name = arg1_node.getText().strip()
+                # Rule SEC-09: unsafe_scanf and formatted input buffer overflow / mismatch
+                if prim_text in ("scanf", "fscanf", "sscanf", "vscanf", "vfscanf", "vsscanf") and len(args) >= 1:
+                    from compiler.scanf_analyzer import ScanfSecurityAnalyzer, SCANF_FAMILY_FUNCTIONS
+                    fn_cfg = SCANF_FAMILY_FUNCTIONS.get(prim_text, {"fmt_idx": 0, "var_start": 1})
+                    fmt_idx = fn_cfg["fmt_idx"]
+                    if len(args) > fmt_idx:
+                        fmt_node = args[fmt_idx]
+                        fmt_text = fmt_node.getText().strip()
+                        raw_fmt = fmt_text[1:-1] if (fmt_text.startswith('"') and fmt_text.endswith('"')) else None
+                        args_text = [a.getText().strip() for a in args]
 
-                        arg1_info = self.local_vars.get(arg1_name) or self.global_vars.get(arg1_name)
-                        if arg1_info and arg1_info.get("is_array") and arg1_info.get("array_size") is not None:
-                            N = arg1_info["array_size"]
-                            if "%s" in raw_fmt:
-                                max_width = N - 1
-                                new_raw = raw_fmt.replace("%s", f"%{max_width}s", 1)
-                                new_fmt_literal = f'"{new_raw}"'
-                                f_start = fmt_node.start.start
-                                f_stop = fmt_node.stop.stop + 1
-                                edits = [(f_start, f_stop, new_fmt_literal)]
+                        scanf_findings = ScanfSecurityAnalyzer.analyze_call(
+                            fn_name=prim_text,
+                            line=line,
+                            col=ctx.start.column if hasattr(ctx.start, "column") else 0,
+                            args_text=args_text,
+                            fmt_raw=raw_fmt,
+                            local_vars=self.local_vars,
+                            global_vars=self.global_vars,
+                            source_text=self.source,
+                        )
+
+                        if scanf_findings:
+                            edits = None
+                            if raw_fmt is not None:
+                                safe_fmt = ScanfSecurityAnalyzer.compute_safe_format_string(raw_fmt, scanf_findings)
+                                if safe_fmt != raw_fmt:
+                                    new_fmt_literal = f'"{safe_fmt}"'
+                                    f_start = fmt_node.start.start
+                                    f_stop = fmt_node.stop.stop + 1
+                                    edits = [(f_start, f_stop, new_fmt_literal)]
+
+                            for sf in scanf_findings:
                                 self.findings.append(Finding(
                                     rule="SEC-09",
                                     kind="unsafe_scanf",
-                                    line=line,
-                                    message=f"Unbounded '%s' format specifier in scanf overflows buffer '{arg1_name}' of size {N}",
-                                    severity="HIGH",
-                                    action="auto_fixed",
-                                    suggestion=f"use %{max_width}s to prevent buffer overflow",
-                                    fix_edits=edits,
-                                    what_changed=f"added buffer limit %{max_width}s to scanf",
+                                    line=sf.line,
+                                    message=sf.message,
+                                    severity=sf.severity,
+                                    action="auto_fixed" if edits and sf.is_vulnerable else "warned",
+                                    suggestion=sf.suggestion,
+                                    fix_edits=edits if sf.is_vulnerable else None,
+                                    what_changed=f"adjusted format specifier to safe buffer limit in {prim_text}" if edits and sf.is_vulnerable else None,
                                 ))
-                        elif "%s" in raw_fmt:
-                            self.findings.append(Finding(
-                                rule="SEC-09",
-                                kind="unsafe_scanf",
-                                line=line,
-                                message="Unbounded '%s' in scanf with pointer/buffer of unknown size",
-                                severity="WARNING",
-                                action="warned",
-                                suggestion="specify buffer length in format string",
-                                fix_edits=None,
-                            ))
 
         return self.visitChildren(ctx)
 
     def check_uninitialized_variables_pass(self, tree: Any):
         """
-        Rule SEC-04: uninitialized_variable (AUTO).
-        Detect a scalar local declared without initializer whose first use in source order is a read.
+        Rule SEC-04: uninitialized_variable (AUTO / FIELD-SENSITIVE).
+        Detect a scalar or struct local declared without initializer whose first use in source order is a read.
+        For structs, tracks initialization at the struct-field level.
         """
         for func_ctx, locals_dict in self.all_funcs_local_vars:
             for var_name, var_info in list(locals_dict.items()):
@@ -963,30 +1266,169 @@ class SecurityRulesCollector(SimpleCVisitor):
                     continue
 
                 decl_line = var_info["line"]
+                is_struct = var_info.get("is_struct", False) or var_info["base_type"].startswith("struct")
+                struct_name = var_info.get("struct_name")
+                if not struct_name and var_info["base_type"].startswith("struct"):
+                    struct_name = var_info["base_type"][6:].strip()
+
+                struct_fields = list(self.struct_defs.get(struct_name, var_info.get("struct_fields", [])))
 
                 class UseCollector(SimpleCVisitor):
-                    def __init__(self, target_name: str, min_line: int):
+                    def __init__(self, target_name: str, min_line: int, is_struct_var: bool, initial_fields: List[str]):
                         super().__init__()
                         self.target = target_name
                         self.min_line = min_line
-                        self.reads = []
-                        self.writes = []
+                        self.is_struct = is_struct_var
+                        self.struct_fields = set(initial_fields)
+                        # Scalar accesses:
+                        self.scalar_reads = []
+                        self.scalar_writes = []
+                        # Struct accesses:
+                        self.field_reads = {f: [] for f in self.struct_fields}
+                        self.field_writes = {f: [] for f in self.struct_fields}
 
-                    def visitExprStatement(self, ctx: SimpleCParser.ExprStatementContext):
-                        expr = getattr(ctx, "expression", lambda: None)()
-                        if expr is not None:
-                            curr = expr
-                            while curr is not None and curr.getChildCount() == 1:
-                                curr = curr.getChild(0)
-                            if curr is not None and curr.__class__.__name__ == "AssignmentExpressionContext":
-                                lhs_node = getattr(curr, "unaryExpression", lambda: None)()
-                                if lhs_node and lhs_node.getText().strip() == self.target:
-                                    self.writes.append((ctx.start.line, "assign"))
-                                    # Still visit rhs for potential reads
-                                    rhs = getattr(curr, "assignmentExpression", lambda: None)()
-                                    if rhs:
-                                        self.visit(rhs)
-                                    return None
+                    def _record_write(self, field_name: Optional[str], pos: int, line: int):
+                        if self.is_struct:
+                            if field_name:
+                                if field_name not in self.field_writes:
+                                    self.field_writes[field_name] = []
+                                    self.field_reads.setdefault(field_name, [])
+                                    self.struct_fields.add(field_name)
+                                self.field_writes[field_name].append((pos, line))
+                            else:
+                                for f in list(self.struct_fields):
+                                    self.field_writes[f].append((pos, line))
+                        else:
+                            self.scalar_writes.append((pos, line))
+
+                    def _record_read(self, field_name: Optional[str], pos: int, line: int):
+                        if self.is_struct:
+                            if field_name:
+                                if field_name not in self.field_reads:
+                                    self.field_reads[field_name] = []
+                                    self.field_writes.setdefault(field_name, [])
+                                    self.struct_fields.add(field_name)
+                                self.field_reads[field_name].append((pos, line))
+                            else:
+                                for f in list(self.struct_fields):
+                                    self.field_reads[f].append((pos, line))
+                        else:
+                            self.scalar_reads.append((pos, line))
+
+                    def _extract_target(self, node: Any) -> Optional[Tuple[str, Optional[str], Any]]:
+                        if node is None:
+                            return None
+                        curr = node
+                        while curr is not None and curr.getChildCount() == 1:
+                            child = curr.getChild(0)
+                            if child.__class__.__name__ in ("PrimaryExpressionContext", "PostfixExpressionContext"):
+                                curr = child
+                                break
+                            curr = child
+
+                        pe = getattr(curr, "postfixExpression", lambda: None)()
+                        if pe is None and curr.__class__.__name__ == "PostfixExpressionContext":
+                            pe = curr
+
+                        if pe is not None:
+                            prim = getattr(pe, "primaryExpression", lambda: None)()
+                            if prim is not None and getattr(prim, "IDENTIFIER", lambda: None)() is not None:
+                                ident = prim.IDENTIFIER()
+                                if ident.getText() == self.target:
+                                    parts = getattr(pe, "postfixPart", lambda: [])()
+                                    if parts and getattr(parts[0], "DOT", lambda: None)() is not None:
+                                        f_ident = getattr(parts[0], "IDENTIFIER", lambda: None)()
+                                        if f_ident is not None:
+                                            return ("member", f_ident.getText(), ident.getSymbol())
+                                    elif not parts:
+                                        return ("var", None, ident.getSymbol())
+
+                        prim = getattr(curr, "primaryExpression", lambda: None)()
+                        if prim is None and curr.__class__.__name__ == "PrimaryExpressionContext":
+                            prim = curr
+                        if prim is not None and getattr(prim, "IDENTIFIER", lambda: None)() is not None:
+                            ident = prim.IDENTIFIER()
+                            if ident.getText() == self.target:
+                                return ("var", None, ident.getSymbol())
+
+                        return None
+
+                    def visitAssignmentExpression(self, ctx: SimpleCParser.AssignmentExpressionContext):
+                        assign_op = getattr(ctx, "assignmentOperator", lambda: None)()
+                        if assign_op is not None:
+                            lhs = getattr(ctx, "unaryExpression", lambda: None)()
+                            rhs = getattr(ctx, "assignmentExpression", lambda: None)()
+                            target_info = self._extract_target(lhs)
+                            if target_info is not None:
+                                kind, fname, sym = target_info
+                                pos = sym.start
+                                line = sym.line
+                                if line >= self.min_line:
+                                    op_text = assign_op.getText()
+                                    if op_text != "=":
+                                        self._record_read(fname, pos, line)
+                                    self._record_write(fname, pos, line)
+                                if rhs is not None:
+                                    self.visit(rhs)
+                                return None
+
+                        return self.visitChildren(ctx)
+
+                    def visitUnaryExpression(self, ctx: SimpleCParser.UnaryExpressionContext):
+                        amp = getattr(ctx, "AMP", lambda: None)()
+                        if amp is not None and ctx.getChildCount() == 2:
+                            sub = getattr(ctx, "unaryExpression", lambda: None)()
+                            target_info = self._extract_target(sub)
+                            if target_info is not None:
+                                kind, fname, sym = target_info
+                                pos = sym.start
+                                line = sym.line
+                                if line >= self.min_line:
+                                    self._record_write(fname, pos, line)
+                                return None
+
+                        inc = getattr(ctx, "INC", lambda: None)()
+                        dec = getattr(ctx, "DEC", lambda: None)()
+                        if (inc is not None or dec is not None) and ctx.getChildCount() == 2:
+                            sub = getattr(ctx, "unaryExpression", lambda: None)()
+                            target_info = self._extract_target(sub)
+                            if target_info is not None:
+                                kind, fname, sym = target_info
+                                pos = sym.start
+                                line = sym.line
+                                if line >= self.min_line:
+                                    self._record_read(fname, pos, line)
+                                    self._record_write(fname, pos, line)
+                                return None
+
+                        return self.visitChildren(ctx)
+
+                    def visitPostfixExpression(self, ctx: SimpleCParser.PostfixExpressionContext):
+                        parts = getattr(ctx, "postfixPart", lambda: [])()
+                        has_inc_dec = any(getattr(p, "INC", lambda: None)() is not None or getattr(p, "DEC", lambda: None)() is not None for p in parts)
+                        if has_inc_dec:
+                            target_info = self._extract_target(ctx)
+                            if target_info is not None:
+                                kind, fname, sym = target_info
+                                pos = sym.start
+                                line = sym.line
+                                if line >= self.min_line:
+                                    self._record_read(fname, pos, line)
+                                    self._record_write(fname, pos, line)
+                                return None
+
+                        prim = getattr(ctx, "primaryExpression", lambda: None)()
+                        if prim is not None and getattr(prim, "IDENTIFIER", lambda: None)() is not None:
+                            if prim.IDENTIFIER().getText() == self.target:
+                                sym = prim.IDENTIFIER().getSymbol()
+                                if sym.line >= self.min_line:
+                                    if parts and getattr(parts[0], "DOT", lambda: None)() is not None:
+                                        f_ident = getattr(parts[0], "IDENTIFIER", lambda: None)()
+                                        if f_ident is not None:
+                                            self._record_read(f_ident.getText(), sym.start, sym.line)
+                                            for p in parts[1:]:
+                                                self.visit(p)
+                                            return None
                         return self.visitChildren(ctx)
 
                     def visitPrimaryExpression(self, ctx: SimpleCParser.PrimaryExpressionContext):
@@ -994,43 +1436,64 @@ class SecurityRulesCollector(SimpleCVisitor):
                         if ident is not None and ident.getText() == self.target:
                             sym = ident.getSymbol()
                             if sym.line >= self.min_line:
-                                p = getattr(ctx, "parentCtx", None)
-                                # Check if address of &x
-                                if p and getattr(p, "AMP", lambda: None)() is not None:
-                                    self.writes.append((sym.line, "addr"))
-                                else:
-                                    self.reads.append((sym.line, "read"))
+                                self._record_read(None, sym.start, sym.line)
                         return self.visitChildren(ctx)
 
-                collector = UseCollector(var_name, decl_line)
+                collector = UseCollector(var_name, decl_line, is_struct, struct_fields)
                 collector.visit(func_ctx)
 
-                first_read_line = collector.reads[0][0] if collector.reads else None
-                first_write_line = collector.writes[0][0] if collector.writes else None
+                if is_struct:
+                    # Field-sensitive evaluation for struct members
+                    for fname in sorted(collector.struct_fields):
+                        reads = collector.field_reads.get(fname, [])
+                        writes = collector.field_writes.get(fname, [])
+                        first_read = reads[0] if reads else None
+                        first_write = writes[0] if writes else None
 
-                if first_read_line is not None:
-                    if first_write_line is None or first_read_line <= first_write_line:
-                        sym = var_info["ident_token"]
-                        insert_pos = sym.stop + 1
-                        edits = [(insert_pos, insert_pos, " = 0")]
-                        self.findings.append(Finding(
-                            rule="SEC-04",
-                            kind="uninitialized_variable",
-                            line=first_read_line,
-                            message=f"Local scalar variable '{var_name}' read before initialization",
-                            severity="HIGH",
-                            action="auto_fixed",
-                            suggestion=f"initialize '{var_name}' with 0 at declaration",
-                            fix_edits=edits,
-                            what_changed=f"initialized '{var_name}' with 0",
-                        ))
-                        var_info["has_init"] = True
+                        if first_read is not None:
+                            read_pos, read_line = first_read
+                            if first_write is None or read_pos <= first_write[0]:
+                                self.findings.append(Finding(
+                                    rule="SEC-04",
+                                    kind="uninitialized_variable",
+                                    line=read_line,
+                                    message=f"Local struct field '{var_name}.{fname}' read before initialization",
+                                    severity="HIGH",
+                                    action="warned",
+                                    suggestion=f"initialize field '{var_name}.{fname}' before reading",
+                                    fix_edits=None,
+                                    what_changed=None,
+                                    target_key=f"SEC-04:{read_line}:uninitialized_variable:{var_name}.{fname}",
+                                ))
+                else:
+                    first_read = collector.scalar_reads[0] if collector.scalar_reads else None
+                    first_write = collector.scalar_writes[0] if collector.scalar_writes else None
+
+                    if first_read is not None:
+                        read_pos, read_line = first_read
+                        if first_write is None or read_pos <= first_write[0]:
+                            sym = var_info["ident_token"]
+                            insert_pos = sym.stop + 1
+                            edits = [(insert_pos, insert_pos, " = 0")]
+                            self.findings.append(Finding(
+                                rule="SEC-04",
+                                kind="uninitialized_variable",
+                                line=read_line,
+                                message=f"Local scalar variable '{var_name}' read before initialization",
+                                severity="HIGH",
+                                action="auto_fixed",
+                                suggestion=f"initialize '{var_name}' with 0 at declaration",
+                                fix_edits=edits,
+                                what_changed=f"initialized '{var_name}' with 0",
+                                target_key=f"SEC-04:{read_line}:uninitialized_variable:{var_name}",
+                            ))
+                            var_info["has_init"] = True
 
 
-def run_security_rules(source: str) -> Tuple[str, List[Finding], List[str]]:
+def run_security_rules(source: str, max_rounds: int = 5) -> Tuple[str, List[Finding], List[str]]:
     """
     Driver run_security_rules(source):
-    Loops up to 20 times: parse, collect findings, apply ONE fixable finding, re-parse, repeat.
+    Loops up to max_rounds times: parse, collect findings, apply ONE fixable finding, re-parse, repeat.
     Warn-only findings are collected once and never change the code.
     ACCEPT-ONLY-IF-SAFER:
       (1) code still parses
@@ -1043,7 +1506,7 @@ def run_security_rules(source: str) -> Tuple[str, List[Finding], List[str]]:
     tried_fixes: Set[str] = set()
     all_findings_history: List[Finding] = []
 
-    for round_idx in range(20):
+    for round_idx in range(min(20, max_rounds)):
         tree, listeners, parser = parse_source(current_source, f"<sec_round_{round_idx}>")
         if tree is None or has_any_errors(listeners):
             break
@@ -1059,7 +1522,7 @@ def run_security_rules(source: str) -> Tuple[str, List[Finding], List[str]]:
 
         # Record findings into all_findings_history
         for f in findings:
-            if not any(h.rule == f.rule and h.line == f.line and h.kind == f.kind for h in all_findings_history):
+            if not any(h.rule == f.rule and h.line == f.line and h.kind == f.kind and h.message == f.message for h in all_findings_history):
                 all_findings_history.append(f)
 
         # Find ONE fixable finding that hasn't failed

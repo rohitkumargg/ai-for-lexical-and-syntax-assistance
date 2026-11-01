@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from generated.SimpleCVisitor import SimpleCVisitor
 from generated.SimpleCParser import SimpleCParser
@@ -20,6 +20,9 @@ BUILTIN_FUNCTIONS = {
     "strncpy": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
     "strncat": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
 }
+
+
+
 
 
 class SymbolTableBuilder(SimpleCVisitor):
@@ -45,9 +48,19 @@ class SymbolTableBuilder(SimpleCVisitor):
             self.symbols[name] = dict(info)
 
     def _type_text(self, type_ctx) -> str:
-        return type_ctx.getText() if type_ctx else "?"
+        if type_ctx is None:
+            return "?"
+        try:
+            s_spec = type_ctx.structSpecifier()
+            if s_spec is not None:
+                ident = s_spec.IDENTIFIER()
+                sname = ident.getText() if ident is not None else "<anon>"
+                return f"struct {sname}"
+        except Exception:
+            pass
+        return type_ctx.getText()
 
-    def _add_symbol(self, name: str, kind: str, typ: str, line: int, builtin: bool = False):
+    def _add_symbol(self, name: str, kind: str, typ: str, line: int, builtin: bool = False, extra: Optional[Dict[str, Any]] = None):
         if not name:
             return
 
@@ -61,12 +74,36 @@ class SymbolTableBuilder(SimpleCVisitor):
             }
             if builtin:
                 entry["builtin"] = True
+            if extra:
+                entry.update(extra)
             self.symbols[name] = entry
 
     # -------------------------
     # Top-level items & Functions / Prototypes
     # -------------------------
     def visitTopLevelItem(self, ctx: SimpleCParser.TopLevelItemContext):
+        return self.visitChildren(ctx)
+
+    def visitStructSpecifier(self, ctx: SimpleCParser.StructSpecifierContext):
+        ident = getattr(ctx, "IDENTIFIER", lambda: None)()
+        if ident is not None:
+            sname = ident.getText()
+            member_decls = getattr(ctx, "structMemberDeclaration", lambda: [])()
+            if member_decls:
+                line = ident.symbol.line if hasattr(ident, "symbol") else -1
+                members = {}
+                for m_decl in member_decls:
+                    try:
+                        m_type = self._type_text(m_decl.typeSpecifier())
+                        for s_decl in m_decl.structDeclarator():
+                            m_ident = s_decl.IDENTIFIER()
+                            if m_ident:
+                                m_name = m_ident.getText()
+                                ptr_depth = len(s_decl.pointer().getText()) if s_decl.pointer() else 0
+                                members[m_name] = f"{m_type}{'*' * ptr_depth}"
+                    except Exception:
+                        pass
+                self._add_symbol(f"struct {sname}", "struct", f"struct {sname}", line, extra={"fields": members})
         return self.visitChildren(ctx)
 
     def visitFunctionDeclaration(self, ctx: SimpleCParser.FunctionDeclarationContext):
@@ -95,7 +132,9 @@ class SymbolTableBuilder(SimpleCVisitor):
         if ident is not None:
             name = ident.getText()
             line = ident.symbol.line if hasattr(ident, "symbol") else -1
-            self._add_symbol(name, "param", typ, line)
+            ptr_depth = len(ctx.pointer().getText()) if getattr(ctx, "pointer", lambda: None)() else 0
+            var_type = f"{typ}{'*' * ptr_depth}"
+            self._add_symbol(name, "param", var_type, line)
 
         return self.visitChildren(ctx)
 
@@ -125,7 +164,9 @@ class SymbolTableBuilder(SimpleCVisitor):
                     continue
                 name = ident.getText()
                 line = ident.symbol.line if hasattr(ident, "symbol") else -1
-                self._add_symbol(name, "var", typ, line)
+                ptr_depth = len(init_ctx.pointer().getText()) if getattr(init_ctx, "pointer", lambda: None)() else 0
+                var_type = f"{typ}{'*' * ptr_depth}"
+                self._add_symbol(name, "var", var_type, line)
 
             return self.visitChildren(ctx)
 
@@ -157,7 +198,9 @@ class SymbolTableBuilder(SimpleCVisitor):
                 continue
             name = ident.getText()
             line = ident.symbol.line if hasattr(ident, "symbol") else -1
-            self._add_symbol(name, "var", typ, line)
+            ptr_depth = len(init_ctx.pointer().getText()) if getattr(init_ctx, "pointer", lambda: None)() else 0
+            var_type = f"{typ}{'*' * ptr_depth}"
+            self._add_symbol(name, "var", var_type, line)
 
         return self.visitChildren(ctx)
 

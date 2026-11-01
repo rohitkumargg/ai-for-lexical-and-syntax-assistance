@@ -7,7 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v={{ style_css_hash }}">
+    <script>
+        (function() {
+            var theme = localStorage.getItem("simplec_theme") || "light";
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
 <body>
@@ -22,17 +28,34 @@
             </div>
             <div class="titleblock">
                 <h2>SimpleC Compiler IDE</h2>
-                <div class="subtitle">AI-Assisted Syntax • Semantic • Security Auto-Repair</div>
+                <div class="subtitle" id="ide-subtitle">C mode</div>
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" id="btn-run" onclick="runRepair()" title="Run Repair on Current File (Ctrl+Enter)">
+            <div class="segmented-control" id="language-switch" role="tablist" aria-label="Language Mode"></div>
+
+            <button class="btn btn-success" id="btn-run-program" onclick="runProgram()" title="Run Program (Compile and Execute Current Code)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-                <span>Run Repair</span>
+                <span id="btn-run-program-text">Run Program</span>
+            </button>
+
+            <button class="btn btn-primary" id="btn-run" onclick="runRepair()" title="Run Current File (Ctrl+Enter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Run</span>
                 <span class="btn-hint">Ctrl+Enter</span>
+            </button>
+
+            <button class="btn btn-danger" id="btn-cancel-repair" onclick="cancelActiveRepair()" title="Cancel Active Repair" style="display:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>Cancel</span>
             </button>
 
             <button class="btn btn-secondary" id="btn-save" onclick="saveActiveFile()" title="Save Current File (Ctrl+S)">
@@ -44,21 +67,30 @@
                 <span>Save File</span>
             </button>
 
-            <button class="btn btn-accent" id="btn-new-file" onclick="openNewFileModal()" title="Add New C File in Website">
+            <button class="btn btn-accent" id="btn-new-file" onclick="newFile()" title="Create New Program">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                <span>+ New C File</span>
+                <span id="btn-new-file-text">+ New C Program</span>
             </button>
 
-            <button class="btn btn-ghost" onclick="refreshExamples()" title="Refresh File Tree">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <polyline points="1 20 1 14 7 14"></polyline>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            <button class="btn btn-ghost" id="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Color Theme">
+                <svg id="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
-                <span>Refresh</span>
+                <svg id="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <span id="theme-toggle-label">Dark</span>
             </button>
         </div>
     </header>
@@ -74,7 +106,7 @@
                     </svg>
                     <span>Project Explorer</span>
                 </div>
-                <button class="icon-btn" onclick="openNewFileModal()" title="Create New C File">
+                <button class="icon-btn" onclick="newFile()" title="Create New Program">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -84,12 +116,12 @@
 
             <!-- File Search Filter -->
             <div class="sidebar-search">
-                <input type="text" id="file-search" placeholder="Search C files..." oninput="filterFiles(this.value)">
+                <input type="text" id="file-search" placeholder="Search files..." oninput="filterFiles(this.value)">
             </div>
 
             <div class="sidebar-section">
                 <div class="sidebar-section-title">
-                    <span>Source & Example Files</span>
+                    <span id="examples-title">C Examples</span>
                     <span class="file-count" id="file-count">0</span>
                 </div>
                 <div id="file-tree" class="file-tree"></div>
@@ -104,7 +136,7 @@
             <!-- Tabs Bar -->
             <div class="tabbar-container">
                 <div class="tabbar" id="tabbar"></div>
-                <button class="new-tab-btn" onclick="openNewFileModal()" title="Add new C file">+</button>
+                <button class="new-tab-btn" onclick="newFile()" title="Add new file">+</button>
             </div>
 
             <div class="top-section" id="top-section">
@@ -118,6 +150,8 @@
                                 <span id="unsaved-dot" class="unsaved-dot" title="Unsaved changes" style="display:none;"></span>
                             </div>
                             <div class="editor-actions">
+                                <button class="small-btn small-btn-success" id="btn-editor-run-program" onclick="runProgram()" title="Compile and Execute Program">▶ Run Program</button>
+                                <button class="small-btn" id="btn-revert" onclick="revertLastPatch()" title="Revert to original source code" style="display:none;">Revert Fix</button>
                                 <button class="small-btn" onclick="saveActiveFile()" title="Save (Ctrl+S)">Save</button>
                                 <button class="small-btn" onclick="copyEditorCode()" title="Copy Code">Copy</button>
                                 <button class="small-btn" onclick="resetEditorContent()" title="Reset to Original">Reset</button>
@@ -131,7 +165,7 @@
 
                     <!-- Results & Diagnostics Panel -->
                     <section class="resultpanel" id="resultpanel">
-                        <!-- Status Card -->
+                        <!-- Compiler Status & Progress Card -->
                         <section class="panelcard status-card">
                             <div class="card-header">
                                 <h3>Compiler Status</h3>
@@ -140,84 +174,154 @@
                                     <span id="status">Idle</span>
                                 </div>
                             </div>
-                        </section>
-
-                        <!-- Progress Card -->
-                        <section class="panelcard">
-                            <div class="card-header">
-                                <h3>Repair Pipeline</h3>
-                                <span id="repairProgressText" class="progress-label">Ready</span>
-                            </div>
-                            <div class="progress-wrap">
-                                <div id="repairProgressBar" class="progress-bar"></div>
-                            </div>
-                        </section>
-
-                        <!-- Statistics Card -->
-                        <section class="panelcard">
-                            <div class="card-header">
-                                <h3>Diagnostics & Fix Stats</h3>
-                            </div>
-                            <div id="stats" class="stats-grid"></div>
-                        </section>
-
-                        <!-- Repair Steps -->
-                        <section class="panelcard collapsible" id="card-steps">
-                            <div class="card-header clickable" onclick="toggleCard('card-steps')">
-                                <div class="card-title-wrap">
-                                    <span class="chevron">▼</span>
-                                    <h3>Applied Repair Steps</h3>
+                            <div class="status-progress-wrap" style="padding: 0 14px 12px 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px;">
+                                    <span id="repairProgressText" class="progress-label" style="font-weight: 600; color: var(--text-secondary);">Ready</span>
+                                    <span id="repairProgressPercent" style="font-weight: 700; color: var(--accent-blue); font-family: var(--font-mono, monospace);">0%</span>
                                 </div>
-                                <span class="badge" id="badge-steps">0</span>
-                            </div>
-                            <div class="card-body">
-                                <ul id="steps" class="detail-list"></ul>
-                            </div>
-                        </section>
-
-                        <!-- Syntax & Parser Errors -->
-                        <section class="panelcard collapsible" id="card-errors">
-                            <div class="card-header clickable" onclick="toggleCard('card-errors')">
-                                <div class="card-title-wrap">
-                                    <span class="chevron">▼</span>
-                                    <h3>Syntax & Parser Errors</h3>
+                                <div class="progress-wrap" style="height: 6px; background: rgba(0,0,0,0.06); border-radius: 999px; overflow: hidden;">
+                                    <div id="repairProgressBar" class="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #2563eb, #7c3aed); transition: width 0.3s ease;"></div>
                                 </div>
-                                <span class="badge badge-danger" id="badge-errors">0</span>
-                            </div>
-                            <div class="card-body">
-                                <ul id="errors" class="detail-list"></ul>
                             </div>
                         </section>
 
-                        <!-- Semantic Diagnostics -->
-                        <section class="panelcard collapsible" id="card-semantic">
-                            <div class="card-header clickable" onclick="toggleCard('card-semantic')">
-                                <div class="card-title-wrap">
-                                    <span class="chevron">▼</span>
-                                    <h3>Semantic Diagnostics</h3>
+                        <!-- Consolidated AI Agent Chat Card (Active Reasoning & Repair) -->
+                        <section class="panelcard ai-agent-chat-card" id="aiAgentChatCard">
+                            <div class="card-body agent-chat-body" id="agentChatBody">
+                                <!-- Proactive Agent Chat Stream Container -->
+                                <div class="agent-message-thread" id="agentMessageThread">
+                                    <!-- Initial Proactive State rendered immediately on page load / refresh -->
+                                    <div class="agent-bubble agent-welcome-bubble">
+                                        <div class="agent-bubble-header">
+                                            <span class="agent-bubble-sender">Compiler &amp; Security Specialist</span>
+                                            <span class="agent-bubble-time" id="agent-bubble-time">Live Session</span>
+                                        </div>
+                                        <div class="agent-bubble-content">
+
+                                            <!-- Consolidated Primary Indicators (Original-Source Baseline) -->
+                                            <div class="primary-indicators-card in-agent-chat" id="primaryIndicatorsSummary">
+                                                <div class="card-header in-chat-header">
+                                                    <div class="card-title-wrap">
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <rect x="3" y="3" width="7" height="7"></rect>
+                                                            <rect x="14" y="3" width="7" height="7"></rect>
+                                                            <rect x="14" y="14" width="7" height="7"></rect>
+                                                            <rect x="3" y="14" width="7" height="7"></rect>
+                                                        </svg>
+                                                        <h4>Code Quality Metrics (Original Program)</h4>
+                                                    </div>
+                                                    <span class="indicator-header-pill" id="pi-header-pill">Original Source Assessment</span>
+                                                </div>
+
+                                                <!-- 4 Core Code Quality Metrics assessing Original Submitted Code -->
+                                                <div class="primary-indicators-grid" id="code-quality-metrics-grid">
+                                                    <!-- 1. Overall Code Quality % (Combined Score) -->
+                                                    <div class="primary-tile tile-overall" id="tile-overall" title="Overall Code Quality % = 0.50*Q + 0.25*(100-O) + 0.25*(100-V). Evaluated on original code prior to repair.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Overall Code Quality %</span>
+                                                            <span class="tile-badge badge-measured" id="pi-badge-overall">[COMBINED]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-overall">--%</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-overall">50% Q + 25% (100-O) + 25% (100-V)</div>
+                                                    </div>
+
+                                                    <!-- 2. Optimal Code % -->
+                                                    <div class="primary-tile tile-optimal" id="tile-optimal" title="Optimal Code % = clamp(100 - O, 0, 100). Higher means fewer detected optimization opportunities. Note: 0% optimization potential does not prove code is mathematically optimal.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Optimal Code %</span>
+                                                            <span class="tile-badge badge-estimate" id="pi-badge-optimal">[HEURISTIC]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-optimal">--%</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-optimal">100 - Optimization Potential (O)</div>
+                                                    </div>
+
+                                                    <!-- 3. Poor Code % -->
+                                                    <div class="primary-tile tile-poor" id="tile-poor" title="Poor Code % = clamp(100 - Q, 0, 100). Higher means more detected quality problems. Defined as the inverse of Code Quality (100 - Q), not an independent measurement.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Poor Code %</span>
+                                                            <span class="tile-badge badge-risk" id="pi-badge-poor">[INVERSE Q]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-poor">--%</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-poor">100 - Code Quality (Q)</div>
+                                                    </div>
+
+                                                    <!-- 4. Vulnerability Risk % (Renamed from Security Risk Score) -->
+                                                    <div class="primary-tile tile-vulnerability" id="tile-vulnerability" title="Vulnerability Risk %: Normalized static security risk indicator based on detected findings and exposure, NOT a probability of attack exploitation.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Vulnerability Risk %</span>
+                                                            <span class="tile-badge badge-risk" id="pi-badge-vulnerability">[RISK INDEX]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-vulnerability">--%</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-vulnerability">Normalized risk indicator</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Hidden backward-compatibility alias elements -->
+                                                <div style="display:none;" aria-hidden="true">
+                                                    <span id="pi-val-quality">--%</span>
+                                                    <span id="pi-badge-quality"></span>
+                                                    <span id="pi-desc-quality"></span>
+                                                    <span id="pi-val-opt">--%</span>
+                                                    <span id="pi-badge-opt"></span>
+                                                    <span id="pi-desc-opt"></span>
+                                                    <span id="pi-val-sec">--%</span>
+                                                    <span id="pi-badge-sec"></span>
+                                                    <span id="pi-desc-sec"></span>
+                                                </div>
+
+                                                <!-- Telemetry & Operational Metrics (Separated from the 4 code quality metrics) -->
+                                                <div class="secondary-indicators-row" style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                                                    <!-- Green Metrics (Separated; explicit estimated TDP model) -->
+                                                    <div class="primary-tile tile-green" id="tile-green" title="Green Compiler Telemetry: Execution latency, peak memory RSS, and estimated linear TDP energy model. Not directly measured at the electrical socket.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Green Metrics (Hardware Model)</span>
+                                                            <span class="tile-badge badge-green" id="pi-badge-green">[ESTIMATED TDP]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-green">--/100</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-green">Estimated TDP energy & RSS footprint</div>
+                                                    </div>
+
+                                                    <!-- Model Accuracy & Benchmark -->
+                                                    <div class="primary-tile tile-benchmark" id="tile-benchmark" onclick="openBenchmarkModal()" title="Model Accuracy & Benchmark Evaluation across test suites">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Model Accuracy & Repair</span>
+                                                            <span class="tile-badge badge-unbenchmarked" id="pi-badge-benchmark">[PENDING RUN]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-benchmark">--</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-benchmark">Click to run benchmark harness</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="agent-action-callout">
+                                                <span>⚡ Press <strong>Ctrl + Enter</strong> or click <strong>Run Analyzer & Repair</strong> in the toolbar to run the full pipeline.</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="badge badge-warning" id="badge-semantic">0</span>
-                            </div>
-                            <div class="card-body">
-                                <ul id="semantic" class="detail-list"></ul>
                             </div>
                         </section>
 
-                        <!-- Security Warnings -->
-                        <section class="panelcard collapsible" id="card-security">
-                            <div class="card-header clickable" onclick="toggleCard('card-security')">
-                                <div class="card-title-wrap">
-                                    <span class="chevron">▼</span>
-                                    <h3>Security Warnings</h3>
-                                </div>
-                                <span class="badge badge-security" id="badge-security">0</span>
-                            </div>
-                            <div class="card-body">
-                                <ul id="security" class="detail-list"></ul>
-                            </div>
-                        </section>
+                        <!-- Recommended Fixed Program Review Card (AI Agent Coordinated Repair) -->
+                        <section class="panelcard recommended-program-card" id="recommendedProgramCard" style="display:none;"></section>
 
-                        <!-- Execution Logs -->
+
+
+                        <!-- Pipeline Execution Logs (Visible card restored) -->
                         <section class="panelcard collapsible" id="card-logs">
                             <div class="card-header clickable" onclick="toggleCard('card-logs')">
                                 <div class="card-title-wrap">
@@ -227,9 +331,38 @@
                                 <span class="badge" id="badge-logs">0</span>
                             </div>
                             <div class="card-body">
-                                <ul id="logs" class="detail-list code-font"></ul>
+                                <ul id="logs" class="detail-list code-font">
+                                    <li style="padding: 8px; color: var(--text-muted); font-size: 11px;">No pipeline runs yet. Click 'Run Analyzer &amp; Repair' to execute.</li>
+                                </ul>
                             </div>
                         </section>
+
+                        <!-- Legacy Containers (Hidden from user-facing results area to preserve API & test compatibility) -->
+                        <div style="display:none;" id="legacyPanelsHiddenContainer">
+                            <section class="panelcard" id="agentPipelineStages"></section>
+                            <section class="panelcard" id="beforeAfterCard">
+                                <table><tbody id="before-after-tbody"></tbody></table>
+                                <div id="ba-overhead-box"></div>
+                            </section>
+                            <section class="panelcard" id="greenPanel"></section>
+                            <section class="panelcard" id="qualityPanel"></section>
+                            <section class="panelcard" id="optimizationPanel"></section>
+                            <section class="panelcard" id="securityRiskPanel"></section>
+                            <section class="panelcard" id="benchmarkPanel"></section>
+                            <section class="panelcard" id="improvementAdvisorPanel"></section>
+                            <section class="panelcard unified-findings-card" id="unifiedFindingsCard"></section>
+                            <section class="panelcard" id="card-steps"><ul id="steps"></ul></section>
+                            <section class="panelcard" id="card-errors"><ul id="errors"></ul></section>
+                            <section class="panelcard" id="card-semantic"><ul id="semantic"></ul></section>
+                            <section class="panelcard" id="card-security"><ul id="security"></ul></section>
+                            <div id="stats"></div>
+                            <div id="badge-steps">0</div>
+                            <div id="badge-errors">0</div>
+                            <div id="badge-semantic">0</div>
+                            <div id="badge-security">0</div>
+                            <div id="badge-sec-confirmed" style="display:none;">0</div>
+                            <div id="security-summary-bar"></div>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -237,29 +370,88 @@
             <!-- Horizontal Resizer: Top Section / Bottom Testcases -->
             <div class="resizer horizontal-resizer" id="bottom-resizer"></div>
 
-            <!-- Test Case Runner Panel -->
-            <section class="testcase-panel" id="testcase-panel">
-                <div class="testcase-header">
-                    <div class="testcase-title-wrap">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                            <polyline points="2 17 12 22 22 17"></polyline>
-                            <polyline points="2 12 12 17 22 12"></polyline>
-                        </svg>
-                        <h3>Interactive Testcase Sandbox</h3>
+            <!-- Bottom Dock: Program Output Panel & Auto-Repair Sandbox -->
+            <section class="testcase-panel bottom-dock-panel" id="testcase-panel">
+                <div class="bottom-dock-header">
+                    <!-- Tab Switcher for Bottom Dock -->
+                    <div class="dock-tabs-nav" role="tablist">
+                        <button class="dock-tab-btn active" id="tab-btn-program-output" onclick="switchDockTab('program-output')" role="tab" aria-selected="true">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="4 17 10 11 4 5"></polyline>
+                                <line x1="12" y1="19" x2="20" y2="19"></line>
+                            </svg>
+                            <span>Program Output</span>
+                            <div class="status-pill status-idle" id="prog-status-badge">
+                                <span class="status-dot"></span>
+                                <span id="prog-status-text">Ready</span>
+                            </div>
+                            <span class="badge badge-subtle" id="prog-exit-badge" style="display:none;"></span>
+                            <span class="badge badge-subtle" id="prog-time-badge" style="display:none;"></span>
+                        </button>
+                        <button class="dock-tab-btn" id="tab-btn-sandbox" onclick="switchDockTab('sandbox')" role="tab" aria-selected="false">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                            <span>Compiler &amp; Auto-Repair Output</span>
+                        </button>
                     </div>
-                    <div class="testcase-actions">
-                        <button class="btn btn-primary btn-sm" onclick="runTestCase()">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+
+                    <div class="bottom-dock-actions" id="program-output-actions">
+                        <button class="btn btn-ghost btn-xs" onclick="toggleStdinPanel()" id="btn-toggle-stdin" title="Toggle Program Input (stdin) box">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                            <span>Toggle Stdin</span>
+                        </button>
+                        <button class="btn btn-ghost btn-xs" onclick="clearProgramOutput()" title="Clear terminal output">Clear</button>
+                        <button class="btn btn-success btn-xs" onclick="runProgram()" id="btn-dock-run" title="Run Current Program">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <span>Run Program</span>
+                        </button>
+                    </div>
+
+                    <div class="bottom-dock-actions" id="sandbox-actions" style="display:none;">
+                        <button class="btn btn-primary btn-xs" onclick="runTestCase()">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                             <span>Run Test</span>
                         </button>
-                        <button class="btn btn-ghost btn-sm" onclick="clearTestCase()">Clear</button>
+                        <button class="btn btn-ghost btn-xs" onclick="clearTestCase()">Clear</button>
                     </div>
                 </div>
 
-                <div class="testcase-grid" id="testcase-grid">
+                <!-- Program Output Panel View (Dedicated runtime output) -->
+                <div class="program-output-view" id="program-output-view">
+                    <div class="program-output-grid" id="program-output-grid">
+                        <!-- Optional Program Input (stdin) box -->
+                        <div class="prog-stdin-box" id="prog-stdin-box">
+                            <div class="prog-box-label">
+                                <label for="prog-stdin-input">Program Input (stdin)</label>
+                                <span class="label-hint">Optional stdin for scanf / fgets</span>
+                            </div>
+                            <textarea id="prog-stdin-input" spellcheck="false" placeholder="Enter standard input (stdin) for your program here..."></textarea>
+                        </div>
+
+                        <div class="resizer vertical-resizer" id="prog-stdin-resizer"></div>
+
+                        <!-- Readable terminal-style area for stdout, stderr & diagnostics -->
+                        <div class="prog-terminal-box" id="prog-terminal-box">
+                            <div class="prog-box-label">
+                                <span>Terminal Output</span>
+                                <span class="label-hint" id="prog-terminal-hint">Monospace Terminal Output</span>
+                            </div>
+                            <div class="terminal-screen" id="prog-terminal-screen">
+                                <div class="prog-empty-state" id="prog-empty-state">Run your program to see its output here.</div>
+                                <pre id="prog-stdout" class="terminal-stdout" style="display:none;"></pre>
+                                <pre id="prog-stderr" class="terminal-stderr" style="display:none;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preserved Testcase Sandbox View (Separate Tab) -->
+                <div class="testcase-grid" id="testcase-grid" style="display:none;">
                     <div class="testcase-box" id="testcase-input-box">
                         <label for="testcase-input">Test Code Input</label>
                         <textarea id="testcase-input" spellcheck="false" placeholder="Type or paste custom C code snippet here..."></textarea>
@@ -268,7 +460,7 @@
                     <div class="resizer vertical-resizer" id="testcase-resizer"></div>
 
                     <div class="testcase-box" id="testcase-output-box">
-                        <label for="testcase-output">Compiler & Auto-Repair Output</label>
+                        <label for="testcase-output">Compiler &amp; Auto-Repair Output</label>
                         <textarea id="testcase-output" readonly spellcheck="false" placeholder="Compiler repair outputs, diagnostics, and metrics will appear here..."></textarea>
                     </div>
                 </div>
@@ -319,10 +511,386 @@
             </div>
         </div>
     </div>
+    <!-- Interactive Patch Review & Validation Modal Dialog -->
+    <div class="modal-backdrop" id="patch-review-modal" style="display:none;" onclick="handlePatchModalBackdropClick(event)">
+        <div class="modal-dialog patch-dialog">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-icon patch-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Independent Patch Review & Validation</h3>
+                        <p class="modal-subtitle">Review proposed repair, validation status, and remaining risks before applying</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closePatchReviewModal()">×</button>
+            </div>
+
+            <div class="modal-body patch-modal-body">
+                <!-- Stage Status Badges -->
+                <div class="validation-stage-bar" id="patch-stage-badges">
+                    <div class="stage-badge" id="badge-stage-syntax">
+                        <span class="stage-dot"></span> Syntax: <strong id="stage-syntax-status">Validating...</strong>
+                    </div>
+                    <div class="stage-badge" id="badge-stage-compiler">
+                        <span class="stage-dot"></span> GCC/Clang: <strong id="stage-compiler-status">Validating...</strong>
+                    </div>
+                    <div class="stage-badge" id="badge-stage-security">
+                        <span class="stage-dot"></span> Security: <strong id="stage-security-status">Validating...</strong>
+                    </div>
+                    <div class="stage-badge" id="badge-stage-semantic">
+                        <span class="stage-dot"></span> Semantic: <strong id="stage-semantic-status">Validating...</strong>
+                    </div>
+                </div>
+
+                <!-- Explanation & Details -->
+                <div class="patch-info-box">
+                    <div class="patch-field">
+                        <label>Explanation:</label>
+                        <span id="patch-explanation-text">...</span>
+                    </div>
+                    <div class="patch-field" id="patch-assumptions-field" style="display:none;">
+                        <label>Assumptions:</label>
+                        <span id="patch-assumptions-text">...</span>
+                    </div>
+                    <div class="patch-field" id="patch-effects-field" style="display:none;">
+                        <label>Expected Effects:</label>
+                        <span id="patch-effects-text">...</span>
+                    </div>
+                    <div class="patch-risks-box" id="patch-risks-container" style="display:none;">
+                        <label>⚠️ Remaining Risks / Compiler Warnings:</label>
+                        <ul id="patch-risks-list"></ul>
+                    </div>
+                    <!-- Post-Repair Security Delta -->
+                    <div class="patch-sec-delta-box" id="patch-sec-delta-container" style="display:none;">
+                        <label>🛡️ Security Vulnerability Delta (Pre vs Post-Repair):</label>
+                        <div class="sec-delta-badges" id="sec-delta-badges"></div>
+                        <ul id="sec-delta-list" class="sec-delta-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Structured Diff Viewer -->
+                <div class="diff-viewer-wrap">
+                    <div class="diff-toolbar">
+                        <span class="diff-title">Structured Diff</span>
+                        <div class="diff-metrics">
+                            <span class="diff-add" id="diff-add-count">+0 additions</span>
+                            <span class="diff-del" id="diff-del-count">-0 deletions</span>
+                        </div>
+                    </div>
+                    <div class="diff-container code-font" id="diff-content"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer patch-footer">
+                <div class="patch-footer-left">
+                    <span class="revert-notice" id="patch-revert-notice">Original source code is preserved.</span>
+                </div>
+                <div class="patch-footer-actions">
+                    <button class="btn btn-secondary" onclick="rejectCandidatePatch()">Reject</button>
+                    <button class="btn btn-primary" id="btn-apply-patch" onclick="confirmApplyPatch()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Apply Fix (User Approval)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Rules & Controlled Improvement Modal -->
+    <div id="candidate-rules-modal" class="modal-backdrop" style="display:none;" onclick="handleRulesModalBackdropClick(event)">
+        <div class="modal-dialog rules-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon rules-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>Rule Repository & Controlled Improvement</h2>
+                        <span class="modal-subtitle">Review learned rules proposed by AI models. Activation strictly requires human approval.</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeCandidateRulesModal()" title="Close Dialog">×</button>
+            </div>
+
+            <!-- Guardrail Safety Banner -->
+            <div class="rules-security-banner">
+                🛡️ <strong>Safety Invariant:</strong> Proposed rules remain isolated in the candidate repository. Models cannot modify active rules silently or promote their own suggestions.
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="rules-tab-bar">
+                <button class="rules-tab-btn active" id="tab-btn-candidates" onclick="switchRulesTab('candidates')">
+                    Candidate Rules (<span id="modal-candidates-count">0</span>)
+                </button>
+                <button class="rules-tab-btn" id="tab-btn-active" onclick="switchRulesTab('active')">
+                    Active Rules (<span id="modal-active-count">0</span>)
+                </button>
+            </div>
+
+            <div class="modal-body rules-modal-body">
+                <!-- Candidate Rules View -->
+                <div id="rules-view-candidates" class="rules-view-pane">
+                    <div id="candidate-rules-list" class="rules-card-list">
+                        <div class="empty-panel">No candidate rules pending review.</div>
+                    </div>
+                </div>
+
+                <!-- Active Rules View -->
+                <div id="rules-view-active" class="rules-view-pane" style="display:none;">
+                    <div id="active-rules-list" class="rules-card-list">
+                        <div class="empty-panel">No active learned rules in repository.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCandidateRulesModal()">Close</button>
+                <button class="btn btn-ghost" onclick="loadRulesModalData()" title="Reload rules from disk">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post-Repair Improvement Candidate Review Modal -->
+    <div id="improvement-modal" class="modal-backdrop" style="display:none;" onclick="handleImprovementModalBackdropClick(event)">
+        <div class="modal-dialog patch-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header patch-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon patch-icon" style="background: rgba(37, 99, 235, 0.15); color: var(--accent-blue);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="imp-modal-title">Review Improvement Candidate</h2>
+                        <span class="modal-subtitle" id="imp-modal-subtitle">Inspect code transformation, assumptions, trade-offs, and metric changes before applying.</span>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeImprovementModal()">×</button>
+            </div>
+
+            <div class="modal-body patch-modal-body">
+                <div class="patch-info-box">
+                    <div class="patch-field">
+                        <label>Candidate Strategy:</label>
+                        <span id="imp-modal-strategy-pill" class="imp-badge">...</span>
+                        <span id="imp-modal-priority-pill" class="imp-priority-tag">...</span>
+                    </div>
+                    <div class="patch-field">
+                        <label>Explanation & Rationale:</label>
+                        <span id="imp-modal-explanation">...</span>
+                    </div>
+                    <div class="patch-field">
+                        <label>Expected Effect:</label>
+                        <span id="imp-modal-effect">...</span>
+                    </div>
+                    <div class="patch-field">
+                        <label>Assumptions:</label>
+                        <span id="imp-modal-assumptions">...</span>
+                    </div>
+                    <div class="patch-field">
+                        <label>Trade-offs & Considerations:</label>
+                        <span id="imp-modal-tradeoffs">...</span>
+                    </div>
+                    <div class="patch-field">
+                        <label>Metric Delta Prediction:</label>
+                        <strong id="imp-modal-metric-delta">...</strong>
+                    </div>
+                </div>
+
+                <!-- Structured Diff Viewer -->
+                <div class="diff-viewer-wrap">
+                    <div class="diff-toolbar">
+                        <span class="diff-title">Unified Code Diff</span>
+                    </div>
+                    <div class="diff-container code-font" id="imp-modal-diff-content"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer patch-footer">
+                <div class="patch-footer-left">
+                    <span class="revert-notice">Original source remains unaltered until explicit approval.</span>
+                </div>
+                <div class="patch-footer-actions">
+                    <button class="btn btn-secondary" onclick="rejectCurrentImprovementCandidate()">Reject</button>
+                    <button class="btn btn-primary" id="btn-apply-improvement" onclick="applyCurrentImprovementCandidate()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Approve & Apply to Editor</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Accuracy & Repair Benchmark Dashboard Modal -->
+    <div id="benchmark-modal" class="modal-backdrop" style="display:none;" onclick="handleBenchmarkModalBackdropClick(event)">
+        <div class="modal-dialog benchmark-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon benchmark-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>Model Accuracy & Repair Benchmarking</h2>
+                        <span class="modal-subtitle">Empirical performance comparison across 5 model and repair configurations on labelled benchmarks.</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeBenchmarkModal()" title="Close Dialog">×</button>
+            </div>
+
+            <!-- Methodology & Honesty Banner -->
+            <div class="benchmark-disclaimer-banner">
+                ℹ️ <strong>Methodology Guarantee:</strong> Denominators are strictly defined. Repair success is separated from compilation success. Model confidence is never used as proof of correctness. Energy is computed via hardware TDP linear power models.
+            </div>
+
+            <!-- Action & Status Bar -->
+            <div class="benchmark-action-bar">
+                <div class="benchmark-status-indicator">
+                    <span>Benchmark Status:</span>
+                    <span id="benchmark-status-badge" class="badge-status-unbenchmarked">Not yet benchmarked</span>
+                    <span id="benchmark-dataset-info" class="benchmark-info-pill">Dataset: 16 cases (8 categories)</span>
+                </div>
+                <div class="benchmark-action-buttons">
+                    <button class="btn btn-primary" id="btn-run-benchmark" onclick="executeBenchmarkRun()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <span id="btn-run-benchmark-text">Run Model Benchmark</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body benchmark-modal-body">
+                <!-- Comparative Configuration Table -->
+                <div class="benchmark-section-title">Configuration Performance Comparison (5 Architectures)</div>
+                <div class="benchmark-table-wrapper">
+                    <table class="benchmark-table" id="benchmark-comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Configuration</th>
+                                <th>Repair Success %</th>
+                                <th>Exact Match %</th>
+                                <th>Validation Pass %</th>
+                                <th>Regression %</th>
+                                <th>Security Prec/Rec</th>
+                                <th>Avg Latency</th>
+                                <th>Energy (J)</th>
+                                <th>Energy/Fix</th>
+                                <th>Fallback Eff.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchmark-comparison-tbody">
+                            <tr>
+                                <td colspan="10" class="benchmark-empty-row">Click "Run Model Benchmark" to collect empirical measurements. Zero fabricated values.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Comparative Insights Summary -->
+                <div id="benchmark-summary-box" class="benchmark-summary-box" style="display:none;"></div>
+
+                <!-- Filterable Benchmark Test Cases Explorer -->
+                <div class="benchmark-section-header-row">
+                    <div class="benchmark-section-title">Labelled Benchmark Test Cases (<span id="benchmark-cases-count">16</span>)</div>
+                    <div class="benchmark-filter-tabs" id="benchmark-category-filters">
+                        <button class="bm-filter-btn active" onclick="filterBenchmarkCases('ALL')">ALL</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('VALID')">VALID</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('SYNTAX')">SYNTAX</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('SEMANTIC')">SEMANTIC</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('SECURITY')">SECURITY</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('AMBIGUOUS')">AMBIGUOUS</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('DIFFICULT')">DIFFICULT</button>
+                        <button class="bm-filter-btn" onclick="filterBenchmarkCases('UNFIXABLE')">UNFIXABLE</button>
+                    </div>
+                </div>
+                <div id="benchmark-cases-list" class="benchmark-cases-list">
+                    <div class="empty-panel">Loading benchmark dataset...</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBenchmarkModal()">Close</button>
+                <button class="btn btn-ghost" onclick="loadBenchmarkModalData()" title="Reload benchmark results">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Approval Gate Review Modal -->
+    <div id="security-approval-modal" class="modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="sec-modal-title" onclick="handleSecurityModalBackdropClick(event)">
+        <div class="modal-dialog security-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon security-gate-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="sec-modal-title">Security Review Required</h2>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeSecurityApprovalModal('cancel')" title="Cancel and Return to Editor">×</button>
+            </div>
+
+            <!-- Modal Body Scrollable Content -->
+            <div class="modal-body sec-modal-body">
+                <!-- Grouped Findings Container (grouped by Severity) -->
+                <div class="sec-section-box">
+                    <div class="sec-box-title">Detected Findings (Grouped by Severity)</div>
+                    <div id="sec-findings-container" class="sec-findings-container">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Repair Proposal Availability Notice -->
+                <div id="sec-repair-notice" class="sec-repair-box" style="display:none;">
+                    <div class="sec-repair-icon">💡</div>
+                    <div class="sec-repair-content">
+                        <strong>Automated Repair Proposal Available:</strong>
+                        <span>An AI-assisted repair is available for review without executing untrusted code.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="modal-footer sec-modal-footer">
+                <div class="sec-footer-left">
+                    <button class="btn btn-secondary" id="sec-btn-cancel" onclick="handleSecurityGateAction('cancel')">
+                        Cancel (Return to Editor)
+                    </button>
+                </div>
+                <div class="sec-footer-right">
+                    <button class="btn btn-outline-primary" id="sec-btn-repair" onclick="handleSecurityGateAction('repair')">
+                        Review / Repair
+                    </button>
+                    <button class="btn btn-danger" id="sec-btn-approve" onclick="handleSecurityGateAction('approve')">
+                        Approve Once &amp; Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v={{ app_js_hash }}"></script>
 </body>
 </html>

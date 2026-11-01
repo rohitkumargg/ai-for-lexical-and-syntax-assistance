@@ -22,13 +22,27 @@ class SecurityEngine:
             blocked: whether compilation should be blocked
             categorized: { "CRITICAL": [...], "WARNING": [...], "INFO": [...] }
         """
+        # Run taint checker first so sink calls are identified
+        taint_issues = self.taint_checker.check(source_text)
+        security_issues = self.security_checker.check(source_text, taint_issues=taint_issues)
+        string_issues = self.string_flow_checker.check(source_text)
 
+        all_raw = list(taint_issues) + list(security_issues) + list(string_issues)
+
+        # Correlate and deduplicate with stable identity
         issues: List[object] = []
+        seen_keys = set()
+        for issue in all_raw:
+            key = getattr(issue, "stable_id", None)
+            if not key:
+                line = getattr(issue, "line", "")
+                msg = getattr(issue, "message", str(issue))
+                sev = getattr(issue, "severity", "")
+                key = f"{sev}:{msg}:{line}"
 
-        # Run all checkers
-        issues += self.security_checker.check(source_text)
-        issues += self.taint_checker.check(source_text)
-        issues += self.string_flow_checker.check(source_text)
+            if key not in seen_keys:
+                seen_keys.add(key)
+                issues.append(issue)
 
         categorized = {
             "CRITICAL": [],

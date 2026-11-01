@@ -1,4 +1,1 @@
-int main() {
-    int a = 10
-    return 0;
-}
+int main() { return 100; }

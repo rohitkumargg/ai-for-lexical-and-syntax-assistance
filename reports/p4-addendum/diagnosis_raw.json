@@ -1,0 +1,23 @@
+{
+  "syntax_agent": {
+    "duration_ms": 18571.43,
+    "findings_count": 112,
+    "reparse_calls_count": 46,
+    "reparse_total_time_ms": 7341.43
+  },
+  "remediation_engine_gap": {
+    "duration_ms": 8961.95,
+    "recs_count": 0
+  },
+  "rule_engine": {
+    "duration_ms": 6472.25,
+    "fixes_applied": 60,
+    "reparse_calls_count": 42,
+    "reparse_total_time_ms": 6284.67
+  },
+  "model_loading": {
+    "codet5_is_available_check_ms": 1.11,
+    "codet5_weights_load_ms": 660.14,
+    "ollama_is_available_check_ms": -0.0
+  }
+}

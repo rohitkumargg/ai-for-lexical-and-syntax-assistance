@@ -6,7 +6,6 @@ from typing import Dict, Any
 
 import psutil
 
-
 class GreenSystemTracker:
     def __init__(self):
         self.process = psutil.Process(os.getpid())

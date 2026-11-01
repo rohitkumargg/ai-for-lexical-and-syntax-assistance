@@ -1,0 +1,23 @@
+=== RUNTIMES AND CONTAINER BACKENDS AUDIT ===
+=== DOCKER CHECK ===
+docker : The term 'docker' is not recognized as the name of a cmdlet, function, script file, or operable program. 
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+
+=== PODMAN CHECK ===
+podman : The term 'podman' is not recognized as the name of a cmdlet, function, script file, or operable program.
+
+=== WSL CHECK ===
+CommandType     Name                                               Version         Source                                   
+-----------     ----                                               -------         ------                                   
+Application     wsl.exe                                            10.0.26200.5050 C:\windows\system32\wsl.exe              
+The Windows Subsystem for Linux is not installed. You can install by running 'wsl.exe --install'.
+For more information please visit https://aka.ms/wslinstall
+
+=== WINDOWS SANDBOX CHECK ===
+Containers-DisposableClientVM: Unavailable (Requires Windows 11 Pro, Enterprise, or Education; this system is Windows 11 Home Single Language).
+
+=== COMPILERS AND RUNTIMES ===
+gcc.exe (MinGW.org GCC-6.3.0-1) 6.3.0
+Copyright (C) 2016 Free Software Foundation, Inc.
+Python 3.14.6
+

@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 from typing import Dict, Any
+from compiler.green_engine import (
+    LocalGreenMetricsEngine,
+    ModelResourceMetrics,
+    GREEN_METRICS_DISCLAIMER,
+)
 
 
 def build_green_report(metrics: Dict[str, Any]) -> Dict[str, Any]:
@@ -10,64 +15,61 @@ def build_green_report(metrics: Dict[str, Any]) -> Dict[str, Any]:
 
     total_ms = metrics.get("total_runtime_ms", 0.0)
 
-    score = 100
+    # Use LocalGreenMetricsEngine for multi-dimensional cost and normalized scoring
+    engine = LocalGreenMetricsEngine()
 
-    score -= min(int(total_ms / 80), 30)
-    score -= min(counters.get("ai_fixes", 0) * 4, 20)
-    score -= min(counters.get("rule_fixes", 0) * 2, 10)
-    score -= min(counters.get("lex_fixes", 0), 5)
-    score -= min(counters.get("sym_fixes", 0) * 2, 10)
-    score -= min(counters.get("sem_fixes", 0) * 2, 10)
-    score -= min(values.get("semantic_issue_count", 0) * 3, 15)
+    model_metrics = ModelResourceMetrics(
+        model_calls=counters.get("ai_fixes", 0),
+        retries_count=counters.get("retries_count", 0),
+        prompt_tokens=counters.get("prompt_tokens", 0),
+        completion_tokens=counters.get("completion_tokens", 0),
+        total_tokens=counters.get("total_tokens", 0),
+        inference_latency_ms=phase_ms.get("model_inference", 0.0),
+    )
 
-    if values.get("parse_success"):
-        score += 5
+    is_parse_ok = bool(values.get("parse_success", True))
+    engine_report = engine.build_report(
+        total_runtime_ms=total_ms,
+        stage_ms=phase_ms,
+        model_metrics=model_metrics,
+        validated_repairs_count=1 if is_parse_ok else 0,
+        repair_success=is_parse_ok,
+        validation_stages_passed=4 if is_parse_ok else 2,
+        rule_fixes_count=counters.get("rule_fixes", 0) + counters.get("lex_fixes", 0),
+        ai_fixes_count=counters.get("ai_fixes", 0),
+        retries_avoided=counters.get("retries_avoided", 0),
+    )
 
-    status = values.get("status", "")
-    if status == "STOPPED":
-        score -= 15
-    elif status == "UNFIXABLE":
-        score -= 10
-    elif status == "BLOCKED_SECURITY":
-        score -= 12
+    # Hotspot analysis
+    hotspot = engine_report.hotspot
+    suggestion = engine_report.recommendations[0] if engine_report.recommendations else "Pipeline executed efficiently."
 
-    if score < 0:
-        score = 0
-    if score > 100:
-        score = 100
-
-    hotspot = "overall pipeline"
-    hotspot_time = -1.0
-    for name, ms in phase_ms.items():
-        if name == "total":
-            continue
-        if ms > hotspot_time:
-            hotspot = name
-            hotspot_time = ms
-
-    suggestion = "Pipeline looks efficient."
-
-    if counters.get("ai_fixes", 0) >= 4:
-        suggestion = "Reduce repeated AI fallback by improving deterministic fixes and early stopping."
-    elif hotspot == "syntax_repair":
-        suggestion = "Syntax repair dominates runtime; add stronger recovery sync points and prune weak AI candidates."
-    elif hotspot == "semantic_phase":
-        suggestion = "Semantic checking dominates runtime; run lighter checks before full semantic analysis."
-    elif hotspot == "security_phase":
-        suggestion = "Security phase dominates runtime; run targeted security checks only after parse success."
-    elif hotspot == "lexical_phase":
-        suggestion = "Lexical cleanup is taking noticeable time; consolidate typo cleanup rules."
-    elif values.get("semantic_issue_count", 0) > 0:
-        suggestion = "Reduce downstream semantic issues by improving identifier and declaration fixes earlier."
+    # Enrich values dictionary
+    merged_values = dict(values)
+    merged_values["co2_kg"] = engine_report.energy_metrics.co2_kg
+    merged_values["co2_grams"] = engine_report.energy_metrics.co2_grams
+    merged_values["energy_joules"] = engine_report.energy_metrics.energy_joules
+    merged_values["energy_wh"] = engine_report.energy_metrics.energy_wh
+    merged_values["cpu_percent"] = engine_report.system_metrics.get("cpu_percent")
+    merged_values["memory_mb"] = engine_report.system_metrics.get("memory_mb")
+    merged_values["peak_memory_mb"] = engine_report.system_metrics.get("peak_memory_mb")
 
     report = {
         "total_runtime_ms": round(total_ms, 2),
         "phase_ms": {k: round(v, 2) for k, v in phase_ms.items()},
         "counters": dict(counters),
-        "values": dict(values),
-        "green_score": score,
+        "values": merged_values,
+        "green_score": round(engine_report.green_score, 1),
         "hotspot": hotspot,
         "suggestion": suggestion,
+        "energy_metrics": engine_report.energy_metrics.to_dict(),
+        "model_metrics": engine_report.model_metrics.to_dict(),
+        "system_metrics": dict(engine_report.system_metrics),
+        "tradeoff": engine_report.tradeoff.to_dict(),
+        "efficiency_optimizations": list(engine_report.efficiency_optimizations),
+        "recommendations": list(engine_report.recommendations),
+        "score_breakdown": {k: round(v, 1) for k, v in engine_report.score_breakdown.items()},
+        "disclaimer": GREEN_METRICS_DISCLAIMER,
     }
 
     return report

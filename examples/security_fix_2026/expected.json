@@ -1,0 +1,13 @@
+{
+  "e01_cmd_injection":        {"before": "BLOCKED_SECURITY",      "after": "SUCCESS",               "fixed": true},
+  "e02_scanf_widths":         {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS",               "fixed": true},
+  "e03_gets":                 {"before": "BLOCKED_SECURITY",      "after": "SUCCESS",               "fixed": true},
+  "e04_strcpy":               {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS",               "fixed": true},
+  "e05_strcat":               {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS",               "fixed": true},
+  "e06_sprintf":              {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS",               "fixed": true},
+  "e07_printf_user":          {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS",               "fixed": true},
+  "e08_pointer_destination":  {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS_WITH_WARNINGS", "fixed": false, "finding_contains": "destination size unknown"},
+  "e09_taint_scope":          {"before": "SUCCESS_WITH_WARNINGS", "after": "SUCCESS_WITH_WARNINGS", "fixed": false, "must_not_contain": "[CRITICAL]"},
+  "e10_prototype_only":       {"before": "SUCCESS",               "after": "SUCCESS",               "fixed": false},
+  "e11_allowlist_guard":      {"before": "SUCCESS",               "after": "SUCCESS",               "fixed": false}
+}

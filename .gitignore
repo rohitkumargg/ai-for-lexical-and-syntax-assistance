@@ -13,3 +13,9 @@ ai_data/
 *.pt
 *.bin
 *.safetensors
+
+# Transient and generated directories
+data/
+logs/
+scratch/
+reports/diffs/

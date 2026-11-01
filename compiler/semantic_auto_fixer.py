@@ -168,7 +168,6 @@ def _safe_rename_identifier(source: str, start_line: int, old_name: str, new_nam
 
 STD_LIB_PROTOTYPES: Dict[str, str] = {
     "system": "int system(char *command);",
-    "gets": "char *gets(char *str);",
     "strcpy": "char *strcpy(char *dest, char *src);",
     "malloc": "void *malloc(int size);",
     "free": "void free(void *ptr);",

@@ -91,7 +91,7 @@ def main():
     print(f"src unique:       {src_uniq}   duplicates: {src_dup}")
     print(f"src_norm unique:  {sn_uniq}   duplicates: {sn_dup}   (whitespace-normalized)")
     print(f"tgt unique:       {tgt_uniq}   duplicates: {tgt_dup}")
-    print(f"(src,tgt) unique: {pair_uniq}   duplicates: {pair_dup}   ✅ most important")
+    print(f"(src,tgt) unique: {pair_uniq}   duplicates: {pair_dup}   [OK] most important")
 
     def print_top(label, top):
         print(f"\nTop repeated {label} hashes (count only):")
@@ -105,20 +105,20 @@ def main():
 
     # Simple decision heuristics (not absolute rules)
     print("\n[Heuristic red flags]")
-    if pair_uniq < 20000:
-        print(f"⚠️  (src,tgt) unique is {pair_uniq}, which is low for 80k. Investigate generator diversity.")
+    if pair_uniq < 20000 and total > 20000:
+        print(f"[WARN] (src,tgt) unique is {pair_uniq}, which is low. Investigate generator diversity.")
     else:
-        print("✅ (src,tgt) uniqueness looks healthy.")
+        print("[OK] (src,tgt) uniqueness looks healthy.")
 
-    if src_uniq < 5000:
-        print(f"⚠️  src unique is {src_uniq}. If splits leak or contexts collapse, model may overfit.")
+    if src_uniq < 5000 and total > 5000:
+        print(f"[WARN] src unique is {src_uniq}. If splits leak or contexts collapse, model may overfit.")
     else:
-        print("✅ src uniqueness looks reasonable.")
+        print("[OK] src uniqueness looks reasonable.")
 
     if sn_uniq < src_uniq * 0.9:
-        print("⚠️  Many src differ only by whitespace; ensure corruption isn't whitespace-only.")
+        print("[WARN] Many src differ only by whitespace; ensure corruption isn't whitespace-only.")
     else:
-        print("✅ Not dominated by whitespace-only changes.")
+        print("[OK] Not dominated by whitespace-only changes.")
 
 
 if __name__ == "__main__":

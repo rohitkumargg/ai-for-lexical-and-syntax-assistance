@@ -45,9 +45,9 @@ def main():
     print(f"Overlap src hashes: {len(inter)}")
 
     if len(inter) > 0:
-        print("❌ Leakage detected. You should re-split ensuring src-disjoint splits.")
+        print("[FAIL] Leakage detected. You should re-split ensuring src-disjoint splits.")
     else:
-        print("✅ No src leakage detected.")
+        print("[OK] No src leakage detected.")
 
 
 if __name__ == "__main__":

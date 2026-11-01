@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-10-30T13:22:25+05:30",
+  "os": {
+    "caption": "Microsoft Windows 11 Home Single Language",
+    "version": "10.0.26200",
+    "build": 26200,
+    "architecture": "64-bit"
+  },
+  "hardware": {
+    "total_physical_memory_bytes": 16790884352,
+    "total_physical_memory_gb": 16.0,
+    "c_drive_free_bytes": 155710160896,
+    "c_drive_free_gb": 145.0,
+    "virtualization_enabled": true,
+    "hypervisor_detected": true
+  },
+  "runtimes": {
+    "docker_installed": false,
+    "podman_installed": false,
+    "wsl_installed": false,
+    "windows_sandbox_available": false,
+    "gcc_host_version": "6.3.0",
+    "python_host_version": "3.14.6"
+  },
+  "selected_backend": "Docker Desktop with WSL2 backend",
+  "backend_status": "PENDING_INSTALLATION"
+}
+

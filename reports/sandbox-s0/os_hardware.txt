@@ -1,0 +1,20 @@
+=== OS AND HARDWARE AUDIT ===
+Caption        : Microsoft Windows 11 Home Single Language
+Version        : 10.0.26200
+BuildNumber    : 26200
+OSArchitecture : 64-bit
+
+OS Name:                       Microsoft Windows 11 Home Single Language
+OS Version:                    10.0.26200 N/A Build 26200
+BIOS Version:                  AMI F.07, 3/4/2026
+Virtualization-based security: Status: Running
+                               Base Virtualization Support
+                               APIC Virtualization
+Hyper-V Requirements:          A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+
+TotalPhysicalMemory : 16790884352 bytes (16.0 GB)
+
+Drive C:
+Used : 355,139,284,992 bytes (330.7 GB)
+Free : 155,710,160,896 bytes (145.0 GB free)
+

@@ -1,0 +1,193 @@
+path,filename,language,size_bytes,valid_syntax,first_error_line,syntax_message,reads_stdin,is_dangerous,danger_flags
+examples/examples/week8_2026/test_example.c,test_example.c,c,10,True,,,False,False,
+examples/main.c,main.c,c,26,True,,,False,False,
+examples/main.py,main.py,python,10,True,,,False,False,
+examples/python/_expected/clean_guard.py,clean_guard.py,python,86,True,,,False,False,
+examples/python/_expected/security/x01_yaml_load.py,x01_yaml_load.py,python,54,True,,,False,False,
+examples/python/_expected/security/x02_weak_hash.py,x02_weak_hash.py,python,76,True,,,False,False,
+examples/python/_expected/security/x03_eval_input.py,x03_eval_input.py,python,66,True,,,True,False,
+examples/python/_expected/security/x04_shell_true.py,x04_shell_true.py,python,48,True,,,False,True,subprocess;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-SUBPROCESS_CALL
+examples/python/_expected/security/x05_verify_false.py,x05_verify_false.py,python,90,True,,,False,False,
+examples/python/_expected/security/x06_flask_debug.py,x06_flask_debug.py,python,67,True,,,False,False,
+examples/python/_expected/semantic/m01_undefined_name_typo.py,m01_undefined_name_typo.py,python,27,True,,,False,False,
+examples/python/_expected/semantic/m02_true_false_none.py,m02_true_false_none.py,python,24,True,,,False,False,
+examples/python/_expected/semantic/m03_unused_import.py,m03_unused_import.py,python,12,True,,,False,False,
+examples/python/_expected/semantic/m04_unused_variable.py,m04_unused_variable.py,python,34,True,,,False,False,
+examples/python/_expected/semantic/m05_compare_none.py,m05_compare_none.py,python,42,True,,,False,False,
+examples/python/_expected/semantic/m06_missing_self.py,m06_missing_self.py,python,56,True,,,False,False,
+examples/python/_expected/syntax/s01_missing_colon.py,s01_missing_colon.py,python,29,True,,,False,False,
+examples/python/_expected/syntax/s02_unclosed_paren.py,s02_unclosed_paren.py,python,18,True,,,False,False,
+examples/python/_expected/syntax/s03_assign_in_condition.py,s03_assign_in_condition.py,python,30,True,,,False,False,
+examples/python/_expected/syntax/s04_missing_indent.py,s04_missing_indent.py,python,32,True,,,False,False,
+examples/python/_expected/syntax/s05_unexpected_indent.py,s05_unexpected_indent.py,python,25,True,,,False,False,
+examples/python/_expected/syntax/s06_unterminated_string.py,s06_unterminated_string.py,python,25,True,,,False,False,
+examples/python/_expected/syntax/s07_python2_print.py,s07_python2_print.py,python,15,True,,,False,False,
+examples/python/_expected/syntax/s08_else_if.py,s08_else_if.py,python,62,True,,,False,False,
+examples/python/_expected/syntax/s09_keyword_typo.py,s09_keyword_typo.py,python,30,True,,,False,False,
+examples/python/_expected/syntax/s10_c_style_operators.py,s10_c_style_operators.py,python,54,True,,,False,False,
+examples/python/clean_guard.py,clean_guard.py,python,86,True,,,False,False,
+examples/python/security/x01_yaml_load.py,x01_yaml_load.py,python,49,True,,,False,True,yaml_unsafe;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-01
+examples/python/security/x02_weak_hash.py,x02_weak_hash.py,python,73,True,,,False,True,weak_hash;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-02
+examples/python/security/x03_eval_input.py,x03_eval_input.py,python,43,True,,,True,True,eval;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-03;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-EVAL
+examples/python/security/x04_shell_true.py,x04_shell_true.py,python,55,True,,,False,True,subprocess;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-04;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-SUBPROCESS_CALL
+examples/python/security/x05_verify_false.py,x05_verify_false.py,python,91,True,,,False,True,verify_false;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-05
+examples/python/security/x06_flask_debug.py,x06_flask_debug.py,python,66,True,,,False,True,server_run;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-06
+examples/python/security/x07_hardcoded_password.py,x07_hardcoded_password.py,python,52,True,,,False,True,PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-07
+examples/python/security/x08_sql_injection.py,x08_sql_injection.py,python,83,True,,,False,True,PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-08
+examples/python/semantic/m01_undefined_name_typo.py,m01_undefined_name_typo.py,python,27,True,,,False,False,
+examples/python/semantic/m02_true_false_none.py,m02_true_false_none.py,python,24,True,,,False,False,
+examples/python/semantic/m03_unused_import.py,m03_unused_import.py,python,22,True,,,False,False,
+examples/python/semantic/m04_unused_variable.py,m04_unused_variable.py,python,49,True,,,False,False,
+examples/python/semantic/m05_compare_none.py,m05_compare_none.py,python,42,True,,,False,False,
+examples/python/semantic/m06_missing_self.py,m06_missing_self.py,python,52,True,,,False,False,
+examples/python/semantic/m07_call_arity.py,m07_call_arity.py,python,46,True,,,False,False,
+examples/python/semantic/m08_return_outside.py,m08_return_outside.py,python,15,True,,,False,False,
+examples/python/syntax/s01_missing_colon.py,s01_missing_colon.py,python,28,False,2,"expected ':' (<unknown>, line 2)",False,False,
+examples/python/syntax/s02_unclosed_paren.py,s02_unclosed_paren.py,python,17,False,1,"'(' was never closed (<unknown>, line 1)",False,False,
+examples/python/syntax/s03_assign_in_condition.py,s03_assign_in_condition.py,python,29,False,2,"invalid syntax. Maybe you meant '==' or ':=' instead of '='? (<unknown>, line 2)",False,False,
+examples/python/syntax/s04_missing_indent.py,s04_missing_indent.py,python,28,False,2,"expected an indented block after 'for' statement on line 1 (<unknown>, line 2)",False,False,
+examples/python/syntax/s05_unexpected_indent.py,s05_unexpected_indent.py,python,29,False,2,"unexpected indent (<unknown>, line 2)",False,False,
+examples/python/syntax/s06_unterminated_string.py,s06_unterminated_string.py,python,24,False,1,"unterminated string literal (detected at line 1) (<unknown>, line 1)",False,False,
+examples/python/syntax/s07_python2_print.py,s07_python2_print.py,python,14,False,1,"Missing parentheses in call to 'print'. Did you mean print(...)? (<unknown>, line 1)",False,False,
+examples/python/syntax/s08_else_if.py,s08_else_if.py,python,65,False,4,"expected ':' (<unknown>, line 4)",False,False,
+examples/python/syntax/s09_keyword_typo.py,s09_keyword_typo.py,python,30,False,2,"invalid syntax (<unknown>, line 2)",False,False,
+examples/python/syntax/s10_c_style_operators.py,s10_c_style_operators.py,python,50,False,2,"invalid syntax (<unknown>, line 2)",False,False,
+examples/security_fix_2026/attack1.c,attack1.c,c,101,True,,,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM
+examples/security_fix_2026/e02_scanf_widths_broken.c,e02_scanf_widths_broken.c,c,150,True,,,True,True,BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/security_fix_2026/e03_gets_broken.c,e03_gets_broken.c,c,63,True,,,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/security_fix_2026/e04_strcpy_broken.c,e04_strcpy_broken.c,c,140,True,,,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY
+examples/security_fix_2026/e05_strcat_broken.c,e05_strcat_broken.c,c,117,True,,,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCAT
+examples/security_fix_2026/e06_sprintf_broken.c,e06_sprintf_broken.c,c,89,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF
+examples/security_fix_2026/e07_printf_user_broken.c,e07_printf_user_broken.c,c,91,True,,,True,True,FORMAT_STRING:SEC-08-FORMAT-STRING
+examples/security_fix_2026/e08_pointer_destination_broken.c,e08_pointer_destination_broken.c,c,71,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY
+examples/security_fix_2026/e09_taint_scope_broken.c,e09_taint_scope_broken.c,c,171,True,,,True,False,system
+examples/security_fix_2026/e10_prototype_only_broken.c,e10_prototype_only_broken.c,c,56,True,,,False,False,
+examples/security_fix_2026/e11_allowlist_guard_broken.c,e11_allowlist_guard_broken.c,c,159,True,,,True,False,system
+examples/semantic/arrow_on_value.c,arrow_on_value.c,c,120,False,8,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\arrow_on_value.c:8:7: error: invalid ty,False,False,
+examples/semantic/call_arity.c,call_arity.c,c,112,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\call_arity.c:6:15: error: too many argu,False,False,
+examples/semantic/case_outside_switch.c,case_outside_switch.c,c,69,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\case_outside_switch.c:3:5: error: case ,False,False,
+examples/semantic/dot_on_pointer.c,dot_on_pointer.c,c,146,False,9,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\dot_on_pointer.c:9:6: error: 'p' is a p,False,False,
+examples/semantic/duplicate_member.c,duplicate_member.c,c,152,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\duplicate_member.c:4:9: error: duplicat,False,False,
+examples/semantic/redeclared_struct.c,redeclared_struct.c,c,142,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\redeclared_struct.c:5:8: error: redefin,False,False,
+examples/semantic/too_many_initializers.c,too_many_initializers.c,c,66,True,,,False,False,
+examples/semantic/use_before_declare.c,use_before_declare.c,c,63,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\semantic\use_before_declare.c:2:5: error: 'val' ,False,False,
+examples/untitled1.c,untitled1.c,c,291,False,8,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\untitled1.c:8:17: error: expected expression bef,False,True,AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-OVERRIDE_INSTRUCTIONS;AGENT_INSTRUCTION_MANIPULATION:SEC_AGENT_OVERRIDE_DIRECTIVE
+examples/untitled2.c,untitled2.c,c,400,False,11,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\untitled2.c:11:17: error: expected expression be,True,True,AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-OVERRIDE_INSTRUCTIONS;AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-SUPPRESSION_FINDINGS;AGENT_INSTRUCTION_MANIPULATION:SEC_AGENT_OVERRIDE_DIRECTIVE;AGENT_INSTRUCTION_MANIPULATION:PRECHECK-INJECTION-001
+examples/user_tests/ff.c,ff.c,c,70,True,,,False,False,
+examples/user_tests/gh.c,gh.c,c,113,True,,,False,False,
+examples/user_tests/test_clean.c,test_clean.c,c,63,True,,,False,False,
+examples/user_tests/week11_2026.c,week11_2026.c,c,63,True,,,False,False,
+examples/week10_security/check1.c,check1.c,c,0,True,,,False,False,
+examples/week10_security/tainted_system.c,tainted_system.c,c,76,True,,,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week10_security/unsafe_gets.c,unsafe_gets.c,c,51,True,,,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/week11_testing/ademo.c,ademo.c,c,6836,False,19,"C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\ademo.c:19:5: error: expected ','",False,False,
+examples/week11_testing/ademo2.c,ademo2.c,c,10040,False,19,"C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\ademo2.c:19:5: error: expected ',",False,False,
+examples/week11_testing/ademo3mix.c,ademo3mix.c,c,3682,False,15,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\ademo3mix.c:15:5: error: expected,True,True,system;UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week11_testing/arena_500line_final_80_errors.c,arena_500line_final_80_errors.c,c,14920,False,20,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\arena_500line_final_80_errors.c:2,False,False,
+examples/week11_testing/asecuritydemo.c,asecuritydemo.c,c,6548,False,33,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\asecuritydemo.c:33:19: error: 'ar,True,True,system;COMMAND_EXECUTION:PRECHECK-CMD-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM
+examples/week11_testing/asecuritydemo_normalized.c,asecuritydemo_normalized.c,c,6535,True,,,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM
+examples/week11_testing/mixed_errors_1.c,mixed_errors_1.c,c,81,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\mixed_errors_1.c:3:5: error: expe,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/week11_testing/mixed_errors_2.c,mixed_errors_2.c,c,76,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\mixed_errors_2.c:1:1: error: unkn,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week11_testing/prof_demo_pack_safe_massfix.c,prof_demo_pack_safe_massfix.c,c,16528,False,20,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week11_testing\prof_demo_pack_safe_massfix.c:20:,False,False,
+examples/week12_benchmark/benchmark_1.c,benchmark_1.c,c,65,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\benchmark_1.c:3:5: error: expec,False,False,
+examples/week12_benchmark/benchmark_2.c,benchmark_2.c,c,76,True,,,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week12_benchmark/breka.c,breka.c,c,148,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\breka.c:5:13: error: 'breka' un,False,False,
+examples/week12_benchmark/cahr.c,cahr.c,c,49,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\cahr.c:2:5: error: unknown type,False,False,
+examples/week12_benchmark/contniue.c,contniue.c,c,187,False,7,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\contniue.c:7:13: error: 'contni,False,False,
+examples/week12_benchmark/controlflowtpo.c,controlflowtpo.c,c,94,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\controlflowtpo.c:3:19: error: e,False,False,
+examples/week12_benchmark/error1.c,error1.c,c,125,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\error1.c:4:23: error: expected ,False,False,
+examples/week12_benchmark/error2.c,error2.c,c,80,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\error2.c:4:9: error: 'breka' un,False,False,
+examples/week12_benchmark/error4.c,error4.c,c,98,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\error4.c:1:23: error: expected ,False,False,
+examples/week12_benchmark/esle.c,esle.c,c,130,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\esle.c:6:5: error: 'esle' undec,False,False,
+examples/week12_benchmark/fro.c,fro.c,c,126,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\fro.c:4:15: error: expected ')',False,False,
+examples/week12_benchmark/gets.c,gets.c,c,93,True,,,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/week12_benchmark/missing(infor.c,missing(infor.c,c,125,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing(infor.c:4:9: error: exp,False,False,
+examples/week12_benchmark/missing(inwhile.c,missing(inwhile.c,c,93,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing(inwhile.c:3:11: error: ,False,False,
+examples/week12_benchmark/missing)infncall.c,missing)infncall.c,c,102,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing)infncall.c:6:21: error:,False,False,
+examples/week12_benchmark/missing)infor.c,missing)infor.c,c,125,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing)infor.c:4:34: error: ex,False,False,
+examples/week12_benchmark/missing)innested.c,missing)innested.c,c,108,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing)innested.c:5:29: error:,False,False,
+examples/week12_benchmark/missing)inwhile.c,missing)inwhile.c,c,93,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing)inwhile.c:3:18: error: ,False,False,
+examples/week12_benchmark/missing;afterbreak.c,missing;afterbreak.c,c,147,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing;afterbreak.c:6:9: error,False,False,
+examples/week12_benchmark/missing;aftercontinue.c,missing;aftercontinue.c,c,150,False,7,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing;aftercontinue.c:7:9: er,False,False,
+examples/week12_benchmark/missing]afteruse.c,missing]afteruse.c,c,63,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing]afteruse.c:3:16: error:,False,False,
+examples/week12_benchmark/missing]inarrdec.c,missing]inarrdec.c,c,44,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing]inarrdec.c:2:12: error:,False,False,
+examples/week12_benchmark/missingbracketright.c,missingbracketright.c,c,84,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingbracketright.c:6:1: erro,False,False,
+examples/week12_benchmark/missingcommafuncarg.c,missingcommafuncarg.c,c,102,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommafuncarg.c:6:19: err,False,False,
+examples/week12_benchmark/missingcommafunparam.c,missingcommafunparam.c,c,86,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommafunparam.c:1:15: er,False,False,
+examples/week12_benchmark/missingcommain3paramlist.c,missingcommain3paramlist.c,c,102,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommain3paramlist.c:1:23,False,False,
+examples/week12_benchmark/missingcommainarg.c,missingcommainarg.c,c,118,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommainarg.c:6:23: error,False,False,
+examples/week12_benchmark/missingcommainnested.c,missingcommainnested.c,c,108,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommainnested.c:5:23: er,False,False,
+examples/week12_benchmark/missingcommainparamlist.c,missingcommainparamlist.c,c,86,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingcommainparamlist.c:1:15:,False,False,
+examples/week12_benchmark/missingleftbrace.c,missingleftbrace.c,c,45,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingleftbrace.c:2:5: error: ,False,False,
+examples/week12_benchmark/missingleftparenthesis.c,missingleftparenthesis.c,c,89,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingleftparenthesis.c:3:8: e,False,False,
+examples/week12_benchmark/missingrightparen.c,missingrightparen.c,c,89,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingrightparen.c:3:15: error,False,False,
+examples/week12_benchmark/missingsemicolon.c,missingsemicolon.c,c,65,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingsemicolon.c:3:5: error: ,False,False,
+examples/week12_benchmark/missingsemicoloninsidefor.c,missingsemicoloninsidefor.c,c,125,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingsemicoloninsidefor.c:4:1,False,False,
+examples/week12_benchmark/missingsemicoloninwhile.c,missingsemicoloninwhile.c,c,113,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missingsemicoloninwhile.c:5:9: ,False,False,
+examples/week12_benchmark/missing{afterif.c,missing{afterif.c,c,82,True,,,False,False,
+examples/week12_benchmark/missing{afterwhile.c,missing{afterwhile.c,c,85,True,,,False,False,
+examples/week12_benchmark/missing}afterwhile.c,missing}afterwhile.c,c,87,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\missing}afterwhile.c:6:1: error,False,False,
+examples/week12_benchmark/printf.c,printf.c,c,49,True,,,False,False,
+examples/week12_benchmark/redclaration.c,redclaration.c,c,63,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\redclaration.c:3:9: error: rede,False,False,
+examples/week12_benchmark/scnaf.c,scnaf.c,c,68,True,,,False,False,
+examples/week12_benchmark/sprintfmultipleargs.c,sprintfmultipleargs.c,c,88,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF
+examples/week12_benchmark/unsafeapi.c,unsafeapi.c,c,76,True,,,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week12_benchmark/unsafesprintf.c,unsafesprintf.c,c,79,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF
+examples/week12_benchmark/unsafestrcpy.c,unsafestrcpy.c,c,61,True,,,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/week12_benchmark/unsafestrcpy2.c,unsafestrcpy2.c,c,91,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY
+examples/week12_benchmark/viod.c,viod.c,c,62,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week12_benchmark\viod.c:1:1: error: unknown type,False,False,
+examples/week12_phase4/autofix_gets.c,autofix_gets.c,c,66,True,,,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS
+examples/week12_phase4/autofix_printf.c,autofix_printf.c,c,81,True,,,False,True,FORMAT_STRING:SEC-08-FORMAT-STRING
+examples/week12_phase4/autofix_sprintf.c,autofix_sprintf.c,c,95,True,,,False,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF
+examples/week12_phase4/autofix_strcpy.c,autofix_strcpy.c,c,150,True,,,False,False,
+examples/week5_grammar_2026/bitwise_ops_broken_2.c,bitwise_ops_broken_2.c,c,86,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\bitwise_ops_broken_2.c:4:17: ,False,False,
+examples/week5_grammar_2026/bitwise_ops_broken_3.c,bitwise_ops_broken_3.c,c,83,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\bitwise_ops_broken_3.c:2:5: e,False,False,
+examples/week5_grammar_2026/bitwise_ops_valid.c,bitwise_ops_valid.c,c,180,True,,,False,False,
+examples/week5_grammar_2026/globals_broken_1.c,globals_broken_1.c,c,51,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\globals_broken_1.c:2:1: error,False,False,
+examples/week5_grammar_2026/globals_broken_3.c,globals_broken_3.c,c,60,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\globals_broken_3.c:1:10: erro,False,False,
+examples/week5_grammar_2026/globals_valid.c,globals_valid.c,c,122,True,,,False,False,
+examples/week5_grammar_2026/prototype_broken_1.c,prototype_broken_1.c,c,55,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\prototype_broken_1.c:2:12: er,False,False,
+examples/week5_grammar_2026/prototype_broken_3.c,prototype_broken_3.c,c,53,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\prototype_broken_3.c:1:1: err,False,False,
+examples/week5_grammar_2026/prototype_valid.c,prototype_valid.c,c,235,True,,,False,False,
+examples/week5_grammar_2026/semantics/invalid_operand_type_err.c,invalid_operand_type_err.c,c,195,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\semantics\invalid_operand_typ,False,False,
+examples/week5_grammar_2026/semantics/invalid_operand_type_guard.c,invalid_operand_type_guard.c,c,215,True,,,False,False,
+examples/week5_grammar_2026/semantics/narrowing_err.c,narrowing_err.c,c,108,True,,,False,False,
+examples/week5_grammar_2026/semantics/narrowing_guard.c,narrowing_guard.c,c,67,True,,,False,False,
+examples/week5_grammar_2026/semantics/prototype_mismatch_err.c,prototype_mismatch_err.c,c,105,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\semantics\prototype_mismatch_,False,False,
+examples/week5_grammar_2026/semantics/prototype_mismatch_guard.c,prototype_mismatch_guard.c,c,135,True,,,False,False,
+examples/week5_grammar_2026/semantics/shadow_warning_err.c,shadow_warning_err.c,c,75,True,,,False,False,
+examples/week5_grammar_2026/semantics/shadow_warning_guard.c,shadow_warning_guard.c,c,99,True,,,False,False,
+examples/week5_grammar_2026/shift_ops_broken_1.c,shift_ops_broken_1.c,c,68,False,4,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\shift_ops_broken_1.c:4:5: err,False,False,
+examples/week5_grammar_2026/shift_ops_broken_2.c,shift_ops_broken_2.c,c,70,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\shift_ops_broken_2.c:3:17: er,False,False,
+examples/week5_grammar_2026/shift_ops_broken_3.c,shift_ops_broken_3.c,c,71,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\shift_ops_broken_3.c:2:5: err,False,False,
+examples/week5_grammar_2026/shift_ops_valid.c,shift_ops_valid.c,c,118,True,,,False,False,
+examples/week5_grammar_2026/types_broken_1.c,types_broken_1.c,c,58,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\types_broken_1.c:3:5: error: ,False,False,
+examples/week5_grammar_2026/types_broken_3.c,types_broken_3.c,c,51,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week5_grammar_2026\types_broken_3.c:2:5: error: ,False,False,
+examples/week5_grammar_2026/types_valid.c,types_valid.c,c,155,True,,,False,False,
+examples/week6_grammar_2026/address_deref.c,address_deref.c,c,108,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week6_grammar_2026\address_deref.c:3:16: error: ,False,False,
+examples/week6_grammar_2026/casts.c,casts.c,c,98,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week6_grammar_2026\casts.c:3:29: error: expected,False,False,
+examples/week6_grammar_2026/do_while.c,do_while.c,c,92,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week6_grammar_2026\do_while.c:5:23: error: expec,False,False,
+examples/week6_grammar_2026/nullpointer.c,nullpointer.c,c,107,True,,,False,False,
+examples/week6_grammar_2026/pointer_errors.c,pointer_errors.c,c,103,True,,,False,False,
+examples/week6_grammar_2026/sizeof.c,sizeof.c,c,63,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week6_grammar_2026\sizeof.c:2:27: error: expecte,False,False,
+examples/week8_2026/01_integer_overflow_broken.c,01_integer_overflow_broken.c,c,61,True,,,False,True,INTEGER_OVERFLOW:SEC-01-INTEGER-OVERFLOW
+examples/week8_2026/02_signed_to_unsigned_broken.c,02_signed_to_unsigned_broken.c,c,74,True,,,False,True,TYPE_CONVERSION:SEC-02-SIGNED-TO-UNSIGNED
+examples/week8_2026/02_signed_to_unsigned_suggested.c,02_signed_to_unsigned_suggested.c,c,126,True,,,False,False,
+examples/week8_2026/03_null_dereference_broken.c,03_null_dereference_broken.c,c,66,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week8_2026\03_null_dereference_broken.c:2:14: er,False,True,NULL_DEREFERENCE:SEC-03-NULL-DEREFERENCE
+examples/week8_2026/04_uninitialized_variable_broken.c,04_uninitialized_variable_broken.c,c,68,True,,,False,True,UNINITIALIZED_VARIABLE:SEC-04-UNINITIALIZED-VARIABLE
+examples/week8_2026/05_array_out_of_bounds_broken.c,05_array_out_of_bounds_broken.c,c,63,True,,,False,True,BUFFER_OVERFLOW:SEC-05-ARRAY-OUT-OF-BOUNDS
+examples/week8_2026/05_array_out_of_bounds_suggested.c,05_array_out_of_bounds_suggested.c,c,63,True,,,False,False,
+examples/week8_2026/06_off_by_one_broken.c,06_off_by_one_broken.c,c,111,True,,,False,True,BUFFER_OVERFLOW:SEC-06-OFF-BY-ONE
+examples/week8_2026/07_unsafe_memcpy_broken.c,07_unsafe_memcpy_broken.c,c,91,True,,,False,True,BUFFER_OVERFLOW:SEC-07-UNSAFE-MEMCPY
+examples/week8_2026/08_format_mismatch_broken.c,08_format_mismatch_broken.c,c,62,True,,,False,True,TYPE_MISMATCH:SEC-08-FORMAT-MISMATCH
+examples/week8_2026/09_unsafe_scanf_broken.c,09_unsafe_scanf_broken.c,c,75,True,,,True,True,BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF
+examples/week8_2026/10_uninitialized_pointer_broken.c,10_uninitialized_pointer_broken.c,c,59,True,,,False,True,UNINITIALIZED_POINTER:SEC-10-UNINITIALIZED-POINTER
+examples/week8_2026/clean_guard.c,clean_guard.c,c,385,False,5,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week8_2026\clean_guard.c:5:14: error: 'NULL' und,True,False,
+examples/week8_ir/missing_semicolon.c,missing_semicolon.c,c,45,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week8_ir\missing_semicolon.c:3:5: error: expecte,False,False,
+examples/week8_ir/valid_simple.c,valid_simple.c,c,67,True,,,False,False,
+examples/week9_ai/ai_mismatch_brackets.c,ai_mismatch_brackets.c,c,46,False,2,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\ai_mismatch_brackets.c:2:14: error: exp,False,False,
+examples/week9_ai/ai_missing_comma_args.c,ai_missing_comma_args.c,c,104,False,6,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\ai_missing_comma_args.c:6:20: error: ex,False,False,
+examples/week9_ai/ai_missing_comma_params.c,ai_missing_comma_params.c,c,44,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\ai_missing_comma_params.c:1:15: error: ,False,False,
+examples/week9_ai/missing_bracket.c,missing_bracket.c,c,29,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\missing_bracket.c:1:11: error: expected,False,False,
+examples/week9_ai/missing_semicolon.c,missing_semicolon.c,c,45,False,3,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\missing_semicolon.c:3:5: error: expecte,False,False,
+examples/week9_ai/typo_keyword.c,typo_keyword.c,c,31,False,1,C:\Users\rohit\Downloads\Existing codes\Existing codes\ai\24CSB0A41_Code\Implementation\Implementation\examples\week9_ai\typo_keyword.c:1:1: error: unknown type,False,False,

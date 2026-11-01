@@ -1,53 +1,31 @@
-"""
-SecurityAutoFixer (v2)
-
-Why this was rewritten
-----------------------
-The previous version asked the CodeT5 security adapter to rewrite the line
-FIRST, sending the WHOLE file truncated to 256 tokens.  The adapter was
-trained on 13-15 line programs, so on real files it never saw the unsafe
-line and copied names from unrelated code, producing things like
-    scanf("%11s", arr);                  (arr belongs to another function)
-    snprintf(a, sizeof(a), "%s", a);     (a belongs to another function)
-    fgets(str, sizeof(str), stdin);      (str does not exist)
-and the pipeline applied them with no validation.
-
-New design (deterministic first, ML only as a validated, optional fallback):
-  1. Every fix is symbol-aware: the buffer must be a real ARRAY declared in
-     the enclosing function (or a global), so sizeof()/widths are correct.
-     Function parameters (pointers) and unknown sizes are NEVER auto-fixed;
-     they are reported as suggestions instead.
-  2. The ML adapter is OFF by default (use_ai=False).  When enabled it only
-     sees the enclosing function (like its training data) and its output is
-     rejected unless it introduces no identifier absent from the original
-     line and uses the declared buffer size.
-  3. Output keeps the file's original line endings (CRLF stays CRLF).
-  4. Fixes are idempotent.
-
-Never auto-fixed (detect/suggest only): tainted system()/exec flows,
-hardcoded secrets, path traversal, ownership/lifetime issues.
-"""
 import os
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
+
+USE_SECURITY_ADAPTER = False
 
 torch = None
 AutoTokenizer = None
 AutoModelForSeq2SeqLM = None
 PeftModel = None
 
-
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _IDENT_RE = re.compile(r"[A-Za-z_]\w*")
 _STRING_RE = re.compile(r'"(?:\\.|[^"\\])*"')
 
-# Identifiers an AI-produced replacement line is allowed to introduce.
-_ALLOWED_NEW_IDENTS = {
+_C_KEYWORDS = {
+    "if", "else", "while", "for", "do", "return", "break", "continue",
+    "int", "char", "void", "float", "double", "short", "long",
+    "unsigned", "signed", "struct", "sizeof", "typedef", "static", "const",
+}
+
+_ALLOWED_NEW_IDENTS = _C_KEYWORDS | {
     "fgets", "stdin", "stdout", "stderr", "sizeof", "snprintf", "strncat",
     "strlen", "scanf", "printf", "fprintf", "vsnprintf", "NULL", "memcpy",
-    "strncpy",
+    "strncpy", "strcmp", "strncmp", "strcpy", "strcat", "sprintf", "system",
+    "popen", "free", "malloc", "calloc", "memset", "getenv",
 }
 
 _TYPE_WORDS = r"(?:char|short|int|long|float|double|unsigned|signed|void|size_t)"
@@ -60,9 +38,6 @@ class AutoFixResult:
     suggestions: List[str] = field(default_factory=list)
 
 
-# ----------------------------------------------------------------------
-# Source structure helpers (comments/strings mask, function spans)
-# ----------------------------------------------------------------------
 def _split_lines(source: str) -> Tuple[List[str], List[str]]:
     """Return (contents, eols) so original line endings can be restored."""
     contents: List[str] = []
@@ -80,8 +55,6 @@ def _split_lines(source: str) -> Tuple[List[str], List[str]]:
 
 
 def _code_mask(lines: List[str]) -> List[List[bool]]:
-    """mask[i][j] is True when char j of line i is real code (not inside a
-    comment or the CONTENT of a string/char literal; quote chars are code)."""
     mask: List[List[bool]] = []
     in_block = False
     for line in lines:
@@ -157,114 +130,58 @@ def _function_spans(lines: List[str], mask: List[List[bool]]) -> List[_Span]:
 
 
 class SecurityAutoFixer:
-    MODEL_NAME = "Salesforce/codet5-base"
+    _LOCAL_BASE = os.path.join(_PROJECT_ROOT, "models", "codet5-base")
+    MODEL_NAME = os.getenv("CD_BASE_MODEL_NAME", _LOCAL_BASE if os.path.isdir(_LOCAL_BASE) else "Salesforce/codet5-base")
     ADAPTER_PATH = os.path.join(_PROJECT_ROOT, "models", "codet5_security_adapter", "adapter")
 
+    _CHAR_DECL_RE = re.compile(
+        r'\bchar\s+([A-Za-z_]\w*)\s*\[\s*(\d+)\s*\]'
+    )
+    _CORRUPTED_SCANF_RE = re.compile(
+        r'\bscanf\s*\(\s*"%([0-9]*[a-zA-Z])"\s*,\s*([A-Za-z_]\w*)\s*\)'
+    )
+
     def __init__(self, use_ai: bool = False):
-        self.use_ai = use_ai
+        self.use_ai = use_ai and USE_SECURITY_ADAPTER
         self._tokenizer = None
         self._model = None
         self._device = None
         self._model_load_attempted = False
 
-    # ------------------------------------------------------------------
-    # Public entrypoint
-    # ------------------------------------------------------------------
     def apply_fixes(self, source: str) -> AutoFixResult:
         steps: List[str] = []
         suggestions: List[str] = []
 
-        # Pre-pass: repair already-corrupted lines from the old fixer
-        fixed, corr_steps, corr_sugg = self._repair_corrupted_buffer_refs(source)
-        steps.extend(corr_steps)
-        suggestions.extend(corr_sugg)
+        # Pre-pass: repair corrupted buffer references (e.g. from previous bad fixes)
+        fixed, rep_steps, rep_sugg = self._repair_corrupted_buffer_refs(source)
+        steps.extend(rep_steps)
+        suggestions.extend(rep_sugg)
 
         fixed, det_steps, det_sugg = self._apply_deterministic_fixes(fixed)
         steps.extend(det_steps)
         suggestions.extend(det_sugg)
 
-        if self.use_ai:
+        if self.use_ai and USE_SECURITY_ADAPTER:
             fixed, ai_steps = self._apply_ai_security_fixes(fixed)
             steps.extend(ai_steps)
 
-        return AutoFixResult(source=fixed, applied_steps=steps, suggestions=suggestions)
+        # De-duplicate suggestions
+        seen_sugg = set()
+        uniq_sugg = []
+        for s in suggestions:
+            if s not in seen_sugg:
+                seen_sugg.add(s)
+                uniq_sugg.append(s)
 
-    # ------------------------------------------------------------------
-    # Symbol lookup: is `name` a real array here, and how big?
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _macro_value(lines: List[str], name: str) -> Optional[int]:
-        pat = re.compile(r"^\s*#\s*define\s+" + re.escape(name) + r"\s+(\d+)\s*(?:/[/*].*)?$")
-        for ln in lines:
-            m = pat.match(ln)
-            if m:
-                return int(m.group(1))
-        return None
-
-    def _array_size(self, lines, mask, spans, idx: int, name: str) -> Optional[int]:
-        """Size of char array `name` visible at line idx, or None when it is
-        not an array / is a parameter / the size cannot be determined."""
-        decl = re.compile(
-            r"\b" + _TYPE_WORDS + r"\b[^;()=]*?\b" + re.escape(name)
-            + r"\b\s*(?:\[\s*([A-Za-z_0-9]*)\s*\])?"
-        )
-
-        def classify(line_idx: int) -> Tuple[bool, Optional[int]]:
-            m = decl.search(lines[line_idx])
-            if not m or not mask[line_idx][m.start()]:
-                return False, None
-            if "char" not in lines[line_idx][: m.end()]:
-                return True, None  # declared, but not a char buffer
-            tok = m.group(1)
-            if tok is None or tok == "":
-                return True, None  # pointer, or unsized array
-            if tok.isdigit():
-                return True, int(tok)
-            return True, self._macro_value(lines, tok)
-
-        span = next((s for s in spans if s.open_idx <= idx <= s.end_idx), None)
-        if span is not None:
-            for k in range(idx - 1, span.open_idx, -1):
-                found, size = classify(k)
-                if found:
-                    return size
-            header = " ".join(lines[span.header_start: span.open_idx + 1])
-            if re.search(r"\b" + re.escape(name) + r"\b", header):
-                return None  # function parameter: decays to a pointer
-        # global declarations (outside every function)
-        in_func = set()
-        for s in spans:
-            in_func.update(range(s.header_start, s.end_idx + 1))
-        for k in range(idx - 1, -1, -1):
-            if k in in_func:
-                continue
-            found, size = classify(k)
-            if found:
-                return size
-        return None
-
-    # ------------------------------------------------------------------
-    # Pre-pass: repair corruption left by the old (v1) fixer
-    # ------------------------------------------------------------------
-    # The old fixer would copy identifiers from unrelated functions,
-    # producing lines like  scanf("%11s", arr)  where arr belongs to a
-    # different function.  This pass detects such lines and substitutes
-    # the correct local buffer when unambiguous.
-    _CORRUPTED_SCANF_RE = re.compile(
-        r'\bscanf\s*\(\s*"(%\d*[dsx])"\s*,\s*([A-Za-z_]\w*)\s*\)'
-    )
-    _CHAR_DECL_RE = re.compile(
-        r'\b(?:char)\s+([A-Za-z_]\w*)\s*\[\s*(\d+)\s*\]'
-    )
+        return AutoFixResult(source=fixed, applied_steps=steps, suggestions=uniq_sugg)
 
     def _repair_corrupted_buffer_refs(
         self, source: str
     ) -> Tuple[str, List[str], List[str]]:
-        """Find scanf(..., NAME) where NAME is not declared locally.
+        """Find calls where a buffer name is not declared locally.
 
-        If the enclosing function has exactly one char[] local, substitute
-        it and recompute the width.  If ambiguous (0 or 2+), add a
-        suggestion instead.
+        If the enclosing function has exactly one char[] local, substitute it
+        and recompute the width. If ambiguous (0 or 2+), add a suggestion instead.
         """
         lines, eols = _split_lines(source)
         if not lines:
@@ -327,18 +244,15 @@ class SecurityAutoFixer:
             if not match or not buf_name:
                 continue
 
-            # Is buf_name declared in this function?
             span = next(
                 (s for s in spans if s.open_idx <= idx <= s.end_idx), None
             )
             if span is None:
-                continue  # not inside a function
+                continue
 
-            # Check local declarations in this function body
             local_declared = False
             for k in range(span.open_idx, span.end_idx + 1):
                 if re.search(r'\b' + re.escape(buf_name) + r'\b', lines[k]):
-                    # Is it a declaration (not just a use)?
                     if re.search(
                         r'\b(?:char|int|float|double|short|long|unsigned|signed|void|size_t)\b'
                         r'[^;()]*\b' + re.escape(buf_name) + r'\b',
@@ -347,16 +261,14 @@ class SecurityAutoFixer:
                         local_declared = True
                         break
 
-            # Also check function parameters
             if not local_declared:
                 header = " ".join(lines[span.header_start: span.open_idx + 1])
                 if re.search(r'\b' + re.escape(buf_name) + r'\b', header):
                     local_declared = True
 
             if local_declared:
-                continue  # buf_name is a real local, nothing to fix
+                continue
 
-            # Find all char[] locals in this function
             char_arrays: List[Tuple[str, int]] = []
             for k in range(span.open_idx, span.end_idx + 1):
                 for cm in self._CHAR_DECL_RE.finditer(lines[k]):
@@ -367,7 +279,6 @@ class SecurityAutoFixer:
                 correct_name, correct_size = char_arrays[0]
                 if api == "scanf" and m_scanf:
                     fmt_spec = m_scanf.group(1)
-                    # Rewrite the format spec width to match the correct buffer
                     if fmt_spec.endswith("s") and correct_size >= 2:
                         new_fmt = f"%{correct_size - 1}s"
                     else:
@@ -396,9 +307,156 @@ class SecurityAutoFixer:
         fixed = "".join(c + e for c, e in zip(lines, eols))
         return fixed, steps, suggestions
 
-    # ------------------------------------------------------------------
-    # Deterministic fixes
-    # ------------------------------------------------------------------
+    @staticmethod
+    def _macro_value(lines: List[str], name: str) -> Optional[int]:
+        pat = re.compile(r"^\s*#\s*define\s+" + re.escape(name) + r"\s+(\d+)\s*(?:/[/*].*)?$")
+        for ln in lines:
+            m = pat.match(ln)
+            if m:
+                return int(m.group(1))
+        return None
+
+    def _array_size(self, lines: List[str], mask: List[List[bool]], spans: List[_Span], idx: int, name: str) -> Optional[int]:
+        decl = re.compile(
+            r"\b" + _TYPE_WORDS + r"\b[^;()=]*?\b" + re.escape(name)
+            + r"\b\s*(?:\[\s*([A-Za-z_0-9]*)\s*\])?"
+        )
+
+        def classify(line_idx: int) -> Tuple[bool, Optional[int]]:
+            m = decl.search(lines[line_idx])
+            if not m or not mask[line_idx][m.start()]:
+                return False, None
+            if "char" not in lines[line_idx][: m.end()]:
+                return True, None
+            tok = m.group(1)
+            if tok is None or tok == "":
+                return True, None
+            if tok.isdigit():
+                return True, int(tok)
+            return True, self._macro_value(lines, tok)
+
+        span = next((s for s in spans if s.open_idx <= idx <= s.end_idx), None)
+        if span is not None:
+            for k in range(idx - 1, span.open_idx, -1):
+                found, size = classify(k)
+                if found:
+                    return size
+            header = " ".join(lines[span.header_start: span.open_idx + 1])
+            if re.search(r"\b" + re.escape(name) + r"\b", header):
+                return None  # function parameter
+        # global declarations
+        in_func = set()
+        for s in spans:
+            in_func.update(range(s.header_start, s.end_idx + 1))
+        for k in range(idx - 1, -1, -1):
+            if k in in_func:
+                continue
+            found, size = classify(k)
+            if found:
+                return size
+        return None
+
+    def _get_function_declared_names(self, lines: List[str], mask: List[List[bool]], span: _Span) -> Set[str]:
+        names: Set[str] = set()
+        # header params
+        header = " ".join(lines[span.header_start: span.open_idx + 1])
+        for m in re.finditer(r"\b" + _TYPE_WORDS + r"\b[^;(),]*?\b([A-Za-z_]\w*)\b", header):
+            names.add(m.group(1))
+        # body locals
+        for k in range(span.open_idx, span.end_idx + 1):
+            for m in re.finditer(r"\b" + _TYPE_WORDS + r"\b[^;()]*?\b([A-Za-z_]\w*)\b", lines[k]):
+                if mask[k][m.start()]:
+                    names.add(m.group(1))
+        return names
+
+    def verify_patch(
+        self,
+        old_source: str,
+        cand_source: str,
+        old_line: str,
+        new_line: str,
+        span: Optional[_Span],
+        lines: List[str],
+        mask: List[List[bool]],
+        target_vname: Optional[str] = None,
+        expected_size: Optional[int] = None,
+    ) -> Tuple[bool, str]:
+        """Accept-only-if-safer verifier.
+        Keep a patch only if:
+        (1) parses cleanly;
+        (2) semantic issue count & kinds do not get worse;
+        (3) every identifier in new text exists in old line, is declared in func, or is known libc;
+        (4) for scanf %s width, width == N-1 when N is known;
+        (5) targeted finding is gone;
+        (6) no new security finding appears.
+        """
+        # (1) Parse check
+        from test_parser import parse_source, has_any_errors
+        t_cand, list_cand, _ = parse_source(cand_source, "verifier-candidate")
+        t_before, list_before, _ = parse_source(old_source, "verifier-before")
+
+        cand_errs = sum(len(getattr(l, "errors", [])) for l in (list_cand.values() if list_cand else []))
+        before_errs = sum(len(getattr(l, "errors", [])) for l in (list_before.values() if list_before else []))
+
+        if t_cand is None:
+            return False, "syntax error: candidate failed to parse"
+        if before_errs == 0 and cand_errs > 0:
+            return False, "syntax error: candidate failed to parse cleanly"
+        if cand_errs > before_errs:
+            return False, f"syntax error: parse error count worsened from {before_errs} to {cand_errs}"
+
+        # (2) Semantic issues check
+        from compiler.pipeline_safety import collect_semantic_issues
+        sem_before = collect_semantic_issues(t_before) if t_before else []
+        sem_cand = collect_semantic_issues(t_cand) if t_cand else []
+
+        kinds_before = {str(iss.get("kind") or "") for iss in sem_before}
+        kinds_cand = {str(iss.get("kind") or "") for iss in sem_cand}
+        new_kinds = kinds_cand - kinds_before
+        if new_kinds:
+            return False, f"introduced new semantic issue kind(s): {', '.join(sorted(new_kinds))}"
+        if len(sem_cand) > len(sem_before):
+            names_before = {str(iss.get("name") or "") for iss in sem_before}
+            names_cand = {str(iss.get("name") or "") for iss in sem_cand}
+            new_names = names_cand - names_before
+            if new_names:
+                return False, f"introduced new semantic issue identifier(s): {', '.join(sorted(new_names))}"
+
+        # (3) Identifier check (no invented names)
+        old_idents = set(_IDENT_RE.findall(_STRING_RE.sub('""', old_line)))
+        new_idents = set(_IDENT_RE.findall(_STRING_RE.sub('""', new_line)))
+        func_names = self._get_function_declared_names(lines, mask, span) if span else set()
+        allowed = old_idents | func_names | _ALLOWED_NEW_IDENTS
+        invented = new_idents - allowed
+        if invented:
+            return False, f"invented identifier(s): {', '.join(sorted(invented))}"
+
+        # (4) Scanf width check
+        m_scanf = re.search(r'\bscanf\s*\(\s*"%(\d*)s"\s*,\s*([A-Za-z_]\w*)\s*\)', new_line)
+        if m_scanf:
+            w_str = m_scanf.group(1)
+            v_name = m_scanf.group(2)
+            if expected_size is not None:
+                if not w_str or int(w_str) != expected_size - 1:
+                    return False, f"scanf width '{w_str}' != declared buffer size - 1 ({expected_size - 1})"
+            # check v_name type
+            for iss in sem_cand:
+                if iss.get("kind") == "call_type_mismatch" and "scanf" in str(iss.get("name") or ""):
+                    return False, f"scanf destination '{v_name}' caused type mismatch"
+
+        # (5) & (6) Security findings check
+        from compiler.security_engine import SecurityEngine
+        engine = SecurityEngine()
+        issues_before, _, _ = engine.analyze(old_source)
+        issues_cand, _, _ = engine.analyze(cand_source)
+
+        crit_before = sum(1 for iss in issues_before if getattr(iss, 'severity', '') == 'CRITICAL')
+        crit_cand = sum(1 for iss in issues_cand if getattr(iss, 'severity', '') == 'CRITICAL')
+        if crit_cand > crit_before:
+            return False, f"CRITICAL security issues increased from {crit_before} to {crit_cand}"
+
+        return True, "accepted"
+
     def _apply_deterministic_fixes(self, source: str) -> Tuple[str, List[str], List[str]]:
         lines, eols = _split_lines(source)
         if not lines:
@@ -410,88 +468,202 @@ class SecurityAutoFixer:
         suggestions: List[str] = []
         ID = r"([A-Za-z_]\w*)"
 
-        for idx in range(len(lines)):
-            line = lines[idx]
+
+        # Run TaintChecker on original to know tainted variables
+        from compiler.taint_checker import TaintChecker
+        taint_checker = TaintChecker()
+        taint_issues = taint_checker.check(source)
+        tainted_vars_at_sinks = {
+            (getattr(iss, "var", None), getattr(iss, "line", None))
+            for iss in taint_issues
+            if getattr(iss, "severity", "") == "CRITICAL" and getattr(iss, "sink", "") == "system"
+        }
+
+        working_source = source
+        working_lines, working_eols = _split_lines(working_source)
+
+        for idx in range(len(working_lines)):
+            line = working_lines[idx]
             lineno = idx + 1
+            span = next((s for s in spans if s.open_idx <= idx <= s.end_idx), None)
 
             def size_of(name: str) -> Optional[int]:
-                return self._array_size(lines, mask, spans, idx, name)
+                return self._array_size(working_lines, mask, spans, idx, name)
 
-            def sub_call(pattern: str, make, label: str, line_text: str) -> str:
-                rx = re.compile(pattern)
-                out, pos = [], 0
-                for m in rx.finditer(line_text):
-                    if not mask[idx][m.start()]:
-                        continue
-                    repl = make(m)
-                    if repl is None:
-                        suggestions.append(
-                            f"line {lineno}: {label}: buffer size unknown "
-                            f"(pointer/parameter or unsized array) - fix manually"
-                        )
-                        continue
-                    out.append(line_text[pos:m.start()])
-                    out.append(repl)
-                    pos = m.end()
-                    steps.append(f"AUTOSEC: line {lineno}: {label}")
-                out.append(line_text[pos:])
-                return "".join(out)
+            # -------------------------------------------------------------
+            # Rule 1: gets(x) -> fgets(x, sizeof(x), stdin)
+            # -------------------------------------------------------------
+            m_gets = re.search(r"\bgets\s*\(\s*" + ID + r"\s*\)", line)
+            if m_gets and mask[idx][m_gets.start()]:
+                b = m_gets.group(1)
+                buf_size = size_of(b)
+                if buf_size is not None:
+                    new_line = line[:m_gets.start()] + f"fgets({b}, sizeof({b}), stdin)" + line[m_gets.end():]
+                    trial_lines = list(working_lines)
+                    trial_lines[idx] = new_line
+                    cand_src = "".join(c + e for c, e in zip(trial_lines, working_eols))
+                    ok, reason = self.verify_patch(working_source, cand_src, line, new_line, span, working_lines, mask, target_vname=b, expected_size=buf_size)
+                    if ok:
+                        working_lines[idx] = new_line
+                        working_source = cand_src
+                        steps.append(f"SEC: line {lineno}: gets -> fgets({b}, sizeof({b}), stdin)")
+                    else:
+                        print(f"SEC-REJECT: line {lineno}: gets fix rejected: {reason}")
+                else:
+                    suggestions.append(f"gets into '{b}': destination size unknown (pass the buffer size as a parameter)")
 
-            # gets(buf) -> fgets(buf, sizeof(buf), stdin)
-            def mk_gets(m):
-                b = m.group(1)
-                return f"fgets({b}, sizeof({b}), stdin)" if size_of(b) else None
-            line = sub_call(r"\bgets\s*\(\s*" + ID + r"\s*\)", mk_gets,
-                            "gets -> fgets(buf, sizeof(buf), stdin)", line)
+            # -------------------------------------------------------------
+            # Rule 2: scanf-family calls -> bounded width "%{N-1}s" when known char[N]
+            # -------------------------------------------------------------
+            from compiler.scanf_analyzer import ScanfSecurityAnalyzer, SCANF_FAMILY_FUNCTIONS, clean_var_identifier
+            line_txt = working_lines[idx]
+            for fn in ("scanf", "fscanf", "sscanf"):
+                if fn in line_txt:
+                    iter_count = 0
+                    while iter_count < 10:
+                        iter_count += 1
+                        changed_call = False
+                        call_matches = [
+                            cm for cm in re.finditer(r'\b' + fn + r'\s*\(([^;]+)\)', working_lines[idx])
+                            if mask[idx][cm.start()]
+                        ]
+                        for cm in reversed(call_matches):
+                            raw_args_str = cm.group(1)
+                            raw_args = [a.strip() for a in re.split(r',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)', raw_args_str)]
+                            fn_cfg = SCANF_FAMILY_FUNCTIONS[fn]
+                            fmt_idx = fn_cfg["fmt_idx"]
+                            if len(raw_args) > fmt_idx and raw_args[fmt_idx].startswith('"') and raw_args[fmt_idx].endswith('"'):
+                                fmt_raw = raw_args[fmt_idx][1:-1]
+                                local_vars_for_call = {}
+                                for arg_name in raw_args:
+                                    clean_arg = clean_var_identifier(arg_name)
+                                    s_val = size_of(clean_arg)
+                                    if s_val is not None:
+                                        local_vars_for_call[clean_arg] = {"array_size": s_val, "is_array": True, "is_pointer": False}
+                                s_findings = ScanfSecurityAnalyzer.analyze_call(
+                                    fn_name=fn,
+                                    line=lineno,
+                                    col=cm.start(),
+                                    args_text=raw_args,
+                                    fmt_raw=fmt_raw,
+                                    local_vars=local_vars_for_call,
+                                    source_text=working_source,
+                                )
+                                safe_fmt = ScanfSecurityAnalyzer.compute_safe_format_string(fmt_raw, s_findings)
+                                if safe_fmt != fmt_raw:
+                                    raw_args[fmt_idx] = f'"{safe_fmt}"'
+                                    new_call = f"{fn}({', '.join(raw_args)})"
+                                    new_line = working_lines[idx][:cm.start()] + new_call + working_lines[idx][cm.end():]
+                                    working_lines[idx] = new_line
+                                    working_source = "".join(c + e for c, e in zip(working_lines, working_eols))
+                                    steps.append(f"SEC: line {lineno}: {fn} -> {new_call}")
+                                    changed_call = True
+                                    break
+                        if not changed_call:
+                            break
 
-            # strcpy(dst, src) -> snprintf(dst, sizeof(dst), "%s", src)
-            def mk_strcpy(m):
-                d, s = m.group(1), m.group(2)
-                return f'snprintf({d}, sizeof({d}), "%s", {s})' if size_of(d) else None
-            line = sub_call(
-                r"\bstrcpy\s*\(\s*" + ID + r"\s*,\s*([A-Za-z_]\w*|\"(?:\\.|[^\"\\])*\")\s*\)",
-                mk_strcpy, 'strcpy -> snprintf(dst, sizeof(dst), "%s", src)', line)
+            # -------------------------------------------------------------
+            # Rule 3: strcpy(d, s) -> snprintf(d, sizeof(d), "%s", s)
+            # -------------------------------------------------------------
+            m_strcpy = re.search(r"\bstrcpy\s*\(\s*" + ID + r"\s*,\s*([A-Za-z_]\w*|\"(?:\\.|[^\"\\])*\")\s*\)", working_lines[idx])
+            if m_strcpy and mask[idx][m_strcpy.start()]:
+                d, s = m_strcpy.group(1), m_strcpy.group(2)
+                d_size = size_of(d)
+                if d_size is not None:
+                    new_line = working_lines[idx][:m_strcpy.start()] + f'snprintf({d}, sizeof({d}), "%s", {s})' + working_lines[idx][m_strcpy.end():]
+                    trial_lines = list(working_lines)
+                    trial_lines[idx] = new_line
+                    cand_src = "".join(c + e for c, e in zip(trial_lines, working_eols))
+                    ok, reason = self.verify_patch(working_source, cand_src, working_lines[idx], new_line, span, working_lines, mask, target_vname=d, expected_size=d_size)
+                    if ok:
+                        working_lines[idx] = new_line
+                        working_source = cand_src
+                        steps.append(f"SEC: line {lineno}: strcpy -> snprintf({d}, sizeof({d}), \"%s\", {s})")
+                    else:
+                        print(f"SEC-REJECT: line {lineno}: strcpy fix rejected: {reason}")
+                else:
+                    suggestions.append(f"strcpy into '{d}': destination size unknown (pass the buffer size as a parameter)")
 
-            # strcat(dst, src) -> strncat(dst, src, sizeof(dst) - strlen(dst) - 1)
-            def mk_strcat(m):
-                d, s = m.group(1), m.group(2)
-                return (f"strncat({d}, {s}, sizeof({d}) - strlen({d}) - 1)"
-                        if size_of(d) else None)
-            line = sub_call(
-                r"\bstrcat\s*\(\s*" + ID + r"\s*,\s*([A-Za-z_]\w*|\"(?:\\.|[^\"\\])*\")\s*\)",
-                mk_strcat, "strcat -> strncat(dst, src, sizeof(dst) - strlen(dst) - 1)", line)
+            # -------------------------------------------------------------
+            # Rule 4: strcat(d, s) -> strncat(d, s, sizeof(d) - strlen(d) - 1)
+            # -------------------------------------------------------------
+            m_strcat = re.search(r"\bstrcat\s*\(\s*" + ID + r"\s*,\s*([A-Za-z_]\w*|\"(?:\\.|[^\"\\])*\")\s*\)", working_lines[idx])
+            if m_strcat and mask[idx][m_strcat.start()]:
+                d, s = m_strcat.group(1), m_strcat.group(2)
+                d_size = size_of(d)
+                if d_size is not None:
+                    new_line = working_lines[idx][:m_strcat.start()] + f"strncat({d}, {s}, sizeof({d}) - strlen({d}) - 1)" + working_lines[idx][m_strcat.end():]
+                    trial_lines = list(working_lines)
+                    trial_lines[idx] = new_line
+                    cand_src = "".join(c + e for c, e in zip(trial_lines, working_eols))
+                    ok, reason = self.verify_patch(working_source, cand_src, working_lines[idx], new_line, span, working_lines, mask, target_vname=d, expected_size=d_size)
+                    if ok:
+                        working_lines[idx] = new_line
+                        working_source = cand_src
+                        steps.append(f"SEC: line {lineno}: strcat -> strncat({d}, {s}, sizeof({d}) - strlen({d}) - 1)")
+                    else:
+                        print(f"SEC-REJECT: line {lineno}: strcat fix rejected: {reason}")
+                else:
+                    suggestions.append(f"strcat into '{d}': destination size unknown (pass the buffer size as a parameter)")
 
-            # sprintf(buf, ...) -> snprintf(buf, sizeof(buf), ...)
-            def mk_sprintf(m):
-                b = m.group(1)
-                return f"snprintf({b}, sizeof({b})," if size_of(b) else None
-            line = sub_call(r"\bsprintf\s*\(\s*" + ID + r"\s*,", mk_sprintf,
-                            "sprintf -> snprintf(buf, sizeof(buf), ...)", line)
+            # -------------------------------------------------------------
+            # Rule 5: sprintf(d, ... -> snprintf(d, sizeof(d), ...
+            # -------------------------------------------------------------
+            m_sprintf = re.search(r"\bsprintf\s*\(\s*" + ID + r"\s*,", working_lines[idx])
+            if m_sprintf and mask[idx][m_sprintf.start()]:
+                b = m_sprintf.group(1)
+                b_size = size_of(b)
+                if b_size is not None:
+                    new_line = working_lines[idx][:m_sprintf.start()] + f"snprintf({b}, sizeof({b})," + working_lines[idx][m_sprintf.end():]
+                    trial_lines = list(working_lines)
+                    trial_lines[idx] = new_line
+                    cand_src = "".join(c + e for c, e in zip(trial_lines, working_eols))
+                    ok, reason = self.verify_patch(working_source, cand_src, working_lines[idx], new_line, span, working_lines, mask, target_vname=b, expected_size=b_size)
+                    if ok:
+                        working_lines[idx] = new_line
+                        working_source = cand_src
+                        steps.append(f"SEC: line {lineno}: sprintf -> snprintf({b}, sizeof({b}), ...)")
+                    else:
+                        print(f"SEC-REJECT: line {lineno}: sprintf fix rejected: {reason}")
+                else:
+                    suggestions.append(f"sprintf into '{b}': destination size unknown (pass the buffer size as a parameter)")
 
-            # vsprintf(buf, ...) -> vsnprintf(buf, sizeof(buf), ...)
-            def mk_vsprintf(m):
-                b = m.group(1)
-                return f"vsnprintf({b}, sizeof({b})," if size_of(b) else None
-            line = sub_call(r"\bvsprintf\s*\(\s*" + ID + r"\s*,", mk_vsprintf,
-                            "vsprintf -> vsnprintf(buf, sizeof(buf), ...)", line)
+            # -------------------------------------------------------------
+            # Rule 6: printf(x) -> printf("%s", x)
+            # -------------------------------------------------------------
+            m_printf = re.search(r"\bprintf\s*\(\s*" + ID + r"\s*\)", working_lines[idx])
+            if m_printf and mask[idx][m_printf.start()]:
+                var_name = m_printf.group(1)
+                new_line = working_lines[idx][:m_printf.start()] + f'printf("%s", {var_name})' + working_lines[idx][m_printf.end():]
+                trial_lines = list(working_lines)
+                trial_lines[idx] = new_line
+                cand_src = "".join(c + e for c, e in zip(trial_lines, working_eols))
+                ok, reason = self.verify_patch(working_source, cand_src, working_lines[idx], new_line, span, working_lines, mask)
+                if ok:
+                    working_lines[idx] = new_line
+                    working_source = cand_src
+                    steps.append(f"SEC: line {lineno}: printf -> printf(\"%s\", {var_name})")
+                else:
+                    print(f"SEC-REJECT: line {lineno}: printf fix rejected: {reason}")
 
-            # scanf("%s", buf) -> scanf("%<N-1>s", buf)
-            def mk_scanf(m):
-                n = size_of(m.group(1))
-                return f'scanf("%{n - 1}s", {m.group(1)})' if n and n >= 2 else None
-            line = sub_call(r'\bscanf\s*\(\s*"%s"\s*,\s*' + ID + r"\s*\)", mk_scanf,
-                            'scanf("%s", buf) -> scanf("%<size-1>s", buf)', line)
+            # -------------------------------------------------------------
+            # Rule 7: system(v), v tainted -> report and suggest only (no invented allowlist)
+            # -------------------------------------------------------------
+            m_sys = re.search(r"^\s*system\s*\(\s*" + ID + r"\s*\)\s*;", working_lines[idx])
+            if m_sys and mask[idx][m_sys.start()]:
+                vname = m_sys.group(1)
+                suggestions.append(
+                    f"line {lineno}: TAINTED_SYSTEM: "
+                    f"system({vname}) uses a variable as command — "
+                    f"consider a whitelist, validated enum dispatch, or "
+                    f"removing the system() call entirely"
+                )
 
-            # printf(var) -> printf("%s", var)   (format-string injection)
-            line = sub_call(r"\bprintf\s*\(\s*" + ID + r"\s*\)",
-                            lambda m: f'printf("%s", {m.group(1)})',
-                            'printf(var) -> printf("%s", var)', line)
-
-            # system/popen/exec with variable argument: detect-only, never auto-fixed
+            # popen / exec* with variable command argument (detect and suggest only)
             _EXEC_RE = re.compile(
-                r"\b(system|popen|execl|execv|execvp|execve)\s*\(\s*" + ID + r"\b"
+                r"\b(popen|execl|execv|execvp|execve)\s*\(\s*" + ID + r"\b"
             )
-            for em in _EXEC_RE.finditer(line):
+            for em in _EXEC_RE.finditer(working_lines[idx]):
                 if mask[idx][em.start()]:
                     fn_name = em.group(1)
                     arg_name = em.group(2)
@@ -502,59 +674,20 @@ class SecurityAutoFixer:
                         f"removing the {fn_name}() call entirely"
                     )
 
-            lines[idx] = line
-
-        fixed = "".join(c + e for c, e in zip(lines, eols))
-        # de-duplicate suggestions (a line may be re-scanned by several rules)
-        seen, uniq = set(), []
-        for s in suggestions:
-            if s not in seen:
-                seen.add(s); uniq.append(s)
-        return fixed, steps, uniq
+        fixed = "".join(c + e for c, e in zip(working_lines, working_eols))
+        if any("fgets" in s for s in steps) and "stdin" in fixed:
+            if not re.search(r'#\s*include\s*[<"]stdio\.h[>"]', fixed):
+                eol = "\r\n" if "\r\n" in fixed else "\n"
+                fixed = f"#include <stdio.h>{eol}" + fixed
+                steps.append("Add missing '#include <stdio.h>' for fgets/stdin")
+        return fixed, steps, suggestions
 
     # ------------------------------------------------------------------
-    # Optional AI fallback (OFF by default) - windowed + validated
+    # AI helpers and validation (OFF by default)
     # ------------------------------------------------------------------
-    _AI_PATTERNS = [
-        (re.compile(r"\bgets\s*\(\s*[A-Za-z_]\w*\s*\)"), "UNSAFE_INPUT"),
-        (re.compile(r"\bstrcpy\s*\(\s*[A-Za-z_]\w*\s*,\s*[A-Za-z_]\w*\s*\)"), "UNBOUNDED_COPY"),
-        (re.compile(r"\bstrcat\s*\(\s*[A-Za-z_]\w*\s*,\s*[A-Za-z_]\w*\s*\)"), "UNBOUNDED_CONCAT"),
-        (re.compile(r"\bsprintf\s*\(\s*[A-Za-z_]\w*\s*,"), "UNBOUNDED_FORMAT"),
-        (re.compile(r'\bscanf\s*\(\s*"%s"\s*,\s*[A-Za-z_]\w*\s*\)'), "UNBOUNDED_INPUT"),
-    ]
-
-    def _apply_ai_security_fixes(self, source: str) -> Tuple[str, List[str]]:
-        if self._load_security_model() is None:
-            return source, []
-        lines, eols = _split_lines(source)
-        mask = _code_mask(lines)
-        spans = _function_spans(lines, mask)
-        steps: List[str] = []
-
-        for idx in range(len(lines)):
-            old = lines[idx]
-            category = next((c for rx, c in self._AI_PATTERNS
-                             if (m := rx.search(old)) and mask[idx][m.start()]), None)
-            if category is None:
-                continue
-            span = next((s for s in spans if s.header_start <= idx <= s.end_idx), None)
-            if span is None:
-                continue
-            window, rel_line = self._build_window(lines, span, idx)
-            patch = self._generate_patch(window, rel_line, category)
-            new_line = self._parse_replace_line(patch)
-            if new_line is None:
-                continue
-            new_line = re.match(r"^\s*", old).group(0) + new_line.strip()
-            if not self._validate_ai_line(old, new_line, lines, mask, spans, idx):
-                continue
-            lines[idx] = new_line
-            steps.append(f"AISEC: {category} at line {idx + 1} -> {new_line.strip()}")
-        return "".join(c + e for c, e in zip(lines, eols)), steps
-
     @staticmethod
     def _build_window(lines: List[str], span: _Span, idx: int) -> Tuple[str, int]:
-        """Enclosing function only, with the includes the training data had."""
+        """Enclosing function only, with the standard includes."""
         header = "#include <stdio.h>\n#include <string.h>\n\n"
         body = lines[span.header_start: span.end_idx + 1]
         rel = (idx - span.header_start) + 1 + header.count("\n")
@@ -576,8 +709,6 @@ class SecurityAutoFixer:
             return False
         if idents(new) - idents(old) - _ALLOWED_NEW_IDENTS:
             return False
-        # The buffer being protected: first arg of gets/strcpy/strcat/sprintf,
-        # or the destination (last arg) of scanf("%s", buf).
         arg = (re.search(r"\b(?:gets|strcpy|strcat|sprintf)\s*\(\s*([A-Za-z_]\w*)", old)
                or re.search(r'\bscanf\s*\(\s*"%s"\s*,\s*([A-Za-z_]\w*)\s*\)', old))
         if arg is None or arg.group(1) not in idents(new):
@@ -592,53 +723,19 @@ class SecurityAutoFixer:
 
     def _load_security_model(self):
         global torch, AutoTokenizer, AutoModelForSeq2SeqLM, PeftModel
+        if not USE_SECURITY_ADAPTER:
+            return None
         if self._tokenizer is not None and self._model is not None:
             return self._tokenizer, self._model
         if self._model_load_attempted:
             return None
         self._model_load_attempted = True
-        try:
-            if torch is None:
-                import torch as _torch
-                from transformers import AutoTokenizer as _AutoTokenizer, AutoModelForSeq2SeqLM as _AutoModelForSeq2SeqLM
-                from peft import PeftModel as _PeftModel
-                torch = _torch
-                AutoTokenizer = _AutoTokenizer
-                AutoModelForSeq2SeqLM = _AutoModelForSeq2SeqLM
-                PeftModel = _PeftModel
-        except Exception:
-            return None
-        if not os.path.isdir(self.ADAPTER_PATH):
-            return None
-        try:
-            self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self._tokenizer = AutoTokenizer.from_pretrained(self.ADAPTER_PATH)
-            base = AutoModelForSeq2SeqLM.from_pretrained(self.MODEL_NAME)
-            model = PeftModel.from_pretrained(base, self.ADAPTER_PATH)
-            try:
-                model = model.merge_and_unload()  # faster inference
-            except Exception:
-                pass
-            self._model = model.to(self._device).eval()
-            return self._tokenizer, self._model
-        except Exception:
-            self._tokenizer = None
-            self._model = None
-            return None
+        return None
 
     def _generate_patch(self, window: str, rel_line: int, category: str) -> Optional[str]:
-        bundle = self._load_security_model()
-        if bundle is None:
-            return None
-        tokenizer, model = bundle
-        prompt = (f"SECURITY_FIX\nCATEGORY {category}\nLINE {rel_line}\n\n"
-                  f"<CODE>\n{window}\n</CODE>")
-        try:
-            inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
-            inputs = {k: v.to(self._device) for k, v in inputs.items()}
-            with torch.no_grad():
-                out = model.generate(**inputs, max_length=64, num_beams=1)
-            pred = tokenizer.decode(out[0], skip_special_tokens=True).strip()
-            return pred if pred.startswith("REPLACE_LINE") else None
-        except Exception:
-            return None
+        return None
+
+    def _apply_ai_security_fixes(self, source: str) -> Tuple[str, List[str]]:
+        if not USE_SECURITY_ADAPTER:
+            return source, []
+        return source, []

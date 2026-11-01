@@ -1,0 +1,560 @@
+path,filename,language,valid_syntax,is_dangerous,danger_flags,reads_stdin,oracle_status,oracle_exit,oracle_stdout,oracle_stderr_snip,oracle_err_line,app_http,app_status,app_exit,app_stdout,app_stderr_snip,app_err_line,match,category,reason
+examples/examples/week8_2026/test_example.c,test_example.c,c,True,False,,False,COMPILE_ERROR,1,,c:/mingw/bin/../lib/gcc/mingw32/6.3.0/../../../libmingw32.a(main.o):(.text.startup+0xa0): undefined reference to `WinMai,,200,Compilation Failed,1,,c:/mingw/bin/../lib/gcc/mingw32/6.3.0/../../../libmingw32.a(main.o):(.text.startup+0xa0): undefined reference to `WinMai,,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (None) within +-1 of oracle (None).
+examples/main.c,main.c,c,True,False,,False,EXECUTION,100,,,,200,Runtime Error,100,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (100).
+examples/main.py,main.py,python,True,False,,False,EXECUTION,0,123,,,200,Completed,0,123,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/clean_guard.py,clean_guard.py,python,True,False,,False,EXECUTION,0,nt 3,,,200,Completed,0,nt 3,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/security/x01_yaml_load.py,x01_yaml_load.py,python,True,False,,False,EXECUTION,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_mvqtcq7k\script.py"", lin",2,200,Runtime Error,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_pyexec_r0f9t68q\script.py"", lin",2,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/_expected/security/x02_weak_hash.py,x02_weak_hash.py,python,True,False,,False,EXECUTION,0,2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b,,,200,Completed,0,2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/security/x03_eval_input.py,x03_eval_input.py,python,True,False,,True,EXECUTION,0,expr: 42,,,200,Completed,0,expr: 42,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/security/x04_shell_true.py,x04_shell_true.py,python,True,True,subprocess;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-SUBPROCESS_CALL,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/_expected/security/x05_verify_false.py,x05_verify_false.py,python,True,False,,False,EXECUTION,0,200,,,200,Completed,0,200,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/security/x06_flask_debug.py,x06_flask_debug.py,python,True,False,,False,TIMED_OUT,,,Oracle execution timed out,,200,Timed Out,,,Execution timed out after 5.0s.,,YES,TIMEOUT_MATCH,Both Oracle and App timed out.
+examples/python/_expected/semantic/m01_undefined_name_typo.py,m01_undefined_name_typo.py,python,True,False,,False,EXECUTION,0,0,,,200,Completed,0,0,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/semantic/m02_true_false_none.py,m02_true_false_none.py,python,True,False,,False,EXECUTION,0,True,,,200,Completed,0,True,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/semantic/m03_unused_import.py,m03_unused_import.py,python,True,False,,False,EXECUTION,0,hi,,,200,Completed,0,hi,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/semantic/m04_unused_variable.py,m04_unused_variable.py,python,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/semantic/m05_compare_none.py,m05_compare_none.py,python,True,False,,False,EXECUTION,0,empty,,,200,Completed,0,empty,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/semantic/m06_missing_self.py,m06_missing_self.py,python,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s01_missing_colon.py,s01_missing_colon.py,python,True,False,,False,EXECUTION,0,5,,,200,Completed,0,5,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s02_unclosed_paren.py,s02_unclosed_paren.py,python,True,False,,False,EXECUTION,0,hi,,,200,Completed,0,hi,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s03_assign_in_condition.py,s03_assign_in_condition.py,python,True,False,,False,EXECUTION,0,3,,,200,Completed,0,3,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s04_missing_indent.py,s04_missing_indent.py,python,True,False,,False,EXECUTION,0,"0
+1
+2",,,200,Completed,0,"0
+1
+2",,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s05_unexpected_indent.py,s05_unexpected_indent.py,python,True,False,,False,EXECUTION,0,3,,,200,Completed,0,3,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s06_unterminated_string.py,s06_unterminated_string.py,python,True,False,,False,EXECUTION,0,hello,,,200,Completed,0,hello,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s07_python2_print.py,s07_python2_print.py,python,True,False,,False,EXECUTION,0,hello,,,200,Completed,0,hello,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s08_else_if.py,s08_else_if.py,python,True,False,,False,EXECUTION,0,mid,,,200,Completed,0,mid,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s09_keyword_typo.py,s09_keyword_typo.py,python,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/_expected/syntax/s10_c_style_operators.py,s10_c_style_operators.py,python,True,False,,False,EXECUTION,0,"0
+1
+2",,,200,Completed,0,"0
+1
+2",,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/clean_guard.py,clean_guard.py,python,True,False,,False,EXECUTION,0,nt 3,,,200,Completed,0,nt 3,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/security/x01_yaml_load.py,x01_yaml_load.py,python,True,True,yaml_unsafe;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-01,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x02_weak_hash.py,x02_weak_hash.py,python,True,True,weak_hash;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-02,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x03_eval_input.py,x03_eval_input.py,python,True,True,eval;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-03;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-EVAL,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x04_shell_true.py,x04_shell_true.py,python,True,True,subprocess;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-04;DANGEROUS_FUNCTION:SEC-PY-DANGEROUS-SUBPROCESS_CALL,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x05_verify_false.py,x05_verify_false.py,python,True,True,verify_false;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-05,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x06_flask_debug.py,x06_flask_debug.py,python,True,True,server_run;PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-06,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x07_hardcoded_password.py,x07_hardcoded_password.py,python,True,True,PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-07,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/security/x08_sql_injection.py,x08_sql_injection.py,python,True,True,PYTHON_SECURITY_VULNERABILITY:SEC-PY-SEC-08,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/python/semantic/m01_undefined_name_typo.py,m01_undefined_name_typo.py,python,True,False,,False,EXECUTION,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_6ngsp9x_\script.py"", lin",2,200,Runtime Error,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_pyexec_mfslm01o\script.py"", lin",2,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/semantic/m02_true_false_none.py,m02_true_false_none.py,python,True,False,,False,EXECUTION,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_3bh_a_np\script.py"", lin",1,200,Runtime Error,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_pyexec_0920abf8\script.py"", lin",1,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/semantic/m03_unused_import.py,m03_unused_import.py,python,True,False,,False,EXECUTION,0,hi,,,200,Completed,0,hi,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/semantic/m04_unused_variable.py,m04_unused_variable.py,python,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/semantic/m05_compare_none.py,m05_compare_none.py,python,True,False,,False,EXECUTION,0,empty,,,200,Completed,0,empty,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/semantic/m06_missing_self.py,m06_missing_self.py,python,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/python/semantic/m07_call_arity.py,m07_call_arity.py,python,True,False,,False,EXECUTION,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_1j53pzy5\script.py"", lin",3,200,Runtime Error,1,,"Traceback (most recent call last):
+  File ""C:\Users\rohit\AppData\Local\Temp\antigravity_pyexec_48vt98y4\script.py"", lin",3,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/semantic/m08_return_outside.py,m08_return_outside.py,python,True,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_2y5h1up7\script.py"", line 2
+    return x
+    ^^^^^^^^
+SyntaxE",2,200,Compilation Failed,1,,"File ""m08_return_outside.py"", line 2
+
+SyntaxError: 'return' outside function",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/python/syntax/s01_missing_colon.py,s01_missing_colon.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_4n2er9_w\script.py"", line 2
+    if x > 3
+            ^
+Syntax",2,200,Compilation Failed,1,,"File ""s01_missing_colon.py"", line 2
+    if x > 3
+SyntaxError: expected ':'",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/python/syntax/s02_unclosed_paren.py,s02_unclosed_paren.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_sgwx1rzl\script.py"", line 1
+    print(""hi""
+         ^
+SyntaxE",1,200,Compilation Failed,1,,"File ""s02_unclosed_paren.py"", line 1
+    print(""hi""
+SyntaxError: '(' was never closed",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/python/syntax/s03_assign_in_condition.py,s03_assign_in_condition.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_l_k8z7hl\script.py"", line 2
+    if x = 3:
+       ^^^^^
+Syntax",2,200,Compilation Failed,1,,"File ""s03_assign_in_condition.py"", line 2
+    if x = 3:
+SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instea",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/python/syntax/s04_missing_indent.py,s04_missing_indent.py,python,False,False,,False,EXECUTION,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_p1yqtc9i\script.py"", line 2
+    print(i)
+    ^^^^^
+Indentatio",2,200,Compilation Failed,1,,"File ""s04_missing_indent.py"", line 2
+    print(i)
+SyntaxError: expected an indented block after 'for' statement on line ",2,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/syntax/s05_unexpected_indent.py,s05_unexpected_indent.py,python,False,False,,False,EXECUTION,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ux8o8hvs\script.py"", line 2
+    y = 2
+IndentationError: unexp",2,200,Compilation Failed,1,,"File ""s05_unexpected_indent.py"", line 2
+    y = 2
+SyntaxError: unexpected indent",2,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/python/syntax/s06_unterminated_string.py,s06_unterminated_string.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_uwhoggq3\script.py"", line 1
+    msg = ""hello
+          ^
+Synt",1,200,Compilation Failed,1,,"File ""s06_unterminated_string.py"", line 1
+    msg = ""hello
+SyntaxError: unterminated string literal (detected at line 1)",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/python/syntax/s07_python2_print.py,s07_python2_print.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_p4ycrl7_\script.py"", line 1
+    print ""hello""
+    ^^^^^^^^^^^",1,200,Compilation Failed,1,,"File ""s07_python2_print.py"", line 1
+    print ""hello""
+SyntaxError: Missing parentheses in call to 'print'. Did you mean ",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/python/syntax/s08_else_if.py,s08_else_if.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_8gn7790i\script.py"", line 4
+    else if x > 1:
+         ^^
+Sy",4,200,Compilation Failed,1,,"File ""s08_else_if.py"", line 4
+    else if x > 1:
+SyntaxError: expected ':'",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/python/syntax/s09_keyword_typo.py,s09_keyword_typo.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_3ekeqzd0\script.py"", line 2
+    whlie x < 3:
+    ^^^^^
+Syntax",2,200,Compilation Failed,1,,"File ""s09_keyword_typo.py"", line 2
+    whlie x < 3:
+SyntaxError: invalid syntax",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/python/syntax/s10_c_style_operators.py,s10_c_style_operators.py,python,False,False,,False,COMPILE_ERROR,1,,"File ""C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_q98k42_u\script.py"", line 2
+    while i < 3 && i >= 0:
+      ",2,200,Compilation Failed,1,,"File ""s10_c_style_operators.py"", line 2
+    while i < 3 && i >= 0:
+SyntaxError: invalid syntax",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/security_fix_2026/attack1.c,attack1.c,c,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e02_scanf_widths_broken.c,e02_scanf_widths_broken.c,c,True,True,BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e03_gets_broken.c,e03_gets_broken.c,c,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e04_strcpy_broken.c,e04_strcpy_broken.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e05_strcat_broken.c,e05_strcat_broken.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCAT,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e06_sprintf_broken.c,e06_sprintf_broken.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e07_printf_user_broken.c,e07_printf_user_broken.c,c,True,True,FORMAT_STRING:SEC-08-FORMAT-STRING,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e08_pointer_destination_broken.c,e08_pointer_destination_broken.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/security_fix_2026/e09_taint_scope_broken.c,e09_taint_scope_broken.c,c,True,False,system,True,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_btqtdovo\main.c: In function 'run_a':
+C:\Users\rohit\AppData\Local\",4,200,Compilation Failed,1,,"program.c: In function 'run_a':
+program.c:4:5: error: implicit declaration of function 'scanf' [-Werror=implicit-functio",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/security_fix_2026/e10_prototype_only_broken.c,e10_prototype_only_broken.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/security_fix_2026/e11_allowlist_guard_broken.c,e11_allowlist_guard_broken.c,c,True,False,system,True,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_llsag77v\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:5: error: implicit declaration of function 'scanf' [-Werror=implicit-function",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/semantic/arrow_on_value.c,arrow_on_value.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_1rmgexrf\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",8,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:8:7: error: invalid type argument of '->' (have 'struct Point')
+     pt->x = 20",8,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (8) within +-1 of oracle (8).
+examples/semantic/call_arity.c,call_arity.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_gkqfoxy6\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:15: error: too many arguments to function 'add'
+     int res = add(1, 2, 3);
+",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/semantic/case_outside_switch.c,case_outside_switch.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_gs9bkjyk\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: case label not within a switch statement
+     case 1: x = 10;
+     ",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/semantic/dot_on_pointer.c,dot_on_pointer.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_eah_gbxo\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",9,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:9:6: error: 'p' is a pointer; did you mean to use '->'?
+     p.x = 10;
+      ^
+",9,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (9) within +-1 of oracle (9).
+examples/semantic/duplicate_member.c,duplicate_member.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_00npsgdt\main.c:4:9: error: duplicate member 'id'
+     int id;
+    ",4,200,Compilation Failed,1,,"program.c:4:9: error: duplicate member 'id'
+     int id;
+         ^~",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/semantic/redeclared_struct.c,redeclared_struct.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_wdtlmzeh\main.c:5:8: error: redefinition of 'struct Node'
+ struct N",5,200,Compilation Failed,1,,"program.c:5:8: error: redefinition of 'struct Node'
+ struct Node {
+        ^~~~
+program.c:1:8: note: originally defined ",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/semantic/too_many_initializers.c,too_many_initializers.c,c,True,False,,False,EXECUTION,1,,,,200,Runtime Error,1,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (1).
+examples/semantic/use_before_declare.c,use_before_declare.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_jv9h27bc\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: 'val' undeclared (first use in this function)
+     val = 42;
+     ^",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/untitled1.c,untitled1.c,c,False,True,AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-OVERRIDE_INSTRUCTIONS;AGENT_INSTRUCTION_MANIPULATION:SEC_AGENT_OVERRIDE_DIRECTIVE,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/untitled2.c,untitled2.c,c,False,True,AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-OVERRIDE_INSTRUCTIONS;AGENT_INSTRUCTION_MANIPULATION:AGENT-MANIPULATION-SUPPRESSION_FINDINGS;AGENT_INSTRUCTION_MANIPULATION:SEC_AGENT_OVERRIDE_DIRECTIVE;AGENT_INSTRUCTION_MANIPULATION:PRECHECK-INJECTION-001,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/user_tests/ff.c,ff.c,c,True,False,,False,EXECUTION,30,,,,200,Runtime Error,30,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (30).
+examples/user_tests/gh.c,gh.c,c,True,False,,False,EXECUTION,7,,,,200,Runtime Error,7,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (7).
+examples/user_tests/test_clean.c,test_clean.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/user_tests/week11_2026.c,week11_2026.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week10_security/check1.c,check1.c,c,True,False,,False,COMPILE_ERROR,1,,c:/mingw/bin/../lib/gcc/mingw32/6.3.0/../../../libmingw32.a(main.o):(.text.startup+0xa0): undefined reference to `WinMai,,200,Compilation Failed,1,,c:/mingw/bin/../lib/gcc/mingw32/6.3.0/../../../libmingw32.a(main.o):(.text.startup+0xa0): undefined reference to `WinMai,,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (None) within +-1 of oracle (None).
+examples/week10_security/tainted_system.c,tainted_system.c,c,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week10_security/unsafe_gets.c,unsafe_gets.c,c,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/ademo.c,ademo.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_k260fnjr\main.c: In function 'case1':
+C:\Users\rohit\AppData\Local\",19,200,Compilation Failed,1,,"program.c: In function 'case1':
+program.c:19:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+pr",19,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (19) within +-1 of oracle (19).
+examples/week11_testing/ademo2.c,ademo2.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_0na8dtdf\main.c: In function 'task01':
+C:\Users\rohit\AppData\Local",19,200,Compilation Failed,1,,"program.c: In function 'task01':
+program.c:19:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+p",19,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (19) within +-1 of oracle (19).
+examples/week11_testing/ademo3mix.c,ademo3mix.c,c,False,True,system;UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/arena_500line_final_80_errors.c,arena_500line_final_80_errors.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_mbp11hwk\main.c: In function 'arena_solve_0':
+C:\Users\rohit\AppDat",20,200,Compilation Failed,1,,"program.c: In function 'arena_solve_0':
+program.c:20:5: error: expected ',' or ';' before 'int'
+     int best = 0;
+     ",20,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (20) within +-1 of oracle (20).
+examples/week11_testing/asecuritydemo.c,asecuritydemo.c,c,False,True,system;COMMAND_EXECUTION:PRECHECK-CMD-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/asecuritydemo_normalized.c,asecuritydemo_normalized.c,c,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/mixed_errors_1.c,mixed_errors_1.c,c,False,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/mixed_errors_2.c,mixed_errors_2.c,c,False,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week11_testing/prof_demo_pack_safe_massfix.c,prof_demo_pack_safe_massfix.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_jxx3_wti\main.c: In function 'arena_solve_0':
+C:\Users\rohit\AppDat",20,200,Compilation Failed,1,,"program.c: In function 'arena_solve_0':
+program.c:20:5: error: expected ',' or ';' before 'int'
+     int best = 0;
+     ",20,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (20) within +-1 of oracle (20).
+examples/week12_benchmark/benchmark_1.c,benchmark_1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_yijnjlqr\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: expected ',' or ';' before 'int'
+     int b = 10
+     ^~~
+program.c",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/benchmark_2.c,benchmark_2.c,c,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/breka.c,breka.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_myvxwqod\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:13: error: 'breka' undeclared (first use in this function)
+             breka",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week12_benchmark/cahr.c,cahr.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_tlq_s1cl\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: unknown type name 'cahr'
+     cahr x = 'a';
+     ^~~~
+program.c:2:1",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week12_benchmark/contniue.c,contniue.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_oaei68pg\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",7,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:7:13: error: 'contniue' undeclared (first use in this function)
+             co",7,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (7) within +-1 of oracle (7).
+examples/week12_benchmark/controlflowtpo.c,controlflowtpo.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_i6_yle8a\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: implicit declaration of function 'whlie' [-Werror=implicit-function",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/error1.c,error1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_b2iyq5pg\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:23: error: expected ';' before 'i'
+     for (i = 0; i < 5 i = i + 1) {
+      ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/error2.c,error2.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle__tc3969d\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:9: error: 'breka' undeclared (first use in this function)
+         breka
+    ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/error4.c,error4.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_9jxuwuka\main.c:1:23: error: expected ';', ',' or ')' before 'int'
+",1,200,Compilation Failed,1,,"program.c:1:23: error: expected ';', ',' or ')' before 'int'
+ int add3(int x, int y int z) {
+                       ^~~
+",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week12_benchmark/esle.c,esle.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_25z9bodr\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:5: error: 'esle' undeclared (first use in this function)
+     esle {
+     ^~~",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/fro.c,fro.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_zszteww3\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:5: error: implicit declaration of function 'fro' [-Werror=implicit-function-d",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/gets.c,gets.c,c,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/missing(infor.c,missing(infor.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_6jvxyb6z\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:9: error: expected '(' before 'i'
+     for i = 0; i < 5; i = i + 1) {
+       ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/missing(inwhile.c,missing(inwhile.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_etqnes54\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:11: error: expected '(' before 'a'
+     while a < 5) {
+           ^
+program.c",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missing)infncall.c,missing)infncall.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_tuf7af4e\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:21: error: expected ')' before ';' token
+     int z = add(3, 4;
+             ",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/missing)infor.c,missing)infor.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_b6_v33gq\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:34: error: expected ')' before '{' token
+     for (i = 0; i < 5; i = i + 1 {
+",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/missing)innested.c,missing)innested.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_yxi_y1ob\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:29: error: expected ')' before ';' token
+     int z = add(add(1, 2), 3;
+     ",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week12_benchmark/missing)inwhile.c,missing)inwhile.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_odyy8nlh\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:18: error: expected ')' before '{' token
+     while (a < 5 {
+                ",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missing;afterbreak.c,missing;afterbreak.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ilwiq14p\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:9: error: expected ';' before '}' token
+         }
+         ^",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/missing;aftercontinue.c,missing;aftercontinue.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ixjoc0li\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",7,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:7:9: error: expected ';' before '}' token
+         }
+         ^",7,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (7) within +-1 of oracle (7).
+examples/week12_benchmark/missing]afteruse.c,missing]afteruse.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ebdnjfof\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:16: error: expected ']' before ';' token
+     int b = a[0;
+                ^
+",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missing]inarrdec.c,missing]inarrdec.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_tisv1uwy\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:12: error: expected ']' before ';' token
+     int a[5;
+            ^
+program.",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week12_benchmark/missingbracketright.c,missingbracketright.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_phebyzqb\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:1: error: expected declaration or statement at end of input
+ }
+ ^",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/missingcommafuncarg.c,missingcommafuncarg.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle__tbmwfsp\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:19: error: expected ')' before numeric constant
+     int z = add(3 4);
+      ",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/missingcommafunparam.c,missingcommafunparam.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_4zfidu0m\main.c:1:15: error: expected ';', ',' or ')' before 'int'
+",1,200,Compilation Failed,1,,"program.c:1:15: error: expected ';', ',' or ')' before 'int'
+ int add(int x int y) {
+               ^~~
+program.c: In fu",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week12_benchmark/missingcommain3paramlist.c,missingcommain3paramlist.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_dllxgai6\main.c:1:23: error: expected ';', ',' or ')' before 'int'
+",1,200,Compilation Failed,1,,"program.c:1:23: error: expected ';', ',' or ')' before 'int'
+ int add3(int x, int y int z) {
+                       ^~~
+",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week12_benchmark/missingcommainarg.c,missingcommainarg.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_86munq2b\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:23: error: expected ')' before numeric constant
+     int k = add3(1, 2 3);
+  ",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/missingcommainnested.c,missingcommainnested.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_8p5z3vj8\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:23: error: expected ')' before numeric constant
+     int z = add(add(1 2), 3)",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week12_benchmark/missingcommainparamlist.c,missingcommainparamlist.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_acfwmjho\main.c:1:15: error: expected ';', ',' or ')' before 'int'
+",1,200,Compilation Failed,1,,"program.c:1:15: error: expected ';', ',' or ')' before 'int'
+ int add(int x int y) {
+               ^~~
+program.c: In fu",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week12_benchmark/missingleftbrace.c,missingleftbrace.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_bfhe4zx4\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: parameter 'a' is initialized
+     int a = 5;
+     ^~~
+program.c:3:5",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week12_benchmark/missingleftparenthesis.c,missingleftparenthesis.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_y1g5d6kn\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:8: error: expected '(' before 'a'
+     if a > 3) {
+        ^
+program.c:3:8: w",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missingrightparen.c,missingrightparen.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_wlve0g3v\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:15: error: expected ')' before '{' token
+     if (a > 3 {
+               ^
+pr",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missingsemicolon.c,missingsemicolon.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_mf1p2ls7\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: expected ',' or ';' before 'int'
+     int b = 10;
+     ^~~
+program.",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/missingsemicoloninsidefor.c,missingsemicoloninsidefor.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_13t5iw78\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:16: error: expected ';' before 'i'
+     for (i = 0 i < 5; i = i + 1) {
+      ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week12_benchmark/missingsemicoloninwhile.c,missingsemicoloninwhile.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_p5dxkfrn\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:9: error: expected ',' or ';' before 'a'
+         a = a + 1;
+         ^
+progr",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week12_benchmark/missing{afterif.c,missing{afterif.c,c,True,False,,False,EXECUTION,6,,,,200,Runtime Error,6,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (6).
+examples/week12_benchmark/missing{afterwhile.c,missing{afterwhile.c,c,True,False,,False,EXECUTION,5,,,,200,Runtime Error,5,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (5).
+examples/week12_benchmark/missing}afterwhile.c,missing}afterwhile.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle__aqyidxe\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:1: error: expected declaration or statement at end of input
+ }
+ ^",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week12_benchmark/printf.c,printf.c,c,True,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_gzsh0rwq\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: implicit declaration of function 'prinft' [-Werror=implicit-functio",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week12_benchmark/redclaration.c,redclaration.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_vns4f8wk\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:9: error: redefinition of 'a'
+     int a = 10;
+         ^
+program.c:2:9: note",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/scnaf.c,scnaf.c,c,True,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_67hsiuoi\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: implicit declaration of function 'scnaf' [-Werror=implicit-function",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week12_benchmark/sprintfmultipleargs.c,sprintfmultipleargs.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/unsafeapi.c,unsafeapi.c,c,True,True,system;DANGEROUS_FUNCTION:SEC-DANGEROUS-SYSTEM;BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/unsafesprintf.c,unsafesprintf.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/unsafestrcpy.c,unsafestrcpy.c,c,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/unsafestrcpy2.c,unsafestrcpy2.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-STRCPY,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_benchmark/viod.c,viod.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ji2y2ybn\main.c:1:1: error: unknown type name 'viod'
+ viod foo() {
+",1,200,Compilation Failed,1,,"program.c:1:1: error: unknown type name 'viod'
+ viod foo() {
+ ^~~~
+program.c: In function 'foo':
+program.c:2:5: warning:",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week12_phase4/autofix_gets.c,autofix_gets.c,c,True,True,UNSAFE_FUNCTION:PRECHECK-DANG-001;DANGEROUS_FUNCTION:SEC-DANGEROUS-GETS,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_phase4/autofix_printf.c,autofix_printf.c,c,True,True,FORMAT_STRING:SEC-08-FORMAT-STRING,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_phase4/autofix_sprintf.c,autofix_sprintf.c,c,True,True,DANGEROUS_FUNCTION:SEC-DANGEROUS-SPRINTF,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week12_phase4/autofix_strcpy.c,autofix_strcpy.c,c,True,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_pghedlcs\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:5: error: implicit declaration of function 'snprintf' [-Werror=implicit-funct",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week5_grammar_2026/bitwise_ops_broken_2.c,bitwise_ops_broken_2.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_vu_9jcht\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:17: error: expected expression before '=' token
+     int c = a & = b;
+       ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week5_grammar_2026/bitwise_ops_broken_3.c,bitwise_ops_broken_3.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_fh1z_ba3\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: 'unsinged' undeclared (first use in this function)
+     unsinged in",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week5_grammar_2026/bitwise_ops_valid.c,bitwise_ops_valid.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week5_grammar_2026/globals_broken_1.c,globals_broken_1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_rcqcpvpe\main.c:2:1: error: expected ',' or ';' before 'int'
+ int m",2,200,Compilation Failed,1,,"program.c:2:1: error: expected ',' or ';' before 'int'
+ int main() {
+ ^~~",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week5_grammar_2026/globals_broken_3.c,globals_broken_3.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_qqsynku6\main.c:1:10: error: expected '=', ',', ';', 'asm' or '__at",1,200,Compilation Failed,1,,"program.c:1:10: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'int'
+ unsinged int g_mask = 255;
+       ",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week5_grammar_2026/globals_valid.c,globals_valid.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week5_grammar_2026/prototype_broken_1.c,prototype_broken_1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_qec4et46\main.c: In function 'add':
+C:\Users\rohit\AppData\Local\Te",2,200,Compilation Failed,1,,"program.c: In function 'add':
+program.c:2:12: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+ ",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week5_grammar_2026/prototype_broken_3.c,prototype_broken_3.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_6ifz2p1u\main.c:1:1: error: unknown type name 'viod'
+ viod display(",1,200,Compilation Failed,1,,"program.c:1:1: error: unknown type name 'viod'
+ viod display(void);
+ ^~~~",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week5_grammar_2026/prototype_valid.c,prototype_valid.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week5_grammar_2026/semantics/invalid_operand_type_err.c,invalid_operand_type_err.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_k023g7wi\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:16: error: invalid operands to binary & (have 'float' and 'int')
+     int r1 ",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week5_grammar_2026/semantics/invalid_operand_type_guard.c,invalid_operand_type_guard.c,c,True,False,,False,EXECUTION,20,,,,200,Runtime Error,20,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (20).
+examples/week5_grammar_2026/semantics/narrowing_err.c,narrowing_err.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week5_grammar_2026/semantics/narrowing_guard.c,narrowing_guard.c,c,True,False,,False,EXECUTION,10,,,,200,Runtime Error,10,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (10).
+examples/week5_grammar_2026/semantics/prototype_mismatch_err.c,prototype_mismatch_err.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_33m73dgk\main.c:3:5: error: conflicting types for 'add'
+ int add(in",3,200,Compilation Failed,1,,"program.c:3:5: error: conflicting types for 'add'
+ int add(int a, float b) {
+     ^~~
+program.c:1:5: note: previous decl",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week5_grammar_2026/semantics/prototype_mismatch_guard.c,prototype_mismatch_guard.c,c,True,False,,False,EXECUTION,3,,,,200,Runtime Error,3,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (3).
+examples/week5_grammar_2026/semantics/shadow_warning_err.c,shadow_warning_err.c,c,True,False,,False,EXECUTION,5,,,,200,Runtime Error,5,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (5).
+examples/week5_grammar_2026/semantics/shadow_warning_guard.c,shadow_warning_guard.c,c,True,False,,False,EXECUTION,15,,,,200,Runtime Error,15,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (15).
+examples/week5_grammar_2026/shift_ops_broken_1.c,shift_ops_broken_1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_zvpfnb0r\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",4,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:4:5: error: expected ',' or ';' before 'return'
+     return 0;
+     ^~~~~~
+prog",4,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (4) within +-1 of oracle (4).
+examples/week5_grammar_2026/shift_ops_broken_2.c,shift_ops_broken_2.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_auo9xbt1\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:17: error: expected expression before '<' token
+     int y = x < < 2;
+       ",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week5_grammar_2026/shift_ops_broken_3.c,shift_ops_broken_3.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_qqt9gg9o\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: unknown type name 'shrot'
+     shrot x = 8;
+     ^~~~~
+program.c:3:",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week5_grammar_2026/shift_ops_valid.c,shift_ops_valid.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week5_grammar_2026/types_broken_1.c,types_broken_1.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_l3zn0vxm\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: expected ',' or ';' before 'return'
+     return 0;
+     ^~~~~~
+prog",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week5_grammar_2026/types_broken_3.c,types_broken_3.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_5l1s3ewo\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:5: error: unknown type name 'shrot'
+     shrot s = 10;
+     ^~~~~
+program.c:2",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week5_grammar_2026/types_valid.c,types_valid.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week6_grammar_2026/address_deref.c,address_deref.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_z2nefqf0\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:16: error: invalid type argument of unary '*' (have 'int')
+   int result = *v",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week6_grammar_2026/casts.c,casts.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_1zfbyrwb\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:29: error: expected ')' before 'value'
+     double result = (double value / 2",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week6_grammar_2026/do_while.c,do_while.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_pfz04n3m\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:23: error: expected ';' before 'return'
+   } while (count < 3) return count;
+",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week6_grammar_2026/nullpointer.c,nullpointer.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week6_grammar_2026/pointer_errors.c,pointer_errors.c,c,True,False,,False,EXECUTION,7,,,,200,Runtime Error,7,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (7).
+examples/week6_grammar_2026/sizeof.c,sizeof.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_7jujuthr\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:27: error: expected ')' before ';' token
+     int bytes = sizeof(int;
+       ",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week8_2026/01_integer_overflow_broken.c,01_integer_overflow_broken.c,c,True,True,INTEGER_OVERFLOW:SEC-01-INTEGER-OVERFLOW,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/02_signed_to_unsigned_broken.c,02_signed_to_unsigned_broken.c,c,True,True,TYPE_CONVERSION:SEC-02-SIGNED-TO-UNSIGNED,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/02_signed_to_unsigned_suggested.c,02_signed_to_unsigned_suggested.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week8_2026/03_null_dereference_broken.c,03_null_dereference_broken.c,c,False,True,NULL_DEREFERENCE:SEC-03-NULL-DEREFERENCE,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/04_uninitialized_variable_broken.c,04_uninitialized_variable_broken.c,c,True,True,UNINITIALIZED_VARIABLE:SEC-04-UNINITIALIZED-VARIABLE,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/05_array_out_of_bounds_broken.c,05_array_out_of_bounds_broken.c,c,True,True,BUFFER_OVERFLOW:SEC-05-ARRAY-OUT-OF-BOUNDS,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/05_array_out_of_bounds_suggested.c,05_array_out_of_bounds_suggested.c,c,True,False,,False,EXECUTION,0,,,,200,Completed,0,,,,YES,CLEAN_EXECUTION_MATCH,Oracle and App outputs and exit codes match exactly.
+examples/week8_2026/06_off_by_one_broken.c,06_off_by_one_broken.c,c,True,True,BUFFER_OVERFLOW:SEC-06-OFF-BY-ONE,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/07_unsafe_memcpy_broken.c,07_unsafe_memcpy_broken.c,c,True,True,BUFFER_OVERFLOW:SEC-07-UNSAFE-MEMCPY,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/08_format_mismatch_broken.c,08_format_mismatch_broken.c,c,True,True,TYPE_MISMATCH:SEC-08-FORMAT-MISMATCH,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/09_unsafe_scanf_broken.c,09_unsafe_scanf_broken.c,c,True,True,BUFFER_OVERFLOW:SEC-09-UNSAFE-SCANF,True,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/10_uninitialized_pointer_broken.c,10_uninitialized_pointer_broken.c,c,True,True,UNINITIALIZED_POINTER:SEC-10-UNINITIALIZED-POINTER,False,SKIPPED_UNSAFE,,,,,409,SECURITY_WARNING,,,,,YES,UNSAFE_SECURITY_GATE_REFUSAL,Unsafe program skipped per security policy; App correctly refused execution without user approval token.
+examples/week8_2026/clean_guard.c,clean_guard.c,c,False,False,,True,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_jd5sk36j\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",5,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:5:14: error: 'NULL' undeclared (first use in this function)
+     int *p = NULL;",5,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (5) within +-1 of oracle (5).
+examples/week8_ir/missing_semicolon.c,missing_semicolon.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_idv64v2n\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+prog",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week8_ir/valid_simple.c,valid_simple.c,c,True,False,,False,EXECUTION,15,,,,200,Runtime Error,15,,,,YES,RUNTIME_ERROR_MATCH,Runtime exit codes match (15).
+examples/week9_ai/ai_mismatch_brackets.c,ai_mismatch_brackets.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_mh806fc4\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",2,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:2:14: error: expected ']' before ';' token
+     int arr[5;
+              ^
+prog",2,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (2) within +-1 of oracle (2).
+examples/week9_ai/ai_missing_comma_args.c,ai_missing_comma_args.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_v1y4jip7\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",6,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:6:20: error: expected ')' before numeric constant
+     int x = add(10 20);
+    ",6,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (6) within +-1 of oracle (6).
+examples/week9_ai/ai_missing_comma_params.c,ai_missing_comma_params.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_ho41w838\main.c:1:15: error: expected ';', ',' or ')' before 'int'
+",1,200,Compilation Failed,1,,"program.c:1:15: error: expected ';', ',' or ')' before 'int'
+ int add(int a int b) {
+               ^~~",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week9_ai/missing_bracket.c,missing_bracket.c,c,False,False,,False,COMPILE_ERROR,1,,C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_mbsgab0_\main.c:1:11: error: expected declaration specifiers or '..,1,200,Compilation Failed,1,,"program.c:1:11: error: expected declaration specifiers or '...' before '{' token
+ int main( {
+           ^",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).
+examples/week9_ai/missing_semicolon.c,missing_semicolon.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_4am7733m\main.c: In function 'main':
+C:\Users\rohit\AppData\Local\T",3,200,Compilation Failed,1,,"program.c: In function 'main':
+program.c:3:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+prog",3,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (3) within +-1 of oracle (3).
+examples/week9_ai/typo_keyword.c,typo_keyword.c,c,False,False,,False,COMPILE_ERROR,1,,"C:\Users\rohit\AppData\Local\Temp\antigravity_oracle_6w8f2cmd\main.c:1:1: error: unknown type name 'innt'
+ innt main() {",1,200,Compilation Failed,1,,"program.c:1:1: error: unknown type name 'innt'
+ innt main() {
+ ^~~~",1,YES,SYNTAX_ERROR_LINE_MATCH,App reported compilation failure; error line (1) within +-1 of oracle (1).

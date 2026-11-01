@@ -26,8 +26,16 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from compiler.semantic_checker import SemanticChecker
 from test_parser import has_any_errors, parse_source
 
-BASE_MODEL_NAME = "Salesforce/codet5-base"
-DEFAULT_ADAPTER_DIR = os.getenv("CD_SEMANTIC_ADAPTER_DIR", "models/codet5_semantic_adapter")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_LOCAL_BASE = os.path.join(_PROJECT_ROOT, "models", "codet5-base")
+BASE_MODEL_NAME = os.getenv(
+    "CD_BASE_MODEL_NAME",
+    _LOCAL_BASE if os.path.isdir(_LOCAL_BASE) else "Salesforce/codet5-base",
+)
+DEFAULT_ADAPTER_DIR = os.getenv(
+    "CD_SEMANTIC_ADAPTER_DIR",
+    os.path.join(_PROJECT_ROOT, "models", "codet5_semantic_adapter"),
+)
 MODEL_KINDS = {"undeclared", "redeclared", "unknown_member"}
 
 LINE_PATCH_RE = re.compile(r"^\s*LINE\s+(\d+)\s*:\s*(.*)$", re.IGNORECASE | re.DOTALL)

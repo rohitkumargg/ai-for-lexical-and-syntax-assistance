@@ -1,0 +1,42 @@
+[
+  {
+    "run": 1,
+    "status": "PARTIALLY_REPAIRED",
+    "duration_s": 27.32,
+    "fixes_applied": 33,
+    "fixes_remaining": 80,
+    "candidate_id": "plan_5c03c4fcb351"
+  },
+  {
+    "run": 2,
+    "status": "PARTIALLY_REPAIRED",
+    "duration_s": 26.95,
+    "fixes_applied": 33,
+    "fixes_remaining": 80,
+    "candidate_id": "plan_748374afc722"
+  },
+  {
+    "run": 3,
+    "status": "PARTIALLY_REPAIRED",
+    "duration_s": 30.76,
+    "fixes_applied": 33,
+    "fixes_remaining": 80,
+    "candidate_id": "plan_bdf49d63172e"
+  },
+  {
+    "run": 4,
+    "status": "PARTIALLY_REPAIRED",
+    "duration_s": 26.32,
+    "fixes_applied": 33,
+    "fixes_remaining": 80,
+    "candidate_id": "plan_56dfae97c4f3"
+  },
+  {
+    "run": 5,
+    "status": "PARTIALLY_REPAIRED",
+    "duration_s": 26.53,
+    "fixes_applied": 33,
+    "fixes_remaining": 80,
+    "candidate_id": "plan_fb94d29ab581"
+  }
+]

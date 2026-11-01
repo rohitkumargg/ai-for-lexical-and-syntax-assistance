@@ -384,7 +384,7 @@ IDENTIFIER
     ;
 
 INTEGER
-    : [0-9]+
+    : [0-9]+ ( [uU] ([lL][lL] | [lL])? | ([lL][lL] | [lL]) [uU]? )?
     ;
 
 FLOAT_LITERAL

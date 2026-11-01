@@ -37,6 +37,36 @@ from compiler.green_metrics import GreenMetrics
 from compiler.green_scorer import build_green_report
 from compiler.green_logger import GreenLogger
 
+
+def _status_from_security(security_warnings: List[Any]) -> str:
+    if not security_warnings:
+        return "SUCCESS"
+
+    has_critical = False
+    has_warning_or_high = False
+
+    for item in security_warnings:
+        if isinstance(item, dict):
+            sev = item.get("severity", "")
+            msg = str(item.get("message", ""))
+            if sev == "CRITICAL" or "[CRITICAL]" in msg:
+                has_critical = True
+            elif sev in ("WARNING", "HIGH") or "[WARNING]" in msg or "[HIGH]" in msg:
+                has_warning_or_high = True
+            continue
+
+        item_str = str(item)
+        if "[CRITICAL]" in item_str:
+            has_critical = True
+        elif "[WARNING]" in item_str or "[HIGH]" in item_str:
+            has_warning_or_high = True
+
+    if has_critical:
+        return "BLOCKED_SECURITY"
+    if has_warning_or_high:
+        return "SUCCESS_WITH_WARNINGS"
+    return "SUCCESS"
+
 try:
     from generated.SimpleCLexer import SimpleCLexer
     from generated.SimpleCParser import SimpleCParser
@@ -347,6 +377,36 @@ def _print_semantic_issues(issues):
         print()
 
     print(f"Total semantic issues: {total}")
+
+
+def _status_from_security(security_warnings: List[Any]) -> str:
+    if not security_warnings:
+        return "SUCCESS"
+
+    has_critical = False
+    has_warning_or_high = False
+
+    for item in security_warnings:
+        if isinstance(item, dict):
+            sev = item.get("severity", "")
+            msg = str(item.get("message", ""))
+            if sev == "CRITICAL" or "[CRITICAL]" in msg:
+                has_critical = True
+            elif sev in ("WARNING", "HIGH") or "[WARNING]" in msg or "[HIGH]" in msg:
+                has_warning_or_high = True
+            continue
+
+        item_str = str(item)
+        if "[CRITICAL]" in item_str:
+            has_critical = True
+        elif "[WARNING]" in item_str or "[HIGH]" in item_str:
+            has_warning_or_high = True
+
+    if has_critical:
+        return "BLOCKED_SECURITY"
+    if has_warning_or_high:
+        return "SUCCESS_WITH_WARNINGS"
+    return "SUCCESS"
 
 
 def run_security_checks(source_text: str):
@@ -862,6 +922,17 @@ def _run_semantic_phase(
 
 
 def test_file(filename: str):
+    if filename.endswith(".py"):
+        from compiler.languages.python_lang import repair_python
+        with open(filename, "r", encoding="utf-8") as f:
+            src = f.read()
+        res = repair_python(src, filename)
+        print(f"Python repair status for {filename}: {res.get('status')}")
+        print("Applied steps:")
+        for s in res.get("applied_steps", []):
+            print(f"  - {s}")
+        return
+
     is_fresh, p_info, p_warn = check_parser_status()
     print(p_info)
     if p_warn:
