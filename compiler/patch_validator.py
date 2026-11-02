@@ -663,8 +663,10 @@ class PatchIntegrityInspector:
                 if tag != 'equal':
                     affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
+                        if l_num <= len(orig_split) and not orig_split[l_num - 1].strip():
+                            continue
                         near_finding = any(abs(l_num - fl) <= 2 for fl in finding_lines)
-                        in_fn_scope = any(fs <= l_num <= fe for fs, fe in fn_scopes)
+                        in_fn_scope = any((fs - 2) <= l_num <= (fe + 2) for fs, fe in fn_scopes)
                         if not (near_finding or in_fn_scope):
                             min_dist = min(abs(l_num - fl) for fl in finding_lines)
                             reasons.append(
