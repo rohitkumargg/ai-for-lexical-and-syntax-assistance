@@ -6,7 +6,6 @@ import uuid
 import hashlib
 
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
-from compiler.gui_bridge import repair_source_for_gui, repair_source_for_gui_stream
 from compiler.week5_repair_helpers import print_parser_check
 from compiler.languages import (
     LANGUAGES,
@@ -104,6 +103,7 @@ def repair():
     if not permitted:
         return jsonify(warning_payload), gate_status
 
+    from compiler.gui_bridge import repair_source_for_gui
     result = repair_source_for_gui(code, filename, language=lang_id)
     if "analysis_mode" not in result:
         from compiler.call_extractor import get_extraction_mode
@@ -208,6 +208,7 @@ def repair_stream():
 
     @stream_with_context
     def generate():
+        from compiler.gui_bridge import repair_source_for_gui_stream
         for event in repair_source_for_gui_stream(code, filename, language=lang_id):
             yield f"data: {json.dumps(event)}\n\n"
 
@@ -237,6 +238,7 @@ def testcase():
     if not permitted:
         return jsonify(warning_payload), gate_status
 
+    from compiler.gui_bridge import repair_source_for_gui
     result = repair_source_for_gui(code, filename, language=lang_id)
     return jsonify(result)
 
@@ -2070,18 +2072,15 @@ def open_browser():
 if __name__ == "__main__":
     import logging
     logger = logging.getLogger(__name__)
+    print("Initializing server startup...", flush=True)
     # Requirement 3: Move resume_unfinished_jobs() to application startup only (not on import, not in test mode); log errors instead of pass
     if not app.testing and not os.environ.get("PYTEST_CURRENT_TEST"):
         try:
             from compiler.repair_job_manager import get_repair_job_manager
             resumed_count = get_repair_job_manager().resume_unfinished_jobs()
-            logger.info("Resumed %d unfinished repair jobs on startup", resumed_count)
+            print(f"Resumed {resumed_count} unfinished repair jobs.", flush=True)
         except Exception as exc:
             logger.error("Failed to resume unfinished repair jobs on startup: %s", exc, exc_info=True)
-    try:
-        from compiler.local_models import CodeT5Manager
-        CodeT5Manager().warmup()
-    except Exception:
-        pass
+    print("Starting Flask web server on http://127.0.0.1:5000 ...", flush=True)
     threading.Timer(1.0, open_browser).start()
-    app.run(debug=True, use_reloader=False)
+    app.run(host="127.0.0.1", port=5000, debug=False)

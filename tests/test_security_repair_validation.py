@@ -19,6 +19,34 @@ from compiler.orchestrator import DecisionState
 from app import app
 
 
+def test_security_only_overflow_repair_does_not_apply_syntax_guessing():
+    """A security finding must not trigger unrelated syntax-token heuristics."""
+    from compiler.repair_planner import RepairPlanner
+
+    source = """int main() {
+    int x = 2147483647 + 1;
+    return x > 0;
+}
+"""
+    planner = RepairPlanner()
+    findings, _ = planner.analyze_program(
+        source, filename="overflow.c", language="c"
+    )
+    assert any(
+        getattr(getattr(f, "category", ""), "value", getattr(f, "category", "")).upper() == "SECURITY"
+        for f in findings
+    )
+
+    candidate, applied = planner._apply_deterministic_rules(
+        source, filename="overflow.c", language="c", findings=findings
+    )
+
+    assert "long long x = (long long)2147483647 + 1;" in candidate
+    assert "return x > 0;" in candidate
+    assert ", x" not in candidate
+    assert "SEC-01" in " ".join(applied)
+
+
 def test_undefined_popen2_candidate_rejected():
     """An undefined popen2() candidate must fail compilation/semantic validation and be rejected."""
     original_code = """#include <stdio.h>

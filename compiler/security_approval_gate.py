@@ -70,7 +70,7 @@ DANGEROUS_PYTHON_CALLS: Dict[str, Tuple[str, str, str, List[str]]] = {
         "HIGH",
         [
             "An attacker who controls the argument can execute arbitrary commands on the host OS",
-            "Shell metacharacters (;, |, &&) in user input enable command chaining",
+            "Untrusted input allows attackers to chain and execute arbitrary shell commands",
             "Could lead to full system compromise, data exfiltration, or ransomware deployment",
             "os.system() returns only the exit code — stderr/stdout are not captured, hiding malicious output",
         ],
@@ -246,7 +246,7 @@ PYTHON_RULE_DETAILS: Dict[str, Dict[str, Any]] = {
         "future_risks": [
             "Remote Code Execution (RCE) on the server or developer workstation",
             "Bypass of all application logic, permissions, and database constraints",
-            "Host takeover via __import__('os').system(...)"
+            "Unauthorized execution of operating system commands"
         ],
         "recommended_fix": "Use ast.literal_eval() for safely parsing Python literals, or avoid dynamic evaluation.",
     },
@@ -254,7 +254,7 @@ PYTHON_RULE_DETAILS: Dict[str, Dict[str, Any]] = {
         "cwe": "CWE-78",
         "severity": "HIGH",
         "reason_dangerous": "subprocess call with shell=True executes commands through the system shell interpreter.",
-        "potential_threat": "Shell metacharacters (;, |, &&, $()) in arguments allow attackers to chain and execute arbitrary shell commands.",
+        "potential_threat": "Untrusted command arguments allow attackers to execute arbitrary shell commands.",
         "future_risks": [
             "Command injection enabling unauthorized file reads, modifications, or deletions",
             "Spawning background backdoors or reverse shell connections",
@@ -327,7 +327,7 @@ PYTHON_RULE_DETAILS: Dict[str, Dict[str, Any]] = {
 C_FUTURE_RISKS: Dict[str, List[str]] = {
     "system": [
         "If user input reaches the system() argument, an attacker can inject arbitrary shell commands (command injection)",
-        "Shell metacharacters (;, |, &&, $()) in the argument enable command chaining and data exfiltration",
+        "Untrusted command arguments enable arbitrary command execution and data exfiltration",
         "system() spawns a full shell process — far more attack surface than direct process execution",
         "On multi-user systems, the command runs with the process's full privileges (privilege escalation risk)",
     ],

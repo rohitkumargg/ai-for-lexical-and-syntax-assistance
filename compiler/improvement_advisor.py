@@ -666,6 +666,14 @@ class CandidateRegistry:
         with self._lock:
             self._candidates[candidate.id] = candidate
 
+    def update(self, candidate: ImprovementCandidate) -> bool:
+        """Replace a registered proposal after whole-job validation finalizes its code."""
+        with self._lock:
+            if candidate.id not in self._candidates:
+                return False
+            self._candidates[candidate.id] = candidate
+            return True
+
     def get(self, candidate_id: str) -> Optional[ImprovementCandidate]:
         with self._lock:
             return self._candidates.get(candidate_id)

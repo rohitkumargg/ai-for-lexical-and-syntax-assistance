@@ -153,6 +153,23 @@ class SyntaxAgent(BaseCompilerAgent):
             if not all_errors and err_obj:
                 all_errors = [err_obj]
 
+            # Requirement 3: If gcc compiles the file but ANTLR reports errors, show them as 'parser limitation (info)', not errors
+            gcc_clean = False
+            if all_errors and source_text.strip():
+                try:
+                    import subprocess, tempfile
+                    with tempfile.NamedTemporaryFile(suffix=".c", mode="w", delete=False, encoding="utf-8") as tmp:
+                        tmp.write(source_text)
+                        tmp_path = tmp.name
+                    try:
+                        res = subprocess.run(["gcc", "-fsyntax-only", tmp_path], capture_output=True, text=True, timeout=5)
+                        gcc_clean = (res.returncode == 0)
+                    finally:
+                        if os.path.exists(tmp_path):
+                            os.remove(tmp_path)
+                except Exception:
+                    gcc_clean = False
+
             for err in all_errors:
                 raw_line = int(err.get("line", 1))
                 raw_col = int(err.get("column", 0))
@@ -187,16 +204,19 @@ class SyntaxAgent(BaseCompilerAgent):
                 category = FindingCategory.LEXICAL if is_lex else FindingCategory.SYNTAX
                 label = "Lexical error" if is_lex else "Syntax error"
 
+                f_sev = FindingSeverity.INFO if gcc_clean else FindingSeverity.CRITICAL
+                f_stat = FindingStatus.POSSIBLE if gcc_clean else FindingStatus.CONFIRMED
+                f_expl = f"parser limitation (info) ({reason}): {msg}" if gcc_clean else f"{label} ({reason}): {msg}"
                 findings.append(
                     Finding.create(
                         category=category,
                         line=raw_line,
                         col=raw_col,
-                        explanation=f"{label} ({reason}): {msg}",
+                        explanation=f_expl,
                         evidence=evidence.strip(),
-                        severity=FindingSeverity.CRITICAL,
-                        confidence=1.0,
-                        status=FindingStatus.CONFIRMED,
+                        severity=f_sev,
+                        confidence=0.5 if gcc_clean else 1.0,
+                        status=f_stat,
                         file_path=filename,
                         suggested_corrections=suggestions,
                         metadata={

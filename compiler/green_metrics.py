@@ -15,6 +15,9 @@ class GreenMetrics:
     def start(self, phase: str) -> None:
         self.phase_starts[phase] = time.perf_counter()
 
+    def start_total(self) -> None:
+        self.start("total")
+
     def end(self, phase: str) -> None:
         started = self.phase_starts.get(phase)
         if started is None:
@@ -22,6 +25,9 @@ class GreenMetrics:
         elapsed_ms = (time.perf_counter() - started) * 1000.0
         self.phase_ms[phase] = self.phase_ms.get(phase, 0.0) + elapsed_ms
         del self.phase_starts[phase]
+
+    def end_total(self) -> None:
+        self.end("total")
 
     def inc(self, key: str, value: int = 1) -> None:
         self.counters[key] = self.counters.get(key, 0) + value

@@ -161,7 +161,7 @@ class SecurityVisitor(ast.NodeVisitor):
                             "action": "reported",
                             "line": node.lineno,
                             "col": node.col_offset,
-                            "message": "subprocess call with shell=True and shell metacharacters",
+                            "message": "subprocess call with shell=True and compound command operators",
                             "node": node
                         })
                 else:

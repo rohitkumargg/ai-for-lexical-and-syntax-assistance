@@ -271,13 +271,13 @@ def print_parse_tree(node, parser, indent: int = 0):
 
     if isinstance(node, TerminalNodeImpl):
         text = node.getText()
-        print(pad + f"└─ {text}")
+        print(pad + f"|- {text}")
         return
 
     child_count = node.getChildCount() if hasattr(node, "getChildCount") else 0
     if child_count == 0:
         text = node.getText() if hasattr(node, "getText") else str(node)
-        print(pad + f"└─ {text}")
+        print(pad + f"|- {text}")
         return
 
     rule_name = "unknown"

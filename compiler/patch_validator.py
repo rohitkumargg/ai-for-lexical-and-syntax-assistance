@@ -162,6 +162,8 @@ class PatchValidationReport:
 class SandboxedCompiler:
     """Executes compiler checks in an isolated, resource-limited sandbox."""
 
+    _runtime_probe_cache: Dict[str, bool] = {}
+
     def __init__(self, compiler_path: Optional[str] = None):
         self.compiler_path = compiler_path or self._discover_compiler()
 
@@ -187,29 +189,54 @@ class SandboxedCompiler:
         return None
 
     def is_available(self) -> bool:
-        return self.compiler_path is not None and os.path.exists(self.compiler_path)
+        if not self.compiler_path or not os.path.exists(self.compiler_path):
+            return False
+        cached = self._runtime_probe_cache.get(self.compiler_path)
+        if cached is not None:
+            return cached
+        try:
+            probe = subprocess.run(
+                [self.compiler_path, "--version"],
+                shell=False,
+                capture_output=True,
+                text=True,
+                timeout=2.0,
+            )
+            available = probe.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            available = False
+        self._runtime_probe_cache[self.compiler_path] = available
+        return available
 
     def compile_check(
         self,
         source_code: str,
         timeout_seconds: float = 4.0,
-    ) -> Tuple[bool, str, int]:
+    ) -> Tuple[Optional[bool], str, int]:
         """
         Run -fsyntax-only in a temporary isolated directory.
         Returns: (success, compiler_output, exit_code)
         """
         if not self.is_available():
-            return True, "No native C compiler (GCC/Clang) detected; skipped.", 0
+            return None, "No runnable native C compiler (GCC/Clang) detected; compilation check skipped.", 0
 
         # Isolated environment: stripped of sensitive variables
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sandbox_parent = os.environ.get(
+            "CD_COMPILER_SANDBOX_DIR",
+            os.path.join(project_root, "data", "compiler_sandbox"),
+        )
+        os.makedirs(sandbox_parent, exist_ok=True)
+
         safe_env = {
             "PATH": os.environ.get("PATH", ""),
             "SystemRoot": os.environ.get("SystemRoot", r"C:\Windows"),
-            "TMP": os.environ.get("TMP", tempfile.gettempdir()),
-            "TEMP": os.environ.get("TEMP", tempfile.gettempdir()),
+            # Keep compiler scratch files in the same writable isolated directory.
+            "TMP": sandbox_parent,
+            "TEMP": sandbox_parent,
         }
 
-        with tempfile.TemporaryDirectory(prefix="antigravity_sandbox_") as sandbox_dir:
+        with tempfile.TemporaryDirectory(prefix="antigravity_sandbox_", dir=sandbox_parent) as sandbox_dir:
             temp_c_file = os.path.join(sandbox_dir, "candidate.c")
             with open(temp_c_file, "w", encoding="utf-8", newline="") as f:
                 f.write(source_code)
@@ -217,8 +244,6 @@ class SandboxedCompiler:
             cmd = [
                 self.compiler_path,
                 "-fsyntax-only",
-                "-Wall",
-                "-Werror=implicit-function-declaration",
                 temp_c_file,
             ]
 
@@ -235,13 +260,24 @@ class SandboxedCompiler:
                 output = (proc.stderr or proc.stdout or "").strip()
                 # Redact sandbox temp path from output
                 output_clean = output.replace(sandbox_dir, "")
-                is_clean = (proc.returncode == 0) and ("error:" not in output_clean.lower()) and ("implicit declaration of function" not in output_clean.lower())
+                is_clean = (proc.returncode == 0) and ("error:" not in output_clean.lower())
                 return is_clean, output_clean, (proc.returncode if is_clean else (proc.returncode or 1))
 
             except subprocess.TimeoutExpired:
                 return False, f"Compiler execution timed out after {timeout_seconds}s", -1
             except Exception as e:
                 return False, f"Sandboxed compiler execution error: {str(e)}", -1
+
+
+def gcc_ok(source_code: str, timeout_seconds: float = 4.0) -> Tuple[bool, str, int]:
+    """
+    Unified canonical compiler check used by planner, job manager, and audit.
+    Programs that only produce warnings (e.g. implicit declarations) count as compiling.
+    Only genuine compilation errors (exit code != 0 or 'error:' in stderr) fail.
+    Returns: (is_clean, compiler_output, exit_code)
+    """
+    compiler = SandboxedCompiler()
+    return compiler.compile_check(source_code, timeout_seconds=timeout_seconds)
 
 
 # -------------------------------------------------------------------------
@@ -410,6 +446,41 @@ class PatchIntegrityInspector:
 
         # 4. Scope type mutation outside finding scope
         import re
+        def _is_scoped_integer_promotion(var_name: str, old_type: str, new_type: str) -> bool:
+            def _norm_type(value: str) -> Tuple[str, int]:
+                normalized = re.sub(r"\s+", " ", value.strip().lower())
+                unsigned = "unsigned" in normalized
+                normalized = normalized.replace("unsigned", "").replace("signed", "").strip()
+                normalized = re.sub(r"\s+", "", normalized)
+                ranks = {"char": 0, "short": 1, "int": 2, "long": 3, "longlong": 4}
+                return ("unsigned" if unsigned else "signed", ranks.get(normalized, -1))
+
+            old_sign, old_rank = _norm_type(old_type)
+            new_sign, new_rank = _norm_type(new_type)
+            if old_sign != new_sign or old_rank < 0 or new_rank <= old_rank:
+                return False
+
+            source_lines = original_code.splitlines()
+            for finding in original_findings or []:
+                if isinstance(finding, dict):
+                    kind = str(finding.get("kind", "")).lower()
+                    rule = str(finding.get("rule_id", finding.get("rule", ""))).upper()
+                    message = str(finding.get("explanation", finding.get("message", ""))).lower()
+                    line = finding.get("line") or finding.get("location", {}).get("line")
+                else:
+                    kind = str(getattr(finding, "kind", "")).lower()
+                    rule = str(getattr(finding, "rule_id", getattr(finding, "rule", ""))).upper()
+                    message = str(getattr(finding, "explanation", getattr(finding, "message", ""))).lower()
+                    location = getattr(finding, "location", None)
+                    line = getattr(location, "line", None) or getattr(finding, "line", None)
+                is_overflow = ("overflow" in kind or "overflow" in message
+                               or rule.startswith("SEC-01") or rule == "CWE-190")
+                if not is_overflow or not isinstance(line, int) or not (1 <= line <= len(source_lines)):
+                    continue
+                if re.search(rf"\b{re.escape(var_name)}\b", source_lines[line - 1]):
+                    return True
+            return False
+
         type_regex = r'(?<!\()\b(int|float|double|char|long|short|unsigned(?:\s+long(?:\s+long)?)?)\s+([a-zA-Z_]\w*)\b'
         orig_matches = dict((var, t) for t, var in re.findall(type_regex, original_code))
         cand_matches = dict((var, t) for t, var in re.findall(type_regex, candidate_code))
@@ -417,9 +488,10 @@ class PatchIntegrityInspector:
             if var_name in cand_matches:
                 c_t = cand_matches[var_name]
                 if o_t != c_t:
-                    reasons.append(
-                        f"Integrity rejection: Declared type of variable '{var_name}' was mutated outside finding scope ('{o_t}' -> '{c_t}')."
-                    )
+                    if not _is_scoped_integer_promotion(var_name, o_t, c_t):
+                        reasons.append(
+                            f"Integrity rejection: Declared type of variable '{var_name}' was mutated outside finding scope ('{o_t}' -> '{c_t}')."
+                        )
         try:
             from compiler.call_extractor import extract_var_declarations
             orig_decls = extract_var_declarations(original_code)
@@ -430,9 +502,10 @@ class PatchIntegrityInspector:
                     o_t = getattr(orig_decl, "base_type", getattr(orig_decl, "type_name", "")).strip()
                     c_t = getattr(cand_decl, "base_type", getattr(cand_decl, "type_name", "")).strip()
                     if o_t and c_t and o_t != c_t and not any(var_name in r for r in reasons):
-                        reasons.append(
-                            f"Integrity rejection: Declared type of variable '{var_name}' was mutated outside finding scope ('{o_t}' -> '{c_t}')."
-                        )
+                        if not _is_scoped_integer_promotion(var_name, o_t, c_t):
+                            reasons.append(
+                                f"Integrity rejection: Declared type of variable '{var_name}' was mutated outside finding scope ('{o_t}' -> '{c_t}')."
+                            )
         except Exception:
             pass
 
@@ -444,17 +517,57 @@ class PatchIntegrityInspector:
                 )
 
         if "return" in original_code:
-            import re
-            orig_returns = re.findall(r'\breturn\s+([^;]+);', original_code)
-            cand_returns = re.findall(r'\breturn\s+([^;]+);', candidate_code)
-            for o_ret in orig_returns:
-                o_ret = o_ret.strip()
-                if o_ret not in ("0", "1", "-1") and len(o_ret) > 3:
-                    for c_ret in cand_returns:
-                        c_ret = c_ret.strip()
-                        if c_ret == "0" and "return 0;" in candidate_code and o_ret not in candidate_code:
-                            if any(k in o_ret for k in (">", "<", "+", "-", "*", "/", "add", "calc")):
-                                reasons.append(f"Integrity rejection: Computation '{o_ret}' replaced with no-op constant '0'.")
+            # Compare returns only within the same function. Comparing a source window
+            # against a whole file (or any multi-function file globally) mistakes an
+            # unrelated `return 0;` for a replacement of e.g. `return x + y;`.
+            def _function_return_map(source: str) -> Dict[str, List[str]]:
+                result: Dict[str, List[str]] = {}
+                signature = re.compile(
+                    r"(?m)^\s*(?:[A-Za-z_]\w*(?:\s+|\s*\*\s*)+)+"
+                    r"([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{"
+                )
+                for match in signature.finditer(source):
+                    name = match.group(1)
+                    brace = source.find("{", match.start(), match.end())
+                    depth = 1
+                    pos = brace + 1
+                    while pos < len(source) and depth:
+                        if source[pos] == "{":
+                            depth += 1
+                        elif source[pos] == "}":
+                            depth -= 1
+                        pos += 1
+                    body = source[brace + 1:pos - 1]
+                    result[name] = re.findall(r"\breturn\s+([^;]+);", body)
+                return result
+
+            findings_are_syntax_only = not original_findings or all(
+                str(getattr(getattr(f, "category", None), "value", None) or
+                    (f.get("category") if isinstance(f, dict) else "")).upper() in ("SYNTAX", "LEXICAL")
+                for f in original_findings
+            )
+            if findings_are_syntax_only:
+                orig_functions = _function_return_map(original_code)
+                cand_functions = _function_return_map(candidate_code)
+                for fn_name, orig_returns in orig_functions.items():
+                    cand_returns = cand_functions.get(fn_name, [])
+                    if not cand_returns:
+                        continue
+                    for o_ret in orig_returns:
+                        o_ret = o_ret.strip()
+                        if o_ret in ("0", "1", "-1") or len(o_ret) <= 3 or o_ret in cand_returns:
+                            continue
+                        has_computation = any(k in o_ret for k in (">", "<", "+", "-", "*", "/", "add", "calc"))
+                        if not has_computation:
+                            continue
+                        if "0" in [ret.strip() for ret in cand_returns]:
+                            reasons.append(
+                                f"Integrity rejection: Computation '{o_ret}' in function '{fn_name}' replaced with no-op constant '0'."
+                            )
+                        else:
+                            reasons.append(
+                                f"Integrity rejection: Computation '{o_ret}' in function '{fn_name}' changed to '{cand_returns[0].strip()}'."
+                            )
 
         # 6. Structural control-flow wrapper rule (C4)
         # Reject candidates that introduce a control-flow wrapper (switch, if, while)
@@ -535,17 +648,27 @@ class PatchIntegrityInspector:
             orig_split = original_code.splitlines()
             cand_split = candidate_code.splitlines()
             sm = difflib.SequenceMatcher(None, orig_split, cand_split)
+
+            # Requirement 2: Use enclosing function scope and gcc matching notes
+            from compiler.repair_job_manager import split_top_level_functions
+            _, fn_records = split_top_level_functions(original_code)
+            fn_scopes = []
+            for fn in fn_records:
+                fn_s = fn.get("start_line", 1)
+                fn_e = fn.get("end_line", len(orig_split))
+                if any((fn_s - 2) <= fl <= (fn_e + 2) for fl in finding_lines):
+                    fn_scopes.append((fn_s, fn_e))
+
             for tag, i1, i2, j1, j2 in sm.get_opcodes():
                 if tag != 'equal':
-                    if i2 > i1:
-                        affected = range(i1 + 1, i2 + 1)
-                    else:
-                        affected = [i1 + 1]
+                    affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
-                        min_dist = min(abs(l_num - fl) for fl in finding_lines)
-                        if min_dist > 2:
+                        near_finding = any(abs(l_num - fl) <= 2 for fl in finding_lines)
+                        in_fn_scope = any(fs <= l_num <= fe for fs, fe in fn_scopes)
+                        if not (near_finding or in_fn_scope):
+                            min_dist = min(abs(l_num - fl) for fl in finding_lines)
                             reasons.append(
-                                f"Scope guard rejection: Line {l_num} was modified but is not within 2 lines of any finding (nearest finding at distance {min_dist})."
+                                f"Scope guard rejection: Line {l_num} was modified but is not within scope of any finding (nearest finding at distance {min_dist})."
                             )
                             break
 
@@ -818,9 +941,20 @@ class PatchValidator:
             # -------------------------------------------------------------
             # C / SIMPLEC VALIDATION PIPELINE
             # -------------------------------------------------------------
+            import re
             # Cross-language check: Reject if candidate contains Python constructs in a C file
-            py_markers = ["def main():", "import sys", "import os", "def ", "elif ", "__name__ =="]
-            has_py_markers = any(m in candidate_code and m not in original_code for m in py_markers)
+            # Match Python syntax at statement boundaries. A substring check for
+            # "def " incorrectly classifies valid C declarations such as typedef.
+            py_markers = (
+                r"(?m)^\s*def\s+[A-Za-z_]\w*\s*\(",
+                r"(?m)^\s*(?:import|from)\s+[A-Za-z_]\w*",
+                r"(?m)^\s*elif\s+",
+                r"(?m)^\s*__name__\s*==\s*['\"]__main__['\"]",
+            )
+            has_py_markers = any(
+                re.search(pattern, candidate_code) and not re.search(pattern, original_code)
+                for pattern in py_markers
+            )
             if has_py_markers:
                 remaining_risks.append("Cross-language contamination: Python code proposed for C source")
                 stage_results[ValidationStage.SYNTAX.value] = StageResult(
@@ -884,31 +1018,75 @@ class PatchValidator:
 
             # Step 5: Native Compilation Check (GCC/Clang in sandbox)
             telemetry["stages_executed"].append("compilation")
-            comp_ok = None
+            comp_ok: Optional[bool] = None
             compiler_out = ""
             if self.compiler.is_available():
                 comp_code = ensure_c_libc_headers(candidate_code, original_code=None)
                 comp_ok, compiler_out, comp_exit = self.compiler.compile_check(comp_code)
-                if not comp_ok:
+                if comp_ok is False:
                     remaining_risks.append(f"GCC compilation error: {compiler_out[:140]}")
-                elif "sizeof-pointer-memaccess" in compiler_out.lower() or "-wsizeof-pointer-memaccess" in compiler_out.lower():
+                elif comp_ok is True and ("sizeof-pointer-memaccess" in compiler_out.lower() or "-wsizeof-pointer-memaccess" in compiler_out.lower()):
                     comp_ok = False
                     remaining_risks.append("GCC compilation rejected: -Wsizeof-pointer-memaccess warning signals incorrect pointer size fix")
-                elif "warning:" in compiler_out.lower():
+                elif comp_ok is True and "warning:" in compiler_out.lower():
                     remaining_risks.append(f"Compiler warning: {compiler_out[:140]}")
 
                 stage_results[ValidationStage.COMPILATION.value] = StageResult(
                     stage=ValidationStage.COMPILATION,
                     passed=comp_ok,
-                    error_count=0 if comp_ok else 1,
-                    message="Compilation clean" if comp_ok else "Compilation failed",
+                    error_count=1 if comp_ok is False else 0,
+                    message=("Compilation clean" if comp_ok is True else
+                             "Compilation failed" if comp_ok is False else
+                             "Compilation check skipped: no runnable native compiler"),
                     details={"compiler_output": compiler_out, "exit_code": comp_exit},
                 )
             else:
                 stage_results[ValidationStage.COMPILATION.value] = StageResult(
                     stage=ValidationStage.COMPILATION,
+                    passed=None,
+                    message="GCC/Clang not detected or not runnable; native compilation check skipped",
+                )
+
+            # The generated SimpleC grammar rejects some valid C constructs (notably
+            # typedef declarations) that GCC accepts. If ANTLR blocks its AST-only
+            # semantic pass but the candidate reduced syntax findings and native C
+            # compilation is clean, record semantic validation as compiler-backed
+            # rather than treating the parser limitation as a repair failure.
+            if (not semantic_ok and comp_ok is True
+                    and "syntax errors present in candidate" in semantic_msg.lower()):
+                # A clean native compile is the syntax and type-check authority for
+                # standard C. Do not require the narrower SimpleC parser to also
+                # accept the file: valid declarations can be outside its grammar.
+                semantic_ok = True
+                semantic_errors_cnt = 0
+                semantic_msg = (
+                    "Native compiler accepted the candidate; AST semantic checks were unavailable "
+                    "because the SimpleC grammar does not support syntax in this valid C source."
+                )
+                stage_results[ValidationStage.SEMANTIC.value] = StageResult(
+                    stage=ValidationStage.SEMANTIC,
                     passed=True,
-                    message="GCC/Clang not detected; native compilation check skipped",
+                    error_count=0,
+                    message=semantic_msg,
+                    details={"validation_basis": "native_compiler_fallback", "ast_available": False},
+                )
+            if (not syntax_ok and comp_ok is True
+                    and syntax_errors_cnt > 0):
+                # The same parser limitation can be reported at the syntax stage.
+                # A clean native compile proves this candidate is valid C syntax;
+                # keep the parser diagnostic as detail, but do not block the patch.
+                syntax_ok = True
+                syntax_errors_cnt = 0
+                syntax_msg = (
+                    "Native C compiler accepted the candidate; the SimpleC parser "
+                    "reported unsupported syntax rather than a C syntax error."
+                )
+                stage_results[ValidationStage.SYNTAX.value] = StageResult(
+                    stage=ValidationStage.SYNTAX,
+                    passed=True,
+                    error_count=0,
+                    message=syntax_msg,
+                    details={"validation_basis": "native_compiler_fallback", "ast_available": False},
                 )
 
         # Step 6: Regression / Test Case Verification

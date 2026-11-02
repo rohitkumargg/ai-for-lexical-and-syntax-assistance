@@ -1,0 +1,343 @@
+[
+  {
+    "file": "arrow_on_value.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 14572.5,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 0.02,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 4 window(s) (4850.6 ms); 0 accepted.",
+        "dur_ms": 4850.56,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 3659.88,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "call_arity.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 11299.7,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 0.01,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 4 window(s) (5274.3 ms); 0 accepted.",
+        "dur_ms": 5274.25,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 178.87,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "use_before_declare.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 12304.5,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 0.03,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 2 window(s) (2935.2 ms); 0 accepted.",
+        "dur_ms": 2935.23,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 0.0,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "missing)infor.c",
+    "status": "REPAIR_PLAN_READY",
+    "stopping_reason": "CodeT5 repair proposal synthesized: INS_LC 4 33 )",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 6367.5,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 10.22,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 repair succeeded (1542.22 ms): INS_LC 4 33 )",
+        "dur_ms": 1542.22,
+        "verdict": "PASSED"
+      },
+      "qwen": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2969 (resolved by CodeT5)",
+        "desc": "Primary CodeT5 repair succeeded; Qwen reasoning escalation skipped.",
+        "dur_ms": 0.0,
+        "verdict": "SKIPPED"
+      }
+    }
+  },
+  {
+    "file": "missingrightparen.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 10999.3,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 6.67,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 4 window(s) (4979.6 ms); 0 accepted.",
+        "dur_ms": 4979.64,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 0.0,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "missingsemicoloninsidefor.c",
+    "status": "REPAIR_PLAN_READY",
+    "stopping_reason": "CodeT5 repair proposal synthesized: INS_LC 4 15 ;",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 6330.7,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 9.26,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 repair succeeded (1515.17 ms): INS_LC 4 15 ;",
+        "dur_ms": 1515.17,
+        "verdict": "PASSED"
+      },
+      "qwen": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2969 (resolved by CodeT5)",
+        "desc": "Primary CodeT5 repair succeeded; Qwen reasoning escalation skipped.",
+        "dur_ms": 0.0,
+        "verdict": "SKIPPED"
+      }
+    }
+  },
+  {
+    "file": "error1.c",
+    "status": "REPAIR_PLAN_READY",
+    "stopping_reason": "CodeT5 repair proposal synthesized: INS_LC 4 22 ;",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 6513.9,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 8.87,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 repair succeeded (1576.24 ms): INS_LC 4 22 ;",
+        "dur_ms": 1576.24,
+        "verdict": "PASSED"
+      },
+      "qwen": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2969 (resolved by CodeT5)",
+        "desc": "Primary CodeT5 repair succeeded; Qwen reasoning escalation skipped.",
+        "dur_ms": 0.0,
+        "verdict": "SKIPPED"
+      }
+    }
+  },
+  {
+    "file": "benchmark_1.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 12500.5,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 7.53,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 5 window(s) (6692.0 ms); 0 accepted.",
+        "dur_ms": 6692.02,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 0.0,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "globals_broken_1.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "Qwen could not synthesize a valid candidate: Qwen candidates did not pass validation.",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 11245.9,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 4.08,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 4 window(s) (5393.0 ms); 0 accepted.",
+        "dur_ms": 5392.99,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 0.0,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "held_out_misspelled_identifier.c",
+    "status": "COMPILATION_FAILED",
+    "stopping_reason": "clean_or_unmodified",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 19268.4,
+    "tiers": {
+      "deterministic": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2896 (no deterministic rules matched)",
+        "desc": "No deterministic rules matched current findings; escalating to ML.",
+        "dur_ms": 0.02,
+        "verdict": "SKIPPED"
+      },
+      "codet5": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "CodeT5 attempted 6 window(s) (8120.1 ms); 0 accepted.",
+        "dur_ms": 8120.11,
+        "verdict": "FAILED"
+      },
+      "qwen": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Local Qwen candidates did not pass validation.",
+        "dur_ms": 0.0,
+        "verdict": "FAILED"
+      }
+    }
+  },
+  {
+    "file": "held_out_stray_token.c",
+    "status": "PARTIALLY_REPAIRED",
+    "stopping_reason": "clean_or_unmodified",
+    "ollama_before": 0,
+    "ollama_after": 0,
+    "total_ms": 10292.6,
+    "tiers": {
+      "deterministic": {
+        "called": "YES",
+        "skip_line": "",
+        "desc": "Deterministic rule engine resolved all findings (1 fixes applied): Removed stray token character",
+        "dur_ms": 459.99,
+        "verdict": "PASSED"
+      },
+      "codet5": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2868 (resolved by rules or no supported findings)",
+        "desc": "Deterministic rules fully resolved all issues; CodeT5 ML stage skipped.",
+        "dur_ms": 0.0,
+        "verdict": "SKIPPED"
+      },
+      "qwen": {
+        "called": "NO",
+        "skip_line": "compiler/repair_planner.py:2875 (resolved by rules)",
+        "desc": "Deterministic rules fully resolved all issues; Qwen reasoning escalation skipped.",
+        "dur_ms": 0.0,
+        "verdict": "SKIPPED"
+      }
+    }
+  }
+]

@@ -19,6 +19,21 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#typeQualifier.
+    def visitTypeQualifier(self, ctx:SimpleCParser.TypeQualifierContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#storageClassSpecifier.
+    def visitStorageClassSpecifier(self, ctx:SimpleCParser.StorageClassSpecifierContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#declarationSpecifier.
+    def visitDeclarationSpecifier(self, ctx:SimpleCParser.DeclarationSpecifierContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#functionDeclaration.
     def visitFunctionDeclaration(self, ctx:SimpleCParser.FunctionDeclarationContext):
         return self.visitChildren(ctx)

@@ -626,6 +626,13 @@ class OllamaClient:
             finding_lines.append(f"{i}. [{cat_val} / {sev_val}] Line {line}, Column {col}: {expl}\n   Evidence: {evid}")
         findings_summary = "\n".join(finding_lines) if finding_lines else "None reported."
 
+        # A fixed 2,048-token output cap truncates complete-source repairs for large
+        # files. Size the generation and context windows to the source while respecting
+        # Ollama's supported context ceiling.
+        estimated_source_tokens = max(1, len(safe_source_text) // 3)
+        num_predict = min(12000, max(2048, int(estimated_source_tokens * 1.45) + 512))
+        num_ctx = min(32768, max(4096, estimated_source_tokens + num_predict + 2048))
+
         # Available repair tools
         tools = available_tools or [
             {"name": "whole_program_synthesis", "description": "Synthesize a whole-program candidate repair directly adhering to language standards and security policy."},
@@ -701,8 +708,8 @@ class OllamaClient:
             "options": {
                 "temperature": 0.1,
                 "top_p": 0.95,
-                "num_ctx": 4096,
-                "num_predict": 2048,
+                "num_ctx": num_ctx,
+                "num_predict": num_predict,
             },
         }
 

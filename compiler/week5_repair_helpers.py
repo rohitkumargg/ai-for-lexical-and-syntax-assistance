@@ -292,7 +292,9 @@ def _is_declaration_position(tokens: List[Dict[str, Any]], idx: int) -> bool:
         if nxt["value"] in (ALL_C_KEYWORDS - set(DECL_TYPE_KEYWORDS)):
             return False
     elif nxt["kind"] == "SYMBOL" and nxt["value"] == "*":
-        pass
+        nxt2 = tokens[idx + 2] if idx + 2 < len(tokens) else None
+        if not nxt2 or (nxt2["kind"] != "IDENT" and nxt2["value"] != "*"):
+            return False
     else:
         return False
 

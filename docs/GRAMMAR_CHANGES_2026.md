@@ -132,3 +132,35 @@ A parse error in the system flows through the following stages:
    - `semantics/` subfolder covering `prototype_mismatch`, `shadow_warning`, `invalid_operand_type` (&, |, ^, ~, <<, >>), and narrowing, with false-positive guard files for each.
    - `tools/run_week_examples.py` runs files through GUI bridge repair, validates against JSON expectations, checks semantics rules and guards, and verifies 0 baseline regressions.
 
+---
+
+## 5. Parenthesis Balancing Rules (Deterministic Syntax Repair)
+
+To address unbalanced control and expression delimiters without introducing hallucinations or regressions on valid code, the following deterministic rules were added:
+
+1. **`_fix_missing_rparen_control`**:
+   - **Pattern**: `\b(if|while|for)\s*\(([^;{\n]+?)\s*(\{|;|\n)`
+   - **Target**: Control statements where opening parentheses exceed closing parentheses before the loop body/block.
+   - **Action**: Appends `)` to restore parenthesis balance before the delimiter.
+
+2. **`_fix_missing_lparen_control`**:
+   - **Pattern**: `\b(if|while)\s+([^(\s][^{;]+?)\)\s*(\{|;|\n)`
+   - **Target**: Control statements where the opening parenthesis was omitted before the expression.
+   - **Action**: Inserts `(` after the keyword.
+
+3. **`_fix_missing_rparen_expr`**:
+   - **Pattern**: Expression statements terminated with `;` where `line.count('(') > line.count(')')`.
+   - **Target**: Unclosed function call or sub-expression parentheses prior to statement termination.
+   - **Action**: Appends missing `)` immediately before the terminating `;`.
+
+4. **`_fix_missing_rparen_params`**:
+   - **Pattern**: Function definition or declaration headers `\b(?:int|void|char|double|float|long)\s+\w+\s*\([^;{\n]*?(?:\s*\{|\s*;)` with unbalanced `(`.
+   - **Target**: Unclosed parameter list parenthesis.
+   - **Action**: Balances parameter parenthesis before `{` or `;`.
+
+5. **`_fix_extra_paren_control`**:
+   - **Pattern**: Control statements where `line.count('(') > line.count(')')` due to double open parens e.g. `for ((int i = 0; ...`.
+   - **Target**: Extraneous parenthesis typo in control statement headers.
+   - **Action**: Strips the redundant extra open parenthesis while preserving inner condition tokens.
+
+

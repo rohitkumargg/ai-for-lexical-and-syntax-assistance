@@ -14,16 +14,32 @@ topLevelItem
     | declaration
     ;
 
+// ---- Specifiers and Qualifiers ----
+typeQualifier
+    : CONST
+    | VOLATILE
+    ;
+
+storageClassSpecifier
+    : STATIC
+    | EXTERN
+    ;
+
+declarationSpecifier
+    : storageClassSpecifier
+    | typeQualifier
+    ;
+
 // ---- Function Prototypes / Declarations ----
 // Supports: int add(int a, int b); or int add(int, int); or void run(void);
 functionDeclaration
-    : typeSpecifier pointer? IDENTIFIER LPAREN paramList? RPAREN SEMI
+    : declarationSpecifier* typeSpecifier typeQualifier* pointer? IDENTIFIER LPAREN paramList? RPAREN SEMI
     ;
 
 // ---- Functions ----
 // Supports: int foo(int a, float b) { ... }
 functionDef
-    : typeSpecifier pointer? IDENTIFIER LPAREN paramList? RPAREN block
+    : declarationSpecifier* typeSpecifier typeQualifier* pointer? IDENTIFIER LPAREN paramList? RPAREN block
     ;
 
 paramList
@@ -31,7 +47,7 @@ paramList
     ;
 
 param
-    : typeSpecifier pointer? IDENTIFIER? arraySuffix?
+    : declarationSpecifier* typeSpecifier typeQualifier* pointer? IDENTIFIER? arraySuffix?
     ;
 
 // ---- Blocks with mixed declarations/statements (C99 style) ----
@@ -52,7 +68,7 @@ declaration
 // IMPORTANT: same as declaration, but WITHOUT the trailing ';'
 // Needed for: for (int i=0; ... ; ...)
 declarationNoSemi
-    : typeSpecifier initDeclaratorList?
+    : declarationSpecifier* typeSpecifier typeQualifier* initDeclaratorList?
     ;
 
 initDeclaratorList
@@ -71,7 +87,7 @@ initializer
 // A separate rule keeps `int *p` and `int **pp` unambiguous in declarations,
 // parameters, and function return types.
 pointer
-    : MUL+
+    : (MUL typeQualifier*)+
     ;
 
 // multi-dimensional arrays: int a[10][20][30];
@@ -224,8 +240,8 @@ unaryExpression
     : postfixExpression
     | (INC | DEC | PLUS | MINUS | NOT | TILDE | AMP | MUL) unaryExpression
     // A type specifier after '(' is the clean syntactic discriminator for a cast.
-    | LPAREN typeSpecifier pointer? RPAREN unaryExpression
-    | SIZEOF (LPAREN typeSpecifier pointer? RPAREN | unaryExpression)
+    | LPAREN declarationSpecifier* typeSpecifier typeQualifier* pointer? RPAREN unaryExpression
+    | SIZEOF (LPAREN declarationSpecifier* typeSpecifier typeQualifier* pointer? RPAREN | unaryExpression)
     ;
 
 // postfix: x++, x--, calls f(a,b), array indexing a[i]
@@ -294,6 +310,11 @@ structDeclarator
 /* =========================
    LEXER RULES
    ========================= */
+
+CONST    : 'const';
+VOLATILE : 'volatile';
+STATIC   : 'static';
+EXTERN   : 'extern';
 
 INT      : 'int';
 FLOAT    : 'float';

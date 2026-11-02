@@ -12,6 +12,7 @@ import json
 import uuid
 import re
 import hashlib
+import difflib
 import threading
 import logging
 from dataclasses import dataclass, field, asdict
@@ -28,6 +29,27 @@ logger = logging.getLogger("RepairJobManager")
 JOBS_DIR = os.path.join(os.getcwd(), "data", "repair_jobs")
 CACHE_DIR = os.path.join(os.getcwd(), "data", "repair_cache")
 CACHE_FILE = os.path.join(CACHE_DIR, "window_cache.json")
+
+
+def _lightweight_check(code_str: str, language: str = "c", filename: str = "main.c") -> Tuple[bool, List[int], str]:
+    """Lightweight check: runs compiler check (gcc -fsyntax-only) or syntax agent."""
+    import re
+    if language in ("c", "cpp", "c++"):
+        try:
+            c_comp = SandboxedCompiler()
+            if c_comp.is_available():
+                ok, out, _ = c_comp.compile_check(code_str)
+                err_lines = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? (?:fatal )?error:", out)]
+                return ok, sorted(list(dict.fromkeys(err_lines))), out
+        except Exception:
+            pass
+    from compiler.agents import SyntaxAgent, PythonSyntaxAgent
+    agent = PythonSyntaxAgent() if language == "python" else SyntaxAgent()
+    findings = agent.analyze(code_str, filename=filename)
+    ok = len(findings) == 0
+    errs = [f.location.line for f in findings if hasattr(f, "location") and f.location and f.location.line]
+    return ok, sorted(list(dict.fromkeys(errs))), ""
+
 
 
 # ---------------------------------------------------------------------------
@@ -124,7 +146,6 @@ def split_top_level_functions(source_code: str, language: str = "c") -> Tuple[st
             end_idx = max(start_idx, next_start_idx - 1)
             while end_idx > start_idx and not lines[end_idx].strip():
                 end_idx -= 1
-
         fn_code = "".join(lines[start_idx : end_idx + 1])
         trailing = "".join(lines[end_idx + 1 : next_start_idx])
 
@@ -308,62 +329,195 @@ class RepairJob:
         )
 
 
-def _fix_unambiguous_syntax_delimiters(src: str) -> Tuple[str, List[str]]:
+def check_c_syntax_errors(src: str) -> Tuple[bool, List[int]]:
+    """Runs gcc -fsyntax-only and returns (is_ok, err_lines)."""
+    if not src or not src.strip():
+        return True, []
+    try:
+        import subprocess, tempfile
+        with tempfile.NamedTemporaryFile(suffix=".c", mode="w", delete=False, encoding="utf-8") as tmp:
+            tmp.write(src)
+            tmp_path = tmp.name
+        try:
+            res = subprocess.run(["gcc", "-fsyntax-only", tmp_path], capture_output=True, text=True, timeout=5)
+            if res.returncode == 0:
+                return True, []
+            all_errs = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? (?:fatal )?error:", res.stderr)]
+            notes = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? note: to match this", res.stderr)]
+            all_errs.extend(notes)
+            return False, sorted(list(dict.fromkeys(all_errs)))
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+    except Exception:
+        pass
+    return True, []
+
+
+def _split_line_tokens(line: str) -> List[Tuple[str, str]]:
+    segments = []
+    i = 0
+    n = len(line)
+    code_buf = []
+    def flush():
+        if code_buf:
+            segments.append(("code", "".join(code_buf)))
+            code_buf.clear()
+    while i < n:
+        ch = line[i]
+        if ch == "/" and i + 1 < n and line[i+1] == "/":
+            flush()
+            segments.append(("noncode", line[i:]))
+            break
+        if ch == "/" and i + 1 < n and line[i+1] == "*":
+            flush()
+            j = i + 2
+            while j + 1 < n and not (line[j] == "*" and line[j+1] == "/"):
+                j += 1
+            j = min(j + 2, n)
+            segments.append(("noncode", line[i:j]))
+            i = j
+            continue
+        if ch == '"':
+            flush()
+            j = i + 1
+            while j < n:
+                if line[j] == "\\" and j + 1 < n:
+                    j += 2
+                    continue
+                if line[j] == '"':
+                    j += 1
+                    break
+                j += 1
+            segments.append(("noncode", line[i:j]))
+            i = j
+            continue
+        if ch == "'":
+            flush()
+            j = i + 1
+            while j < n:
+                if line[j] == "\\" and j + 1 < n:
+                    j += 2
+                    continue
+                if line[j] == "'":
+                    j += 1
+                    break
+                j += 1
+            segments.append(("noncode", line[i:j]))
+            i = j
+            continue
+        code_buf.append(ch)
+        i += 1
+    flush()
+    return segments
+
+
+def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
     fixes = []
+    # If no flagged lines provided, check if program is already valid C
+    if flagged_lines is None:
+        is_clean, err_lines = check_c_syntax_errors(src)
+        if is_clean or not err_lines:
+            return src, []
+        flagged_lines = set(err_lines)
+
+    if not flagged_lines:
+        return src, []
+
     lines = src.splitlines(keepends=True)
     new_lines = []
-    for i, line in enumerate(lines):
-        l = line
-        # Missing bracket in array dimension: int arr[5; -> int arr[5];
-        l2 = re.sub(r'(\[\s*\d+)\s*;', r'\1];', l)
-        if l2 != l:
-            fixes.append("Closed array dimension with missing ']'")
-            l = l2
-        # Missing comma in parameter list: int a int b -> int a, int b
-        l2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', l)
-        if l2 != l:
-            fixes.append("Inserted missing comma between parameter declarations")
-            l = l2
-        # Missing semicolon in for header: for (i = 0; i < 5 i = i + 1)
-        l2 = re.sub(r'(for\s*\([^;]+;[^;]+?)(\s+[a-zA-Z_]\w*\s*=)', r'\1;\2', l)
-        l2 = re.sub(r'(for\s*\([^;]+?)(\s+[a-zA-Z_]\w*\s*[<>=!])', r'\1;\2', l2)
-        if l2 != l:
-            fixes.append("Inserted missing semicolon in for-loop header")
-            l = l2
-        # Missing semicolon on lone break / continue
-        l2 = re.sub(r'^\s*(break|continue)\s*$', r'\g<0>;', l)
-        if l2 != l:
-            fixes.append("Inserted missing semicolon after control keyword")
-            l = l2
-        # Missing ( after if/while/for
-        if l.strip().startswith(('if ', 'while ', 'for ', 'switch ')) and l.count(')') > l.count('('):
-            l2 = re.sub(r'(\b(?:if|while|for|switch)\s+)', r'\1(', l)
-            if l2 != l:
-                fixes.append("Inserted missing '(' after control statement")
-                l = l2
-        # Missing ) before { on if/while/for
-        if l.strip().startswith(('if ', 'while ', 'for ', 'switch ')) and l.count('(') > l.count(')'):
-            diff = l.count('(') - l.count(')')
-            l2 = re.sub(r'\s*\{\s*$', ')' * diff + ' {\n', l)
-            if l2 != l:
-                fixes.append("Inserted missing ')' before statement block")
-                l = l2
-        # Missing ) before ; on function calls / expressions
-        if not l.strip().startswith(('if', 'while', 'for', 'switch')) and l.count('(') > l.count(')') and l.rstrip().endswith(';'):
-            diff = l.count('(') - l.count(')')
-            l2 = re.sub(r';\s*$', ')' * diff + ';\n', l)
-            if l2 != l:
-                fixes.append("Inserted missing ')' before statement terminator")
-                l = l2
-        # Missing semicolon on statement before next statement/return
-        if i + 1 < len(lines):
-            next_l = lines[i+1].strip()
-            if (next_l.startswith(('int ', 'char ', 'float ', 'double ', 'return', '}', 'if ', 'while ', 'for ')) and 
-                not l.strip().endswith((';', '{', '}')) and l.strip() and not l.strip().startswith(('if', 'while', 'for', 'else', '#'))):
-                l = l.rstrip('\r\n') + ';\n'
-                fixes.append("Inserted missing semicolon at end of statement")
-        new_lines.append(l)
-    return "".join(new_lines), fixes
+    for i, line in enumerate(lines, 1):
+        if i not in flagged_lines:
+            new_lines.append(line)
+            continue
+
+        # GCC commonly points at the next token for a missing semicolon. Repair an
+        # immediately preceding declaration/assignment before touching the reported
+        # line, and preserve its newline so `;` cannot leak onto a new source line.
+        if i > 1 and new_lines:
+            prev = new_lines[-1]
+            prev_code = _split_line_tokens(prev)[0][1] if _split_line_tokens(prev) else prev
+            prev_stripped = prev_code.strip()
+            curr_stripped = line.strip()
+            if (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
+                    and ((curr_stripped.startswith("}") and prev_stripped in ("break", "continue"))
+                         or (re.match(r"^(?:return\b|for\b|while\b|if\b|(?:int|char|float|double|long|short|unsigned|signed|struct)\b)", curr_stripped)
+                             and re.match(r"^(?:(?:int|char|float|double|long|short|unsigned|signed|struct\s+\w+)\b[\w\s*\[\]]*\s+\w+\s*=|[A-Za-z_]\w*\s*=)", prev_stripped)))
+                    and not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped)):
+                ending = "\r\n" if prev.endswith("\r\n") else ("\n" if prev.endswith("\n") else "")
+                new_lines[-1] = prev_code.rstrip() + ";" + (" " + prev.split("//", 1)[1].rstrip("\r\n") if "//" in prev else "") + ending
+
+        segments = _split_line_tokens(line)
+        new_segments = []
+        for kind, text in segments:
+            if kind != "code":
+                new_segments.append(text)
+                continue
+            t = text
+            # Missing bracket in array dimension: int arr[5; -> int arr[5];
+            t2 = re.sub(r'(\[\s*\d+)\s*;', r'\1];', t)
+            if t2 != t:
+                fixes.append("Closed array dimension with missing ']'")
+                t = t2
+            # Missing comma in parameter list: int a int b -> int a, int b
+            t2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', t)
+            if t2 != t:
+                fixes.append("Inserted missing comma between parameter declarations")
+                t = t2
+            # Extra parenthesis: for ((i = 0; ... -> for (i = 0; ...
+            if t.count('(') > t.count(')'):
+                t2 = re.sub(r'(\b(?:if|while|for|switch)\s*)\(\(', r'\1(', t)
+                if t2 != t:
+                    fixes.append("Removed redundant duplicate '(' in control statement")
+                    t = t2
+            # Missing semicolon in for header (only when semicolons < 2)
+            m_for = re.search(r'for\s*\(([^)]*)\)', t)
+            if m_for:
+                inside = m_for.group(1)
+                if inside.count(';') == 1:
+                    t2 = re.sub(r'(for\s*\([^;]+;\s*[^;]+?)(\s+[a-zA-Z_]\w*\s*(?:=|\+\+|--))', r'\1;\2', t)
+                    if t2 == t:
+                        t2 = re.sub(r'(for\s*\([^;]+?\s*\d+)(\s+[a-zA-Z_]\w*\s*[<>=!])', r'\1;\2', t)
+                    if t2 != t:
+                        fixes.append("Inserted missing semicolon in for-loop header")
+                        t = t2
+            # Missing semicolon on lone break / continue
+            t2 = re.sub(r'^([ \t]*(?:break|continue)[ \t]*)(\r?\n)?$', r'\1;\2', t)
+            if t2 != t:
+                fixes.append("Inserted missing semicolon after control keyword")
+                t = t2
+            # Missing ( after if/while/for
+            if t.strip().startswith(('if ', 'while ', 'for ', 'switch ')) and t.count(')') > t.count('('):
+                t2 = re.sub(r'(\b(?:if|while|for|switch)\s+)', r'\1(', t)
+                if t2 != t:
+                    fixes.append("Inserted missing '(' after control statement")
+                    t = t2
+            # Missing ) before { on if/while/for
+            if t.strip().startswith(('if ', 'while ', 'for ', 'switch ')) and t.count('(') > t.count(')'):
+                diff = t.count('(') - t.count(')')
+                t2 = re.sub(r'\s*\{\s*$', ')' * diff + ' {\n', t)
+                if t2 != t:
+                    fixes.append("Inserted missing ')' before statement block")
+                    t = t2
+            # Missing ) before ; on function calls / expressions
+            if not t.strip().startswith(('if', 'while', 'for', 'switch')) and t.count('(') > t.count(')') and t.rstrip().endswith(';'):
+                diff = t.count('(') - t.count(')')
+                t2 = re.sub(r';\s*$', ')' * diff + ';\n', t)
+                if t2 != t:
+                    fixes.append("Inserted missing ')' before statement terminator")
+                    t = t2
+            new_segments.append(t)
+        new_lines.append("".join(new_segments))
+
+    # Balanced unclosed block braces in function
+    assembled = "".join(new_lines)
+    if assembled.count('{') > assembled.count('}'):
+        diff = assembled.count('{') - assembled.count('}')
+        assembled = assembled.rstrip() + "\n" + ("}\n" * diff)
+        fixes.append(f"Balanced unclosed block braces (added {diff} '}}')")
+        return assembled, fixes
+
+    return assembled, fixes
 
 
 class RepairJobManager:
@@ -560,8 +714,12 @@ class RepairJobManager:
                                 pass
         return deleted
 
-    def start_job(self, job: RepairJob) -> None:
+    def start_job(self, job: Any) -> None:
         """Launches the job in a background daemon thread."""
+        if isinstance(job, str):
+            job = self.get_job(job)
+        if not job:
+            return
         thread = threading.Thread(
             target=self._execute_repair_job,
             args=(job,),
@@ -622,12 +780,18 @@ class RepairJobManager:
 
         t_job_start = time.perf_counter() - job.elapsed_s
         job.state = "RUNNING"
+        # A resumed/retried job can carry an error from an earlier attempt.
+        # Clear it as soon as a new attempt starts so stale failures are not
+        # shown alongside the current result.
+        job.error_message = None
         self._safe_save_job(job)
 
         # Requirement 3: Limits
         PER_WINDOW_CAP_S = float(os.environ.get("PER_WINDOW_TIMEOUT_S", 20.0))
         STALL_THRESHOLD = 3
         OVERALL_CEILING_S = float(os.environ.get("REPAIR_JOB_OVERALL_CEILING_S", 1800.0)) # 30 min default
+        FUNCTION_QWEN_BUDGET_S = float(os.environ.get("QWEN_FUNCTION_FALLBACK_BUDGET_SECONDS", 45.0))
+        function_qwen_budget_deadline = time.perf_counter() + FUNCTION_QWEN_BUDGET_S
         PARALLEL_WORKERS = int(os.environ.get("OLLAMA_NUM_PARALLEL", "1"))
 
         c_comp = SandboxedCompiler()
@@ -651,6 +815,71 @@ class RepairJobManager:
             job.function_total = len(functions)
             job.stage = f"Partitioned {len(functions)} top-level functions; starting independent repair pass..."
             self._safe_save_job(job)
+
+            # Fast path for files whose syntax errors are all covered by deterministic
+            # token/typo rules. Repair the complete source first; when it compiles,
+            # skip dozens of redundant per-function compiler/model calls.
+            deterministic_code = job.original_code
+            deterministic_steps = 0
+            deterministic_clean = False
+            if job.language == "c":
+                for _ in range(24):
+                    clean_now, error_lines, _ = _lightweight_check(deterministic_code)
+                    if clean_now:
+                        deterministic_clean = True
+                        break
+                    if not error_lines:
+                        break
+                    repair_findings = [
+                        Finding(
+                            id=f"prescan_syntax_{line}", category=FindingCategory.SYNTAX,
+                            location=SourceLocation(line=line, col=1, file_path=job.filename),
+                            explanation="Compiler syntax diagnostic in source pre-scan", evidence="",
+                            severity=FindingSeverity.HIGH, confidence=1.0, status=FindingStatus.CONFIRMED,
+                        ) for line in error_lines
+                    ]
+                    attempts = []
+                    delimiter_code, delimiter_fixes = _fix_unambiguous_syntax_delimiters(
+                        deterministic_code, set(error_lines)
+                    )
+                    if delimiter_code != deterministic_code:
+                        attempts.append((delimiter_code, delimiter_fixes))
+                    rule_code, rule_fixes = planner._apply_deterministic_rules(
+                        deterministic_code, filename=job.filename, language=job.language
+                    )
+                    if rule_code != deterministic_code:
+                        attempts.append((rule_code, rule_fixes))
+
+                    best_code, best_error_count, best_fix_count = deterministic_code, len(error_lines), 0
+                    for attempt, fixes in attempts:
+                        safe, _ = PatchIntegrityInspector.inspect(
+                            deterministic_code, attempt, original_findings=repair_findings,
+                            filename=job.filename,
+                        )
+                        if not safe:
+                            continue
+                        attempt_ok, attempt_errors, _ = _lightweight_check(attempt)
+                        attempt_count = 0 if attempt_ok else len(attempt_errors)
+                        if attempt_ok or attempt_count < best_error_count:
+                            best_code = attempt
+                            best_error_count = attempt_count
+                            best_fix_count = len(fixes) or 1
+                        if attempt_ok:
+                            break
+                    if best_code == deterministic_code:
+                        break
+                    deterministic_code = best_code
+                    deterministic_steps += best_fix_count
+                if not deterministic_clean:
+                    deterministic_clean, _, _ = _lightweight_check(deterministic_code)
+                if deterministic_clean and deterministic_code != job.original_code:
+                    preamble, functions = split_top_level_functions(deterministic_code, language=job.language)
+                    job.current_code = deterministic_code
+                    job.windows_done = deterministic_steps
+                    job.windows_by_tier["rules"] = deterministic_steps
+                    job.function_index = job.function_total
+                    job.stage = f"Deterministic repair cleared compiler errors in {deterministic_steps} repair step(s); validating full program..."
+                    self._safe_save_job(job)
 
             # Generate prototypes for context-aware single function testing
             clean_prototypes = []
@@ -679,6 +908,8 @@ class RepairJobManager:
                     test_source = fn_context_header + fn_code_str
                     ok, out, _ = c_comp.compile_check(test_source)
                     all_errs = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? (?:fatal )?error:", out)]
+                    match_notes = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? note: to match this", out)]
+                    all_errs.extend(match_notes)
                     fn_lines_cnt = len(fn_code_str.splitlines())
                     fn_errs = [err - fn_ctx_offset for err in all_errs if 1 <= (err - fn_ctx_offset) <= fn_lines_cnt]
                     if not ok and not fn_errs:
@@ -736,7 +967,7 @@ class RepairJobManager:
                             current_fn_code = det_fn
                             current_err_count = len(d_errs)
                             steps_count = len(det_steps) if det_steps else 1
-                            fn_windows_done += steps_count
+                            fn_windows_done += 1
                             fn_tier_counts["rules"] += steps_count
 
                 if job.language == "c":
@@ -747,7 +978,7 @@ class RepairJobManager:
                             current_fn_code = delim_fn
                             current_err_count = len(s_errs)
                             steps_count = len(delim_steps) if delim_steps else 1
-                            fn_windows_done += steps_count
+                            fn_windows_done += 1
                             fn_tier_counts["rules"] += steps_count
 
                 # Windowed repair loop for remaining errors in this function
@@ -794,7 +1025,8 @@ class RepairJobManager:
                         )
 
                         # Tier 2: CodeT5 (capped at 6 s)
-                        if planner.codet5_enabled and planner.codet5.is_available() and job.language == "c":
+                        if (len(job.original_code.splitlines()) <= 250 and planner.codet5_enabled
+                                and planner.codet5.is_available() and job.language == "c"):
                             try:
                                 t_c5 = time.perf_counter()
                                 raw_c5, _ = planner.codet5.generate_patch(
@@ -872,13 +1104,76 @@ class RepairJobManager:
                     if consecutive_no_progress >= STALL_THRESHOLD:
                         break
 
+                # After the localized window attempts stall, ask Qwen to return one
+                # complete function using every remaining compiler location. This
+                # prevents the three-window stall guard from silently abandoning the
+                # other fixable errors in the same function.
+                fallback_budget_left = function_qwen_budget_deadline - time.perf_counter()
+                if (f_err_lines and not f_ok and not cancel_evt.is_set()
+                        and fallback_budget_left > 1.0 and planner.ollama.is_available()):
+                    fn_findings = [
+                        Finding(
+                            id=f"whole_fn_{fn_name}_{line}",
+                            category=FindingCategory.SYNTAX,
+                            location=SourceLocation(line=line, col=1, file_path=job.filename),
+                            explanation=f"Compiler syntax error at line {line} in function {fn_name}",
+                            evidence=(current_fn_code.splitlines()[line - 1].strip() if 0 < line <= len(current_fn_code.splitlines()) else ""),
+                            severity=FindingSeverity.HIGH,
+                            confidence=1.0,
+                            status=FindingStatus.CONFIRMED,
+                        )
+                        for line in f_err_lines[:10]
+                    ]
+                    try:
+                        fn_decision = planner.ollama.coordinate_repair_decision(
+                            source_text=current_fn_code,
+                            findings=fn_findings,
+                            filename=job.filename,
+                            language=job.language,
+                            previous_feedback=(
+                                f"Return the complete corrected function. The previous localized attempts stalled. "
+                                f"Compiler error lines remaining in this function: {f_err_lines[:10]}."
+                            ),
+                            retry_index=1,
+                            model_name=getattr(planner.ollama, "default_model", "qwen2.5-coder:3b"),
+                            timeout=min(15.0, PER_WINDOW_CAP_S, fallback_budget_left),
+                        )
+                        whole_fn_candidate = fn_decision.get("candidate_code") if isinstance(fn_decision, dict) else None
+                        if whole_fn_candidate and isinstance(whole_fn_candidate, str):
+                            whole_fn_candidate = whole_fn_candidate.strip()
+                            fn_scope_ok, _ = PatchIntegrityInspector.inspect(
+                                current_fn_code,
+                                whole_fn_candidate,
+                                original_findings=fn_findings,
+                                filename=job.filename,
+                            )
+                            if fn_scope_ok:
+                                synth_ok, synth_errs, _ = _check_fn(whole_fn_candidate)
+                                if synth_ok:
+                                    current_fn_code = whole_fn_candidate
+                                    f_ok, f_err_lines, current_err_count = True, [], 0
+                                    fn_windows_done += 1
+                                    fn_tier_counts["qwen"] += 1
+                                else:
+                                    fn_skipped_windows.append({
+                                        "function": fn_name,
+                                        "target_line": f_err_lines[0],
+                                        "reason": f"whole_function_qwen_candidate_still_has_errors:{synth_errs[:5]}",
+                                    })
+                    except Exception as exc:
+                        fn_skipped_windows.append({
+                            "function": fn_name,
+                            "target_line": f_err_lines[0],
+                            "reason": f"whole_function_qwen_failed:{type(exc).__name__}",
+                        })
+
                 new_fn_dict = dict(fn_dict)
                 new_fn_dict["code"] = current_fn_code
                 return new_fn_dict, fn_windows_done, fn_skipped_windows, fn_tier_counts
 
             # Execute function repairs (sequential or optional parallel)
             repaired_functions = list(functions)
-            total_fns = len(functions)
+            total_fns = 0 if deterministic_clean and deterministic_code != job.original_code else len(functions)
 
             t_seq_start = time.perf_counter()
 
@@ -949,6 +1244,53 @@ class RepairJobManager:
             if job.language == "c":
                 whole_candidate = ensure_c_libc_headers(whole_candidate, job.original_code)
 
+                # Function-local windows can miss diagnostics whose compiler location
+                # points at the next token, or errors that cascade after an earlier
+                # delimiter fix. Run a bounded whole-program deterministic cleanup,
+                # accepting each pass only when GCC reports fewer error locations and
+                # the syntax-only integrity guard preserves computations.
+                for _ in range(24):
+                    check_ok, check_err_lines, _ = _lightweight_check(whole_candidate)
+                    if check_ok or not check_err_lines:
+                        break
+                    repair_findings = [
+                        Finding(
+                            id=f"final_syntax_{line}", category=FindingCategory.SYNTAX,
+                            location=SourceLocation(line=line, col=1, file_path=job.filename),
+                            explanation="Compiler syntax diagnostic in final assembled source",
+                            evidence="", severity=FindingSeverity.HIGH, confidence=1.0,
+                            status=FindingStatus.CONFIRMED,
+                        ) for line in check_err_lines
+                    ]
+                    best_code = whole_candidate
+                    best_error_count = len(check_err_lines)
+                    deterministic_attempts = []
+                    delim_code, _ = _fix_unambiguous_syntax_delimiters(whole_candidate, set(check_err_lines))
+                    if delim_code != whole_candidate:
+                        deterministic_attempts.append(delim_code)
+                    rule_code, _ = planner._apply_deterministic_rules(
+                        whole_candidate, filename=job.filename, language=job.language
+                    )
+                    if rule_code != whole_candidate:
+                        deterministic_attempts.append(rule_code)
+                    for attempt in deterministic_attempts:
+                        safe, _ = PatchIntegrityInspector.inspect(
+                            whole_candidate, attempt, original_findings=repair_findings,
+                            filename=job.filename,
+                        )
+                        if not safe:
+                            continue
+                        attempt_ok, attempt_errs, _ = _lightweight_check(attempt)
+                        attempt_count = len(attempt_errs)
+                        if attempt_ok:
+                            best_code, best_error_count = attempt, 0
+                            break
+                        if attempt_count < best_error_count:
+                            best_code, best_error_count = attempt, attempt_count
+                    if best_code == whole_candidate:
+                        break
+                    whole_candidate = best_code
+
             orig_ok, orig_errs, _ = _lightweight_check(job.original_code)
             w_ok, w_errs, _ = _lightweight_check(whole_candidate)
 
@@ -1003,43 +1345,192 @@ class RepairJobManager:
             # Update proposed candidate with the verified multi-function result
             if final_adopted_code.strip() != job.original_code.strip():
                 final_ok, final_errs, _ = _lightweight_check(final_adopted_code)
+                # The standard planner creates the review candidate before the job manager
+                # assembles its final multi-function source. Revalidate that exact source
+                # and update the registry entry too; otherwise Apply can approve a different
+                # (usually partial) buffer than the code shown in the review card.
+                original_findings = plan_res.get("findings", []) or []
+                final_validation = planner.validator.validate_patch(
+                    original_code=job.original_code,
+                    candidate_code=final_adopted_code,
+                    filename=job.filename,
+                    language=job.language,
+                    original_findings=original_findings,
+                )
+                from types import SimpleNamespace
+                def _is_repair_objective(finding: Any) -> bool:
+                    if isinstance(finding, dict):
+                        finding = SimpleNamespace(**finding)
+                    return planner.is_repair_objective_finding(finding)
+
+                final_actionable = [
+                    f for f in final_validation.unresolved_findings
+                    if _is_repair_objective(f)
+                ]
+                if not final_ok and not final_actionable:
+                    final_actionable = [
+                        {
+                            "category": "SYNTAX",
+                            "severity": "HIGH",
+                            "line": line,
+                            "explanation": "Compiler still reports a syntax error in the final candidate.",
+                        }
+                        for line in final_errs[:20]
+                    ]
+                final_diff = planner._generate_diff(job.original_code, final_adopted_code, job.filename) if hasattr(planner, "_generate_diff") else ""
+                if not final_diff and final_adopted_code != job.original_code:
+                    diff_lines = list(difflib.unified_diff(
+                        job.original_code.splitlines(keepends=True),
+                        final_adopted_code.splitlines(keepends=True),
+                        fromfile=f"a/{job.filename}",
+                        tofile=f"b/{job.filename}",
+                    ))
+                    final_diff = "".join(diff_lines)
                 plan_res["proposed_code"] = final_adopted_code
                 plan_res["candidate_code"] = final_adopted_code
-                plan_res["diff"] = planner._generate_diff(job.original_code, final_adopted_code, job.filename) if hasattr(planner, "_generate_diff") else ""
+                plan_res["diff"] = final_diff
+                plan_res["unified_diff"] = final_diff
                 plan_res["compiles"] = final_ok
-                remaining_findings = plan_res.get("security_findings", []) or plan_res.get("findings", [])
+                plan_res["validation_report"] = final_validation.to_dict()
+                plan_res["validation_passed"] = bool(final_validation.is_valid and final_ok and not final_actionable)
+                plan_res["is_valid"] = plan_res["validation_passed"]
+                plan_res["findings_after"] = len(final_actionable)
+                plan_res["fixes_remaining_count"] = len(final_actionable)
+                original_actionable_count = len([f for f in original_findings if _is_repair_objective(f)])
+                plan_res["fixes_applied_count"] = max(0, original_actionable_count - len(final_actionable))
+                plan_res["remaining_findings"] = [f.to_dict() if hasattr(f, "to_dict") else f for f in final_actionable]
+                plan_res["unresolved_findings"] = [f.to_dict() if hasattr(f, "to_dict") else f for f in final_actionable]
+                plan_res["findings"] = [f.to_dict() if hasattr(f, "to_dict") else f for f in original_findings]
+                plan_res["candidate_source_hash"] = planner._sha256(final_adopted_code)
+                plan_res["candidate_hash"] = plan_res["candidate_source_hash"]
+                # The planner's initial proposed_scores describe its own candidate,
+                # which the function manager may subsequently replace. Re-score the
+                # exact assembled candidate so the UI never shows stale before/after
+                # metrics for a different buffer.
                 try:
-                    from agents.security_agent import SecurityAgent
-                    sec_rep = SecurityAgent().analyze(final_adopted_code, filename=job.filename)
-                    remaining_findings = sec_rep.get("findings", []) if isinstance(sec_rep, dict) else (getattr(sec_rep, "findings", []) or remaining_findings)
-                except Exception:
-                    pass
-                stat, lbl, msg = _classify_program_status(final_adopted_code, remaining_findings, lang_id=job.language)
-                if stat == "CLEAN" and job.windows_done > 0:
+                    _, final_scores = planner.analyze_program(
+                        source_code=final_adopted_code,
+                        filename=job.filename,
+                        language=job.language,
+                        is_reanalysis=True,
+                    )
+                    from compiler.repair_planner import calculate_six_metrics
+                    final_scores["six_metrics"] = calculate_six_metrics(
+                        source_code=final_adopted_code,
+                        filename=job.filename,
+                        language=job.language,
+                        findings=final_validation.unresolved_findings,
+                        validation_report=final_validation.to_dict(),
+                    )
+                    final_scores["repair_validation_success"] = final_scores["six_metrics"].get("repair_validation_success")
+                    plan_res["proposed_scores"] = final_scores
+                    plan_res["candidate_assessment"] = final_scores
+                except Exception as metrics_err:
+                    logger.warning("Could not score final assembled repair candidate: %s", metrics_err)
+                stat, lbl, msg = _classify_program_status(final_adopted_code, final_actionable, lang_id=job.language)
+                fully_repaired = bool(final_ok and not final_actionable and final_validation.is_valid)
+                if fully_repaired:
                     stat = "FULLY_REPAIRED"
+                elif final_actionable:
+                    stat = "PARTIALLY_REPAIRED"
+                elif not final_ok or not final_validation.is_valid:
+                    stat = "VALIDATION_FAILED"
                 plan_res["status"] = stat
                 plan_res["workflow_state"] = stat
                 plan_res["terminal_status"] = stat
                 plan_res["windows_processed"] = job.windows_done
                 plan_res["skipped_windows"] = job.skipped_windows
-                if "candidate" in plan_res and isinstance(plan_res["candidate"], dict):
-                    plan_res["candidate"]["proposed_code"] = final_adopted_code
-                    plan_res["candidate"]["compiles"] = final_ok
-                    plan_res["candidate"]["diff"] = plan_res["diff"]
+                plan_res["stopping_reason"] = (
+                    f"Full repair validated across {job.windows_done} repair window(s)."
+                    if fully_repaired else
+                    f"Processed {job.windows_done} repair window(s); {len(final_actionable)} actionable issue(s) remain. "
+                    f"{final_validation.explanation or msg or 'The full candidate did not pass all validation checks.'}"
+                )
+
+                candidate_id = plan_res.get("candidate_id")
+                if candidate_id:
+                    from compiler.improvement_advisor import candidate_registry, DecisionState
+                    candidate_obj = candidate_registry.get(candidate_id)
+                    if candidate_obj:
+                        candidate_obj.proposed_code = final_adopted_code
+                        candidate_obj.proposed_source_hash = planner._sha256(final_adopted_code)
+                        candidate_obj.unified_diff = plan_res["diff"]
+                        candidate_obj.validation_report = final_validation.to_dict()
+                        candidate_obj.validation_passed = plan_res["validation_passed"]
+                        candidate_obj.is_eligible_for_application = plan_res["validation_passed"]
+                        candidate_obj.validation_state = (
+                            DecisionState.VALIDATED.value if plan_res["validation_passed"]
+                            else DecisionState.VALIDATION_FAILED.value
+                        )
+                        candidate_obj.user_decision_state = (
+                            DecisionState.AWAITING_USER_DECISION.value if plan_res["validation_passed"]
+                            else DecisionState.VALIDATION_FAILED.value
+                        )
+                        candidate_registry.update(candidate_obj)
+                        candidate_data = candidate_obj.to_dict()
+                        candidate_data.update({
+                            "proposed_code": final_adopted_code,
+                            "diff": plan_res["diff"],
+                            "unified_diff": plan_res["diff"],
+                            "validation": final_validation.to_dict(),
+                            "is_valid": plan_res["validation_passed"],
+                            "candidate_source_hash": plan_res["candidate_source_hash"],
+                        })
+                        plan_res["candidate"] = candidate_data
+                job.stage = "Whole-program repair validated." if fully_repaired else plan_res["stopping_reason"]
 
             plan_res["can_continue_repair"] = False
             plan_res["round"] = 1
             plan_res["job_id"] = job.job_id
             plan_res["skipped_windows"] = job.skipped_windows
             plan_res["total_wall_time_s"] = round(time.perf_counter() - t_job_start, 2)
-            plan_res["stopping_reason"] = "completed" if job.windows_done > 0 else "clean_or_unmodified"
+            final_stat = plan_res.get("status") or plan_res.get("terminal_status") or "COMPLETED"
+            if job.windows_done > 0 and plan_res.get("status") == "FULLY_REPAIRED":
+                plan_res["stopping_reason"] = f"All actionable issues passed validation after {job.windows_done} repair steps."
+                job.stage = f"Full repair validated after {job.windows_done} repair steps."
+            elif plan_res.get("fixes_remaining_count", 0) > 0:
+                plan_res["stopping_reason"] = (
+                    f"Processed {job.windows_done} repair steps; "
+                    f"{plan_res['fixes_remaining_count']} actionable issue(s) remain. "
+                    f"{plan_res.get('validation_report', {}).get('explanation', 'The full candidate did not pass all validation checks.')}"
+                )
+                job.stage = plan_res["stopping_reason"]
+            elif final_stat in ("VALIDATION_FAILED", "COMPILATION_FAILED", "PARTIALLY_REPAIRED"):
+                # Do not replace a concrete validator failure with the generic
+                # "reviewing whole-program validation" text. Keep the failing stage
+                # and its actual diagnostic visible to the user.
+                report = plan_res.get("validation_report", {})
+                stage_results = report.get("stage_results", {}) if isinstance(report, dict) else {}
+                failed_stages = [
+                    f"{name}: {stage.get('message')}"
+                    for name, stage in stage_results.items()
+                    if isinstance(stage, dict) and stage.get("passed") is False and stage.get("message")
+                ]
+                detail = report.get("explanation") if isinstance(report, dict) else None
+                detail = detail or "; ".join(failed_stages) or "The full candidate did not pass required validation."
+                plan_res["stopping_reason"] = f"Repair is not ready to apply: {detail}"
+                job.stage = plan_res["stopping_reason"]
+            elif job.windows_done > 0:
+                plan_res["stopping_reason"] = f"Processed {job.windows_done} repair steps; reviewing whole-program validation."
+                job.stage = plan_res["stopping_reason"]
+            elif final_stat in ("CLEAN", "VALID_NO_FINDINGS"):
+                plan_res["stopping_reason"] = "Source code verified clean with zero compiler errors."
+                job.stage = "Repair job finished: program is clean with zero syntax errors."
+            elif final_stat in ("REPAIR_UNAVAILABLE", "UNRESOLVED", "COMPILATION_FAILED"):
+                reason_detail = plan_res.get("stopping_reason") or "No candidate repairs passed compiler validation across attempted tiers."
+                plan_res["stopping_reason"] = reason_detail
+                job.stage = reason_detail
+            else:
+                plan_res["stopping_reason"] = plan_res.get("stopping_reason") or "No further automated repairs could be applied."
+                job.stage = plan_res["stopping_reason"]
+
             if not plan_res.get("proposed_code"):
                 plan_res["proposed_code"] = final_adopted_code
 
             job.result = plan_res
             job.current_code = final_adopted_code
             job.state = "COMPLETED"
-            job.stage = "Repair job completed successfully."
+            job.error_message = None
             job.elapsed_s = time.perf_counter() - t_job_start
             job.estimated_total_s = job.elapsed_s
             self._safe_save_job(job)

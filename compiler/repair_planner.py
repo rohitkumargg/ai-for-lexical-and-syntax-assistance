@@ -121,7 +121,12 @@ class CoordinatedFinding:
     exploit_scenario: str = ""
     potential_impact: str = ""
     recommended_mitigation: str = ""
+    mitigation: str = ""
     is_confirmed: bool = True
+    why_dangerous: str = ""
+    problem: str = ""
+    source_line: Optional[int] = None
+    sink_line: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -458,17 +463,13 @@ def _classify_program_status(
     Classifies the program's terminal status based on compiler validation and findings.
     Returns: (status, label, message)
     """
-    if not findings:
-        return "CLEAN", "Program is Clean, 0 Errors / 0 Vulnerabilities", "Source code has zero compiler errors or security issues."
-
     is_clean_gcc = True
-    if lang_id == "c":
+    if lang_id in ("c", "cpp", "c++"):
         try:
-            from compiler.patch_validator import SandboxedCompiler, ensure_c_libc_headers
+            from compiler.patch_validator import SandboxedCompiler
             c_comp = SandboxedCompiler()
             if c_comp.is_available():
-                test_code = ensure_c_libc_headers(code)
-                is_clean_gcc, _, _ = c_comp.compile_check(test_code)
+                is_clean_gcc, gcc_out, _ = c_comp.compile_check(code)
             else:
                 is_clean_gcc = not any(
                     str(getattr(f, "category", "")).upper() in ("SYNTAX", "SEMANTIC", "LEXICAL")
@@ -479,7 +480,12 @@ def _classify_program_status(
             is_clean_gcc = False
 
     if not is_clean_gcc:
-        return default_status, default_status, default_reason
+        err_msg = default_reason or "Source code fails GCC compiler syntax check."
+        return "COMPILATION_FAILED", "Compilation Failed", err_msg
+
+    if not findings:
+        assert is_clean_gcc, f"Contradiction: program cannot be classified as CLEAN while gcc compilation fails (gcc output: {gcc_out if 'gcc_out' in locals() else 'error'})"
+        return "CLEAN", "Program is Clean, 0 Errors / 0 Vulnerabilities", "Source code has zero compiler errors or security issues."
 
     sec_findings = [
         f for f in findings
@@ -614,8 +620,45 @@ class RepairPlanner:
                 title = f"Undeclared identifier: {f.explanation.split('undeclared identifier')[-1].strip().strip('\'\"')}"
             elif "syntax" in f.category.value.lower() or "missing" in f.explanation.lower():
                 title = f"Syntax error: {f.explanation}"
-            elif f.metadata.get("cwe_id"):
-                title = f"Security: {f.explanation} ({f.metadata.get('cwe_id')})"
+            cwe_id_val = f.metadata.get("cwe_id")
+            rule_id_val = f.metadata.get("rule_id") or f.metadata.get("rule")
+            if not cwe_id_val and rule_id_val and "CWE-" in str(rule_id_val):
+                m_cwe = re.search(r'CWE-(\d+)', str(rule_id_val))
+                if m_cwe:
+                    cwe_id_val = f"CWE-{m_cwe.group(1)}"
+            if not cwe_id_val and "CWE-" in str(f.explanation):
+                m_cwe = re.search(r'CWE-(\d+)', str(f.explanation))
+                if m_cwe:
+                    cwe_id_val = f"CWE-{m_cwe.group(1)}"
+
+            # Extract source and sink lines if present in explanation or evidence
+            src_line = f.metadata.get("source_line")
+            snk_line = f.metadata.get("sink_line") or f.location.line
+            m_flow = re.search(r'source line\s*(\d+)\s*->\s*sink line\s*(\d+)', f.explanation, re.IGNORECASE)
+            if m_flow:
+                src_line = int(m_flow.group(1))
+                snk_line = int(m_flow.group(2))
+            elif not src_line:
+                m_flow2 = re.search(r'flows from line\s*(\d+)\s*to\s*.*?\s*at line\s*(\d+)', f.explanation, re.IGNORECASE)
+                if m_flow2:
+                    src_line = int(m_flow2.group(1))
+                    snk_line = int(m_flow2.group(2))
+
+            why_dang = ""
+            prob = ""
+            pot_imp = ""
+            rec_mit = ""
+            if cat_name == "SECURITY" or cwe_id_val:
+                sec_det = self._explain_security_details(cwe_id_val, cat_name, f.explanation)
+                why_dang = sec_det.get("why_dangerous", "")
+                prob = sec_det.get("problem", "")
+                pot_imp = sec_det.get("potential_impact", "")
+                rec_mit = sec_det.get("recommended_mitigation", "")
+                consequence = why_dang or consequence
+                how_to_fix = rec_mit or how_to_fix
+
+            elif cwe_id_val:
+                title = f"Security: {f.explanation} ({cwe_id_val})"
 
             c_f = CoordinatedFinding(
                 id=f.id,
@@ -629,12 +672,20 @@ class RepairPlanner:
                 consequence=consequence,
                 how_to_fix=how_to_fix,
                 evidence=f.evidence,
-                cwe_id=f.metadata.get("cwe_id"),
-                rule_id=f.metadata.get("rule_id") or f.metadata.get("rule"),
-                rule=f.metadata.get("rule_id") or f.metadata.get("rule"),
+                cwe_id=cwe_id_val,
+                rule_id=rule_id_val,
+                rule=rule_id_val,
                 is_root_cause=f.is_root_cause,
                 proposed_snippet=f.suggested_corrections[0].replacement_text if f.suggested_corrections else None,
+                exploit_scenario=why_dang,
+                potential_impact=pot_imp,
+                recommended_mitigation=rec_mit,
+                mitigation=rec_mit,
                 is_confirmed=(stat_name == "CONFIRMED"),
+                why_dangerous=why_dang,
+                problem=prob,
+                source_line=src_line,
+                sink_line=snk_line,
             )
             coordinated_findings.append(c_f)
 
@@ -745,6 +796,8 @@ class RepairPlanner:
                         sec_details = self._explain_security_details(vuln.cwe_id, vuln.category, vuln.potential_impact or "")
                         rule_part = f"{vuln.rule_id} ({vuln.cwe_id})" if vuln.rule_id and vuln.cwe_id else (vuln.rule_id or vuln.cwe_id or "")
                         title_str = f"Security: {vuln.category.replace('_', ' ').title()} ({rule_part})" if rule_part else f"Security: {vuln.category.replace('_', ' ').title()}"
+                        v_src_line = getattr(vuln, "source_line", None)
+                        v_sink_line = getattr(vuln, "sink_line", None) or vuln.line
                         c_f = CoordinatedFinding(
                             id=vuln.id,
                             category="SECURITY",
@@ -765,6 +818,10 @@ class RepairPlanner:
                             potential_impact=sec_details["potential_impact"],
                             recommended_mitigation=sec_details["recommended_mitigation"],
                             is_confirmed=(vuln.status.upper() == "CONFIRMED"),
+                            why_dangerous=sec_details.get("why_dangerous", ""),
+                            problem=sec_details.get("problem", ""),
+                            source_line=v_src_line,
+                            sink_line=v_sink_line,
                         )
                         coordinated_findings.append(c_f)
             except Exception as sec_exc:
@@ -1086,49 +1143,15 @@ class RepairPlanner:
 
     @staticmethod
     def _explain_security_details(cwe_id: Optional[str], category: str, raw_impact: str) -> Dict[str, str]:
-        cwe = (cwe_id or "").upper()
-        cat = category.upper()
-
-        if "CWE-190" in cwe or "OVERFLOW" in cat:
-            return {
-                "consequence": "Integer calculation wraps around. In memory allocation or loops, this causes buffer sizing corruption or infinite loops.",
-                "exploit_scenario": "An attacker supplies boundary values (e.g., INT_MAX or values causing wrap-around) so calculations result in undersized buffer allocations followed by heap overflow.",
-                "potential_impact": "Critical / High: Heap corruption, memory corruption, and potential execution flow diversion.",
-                "recommended_mitigation": "Use wider data types (`long long`) and cast operands explicitly: e.g., `(long long)operand + 1`, or assert bounds prior to arithmetic.",
-            }
-        if "CWE-120" in cwe or "BUFFER" in cat:
-            return {
-                "consequence": "Unbounded buffer operations copy data beyond the allocated destination array boundary.",
-                "exploit_scenario": "An attacker provides input exceeding the designated buffer length, smashing adjacent stack frames, return pointers, or function pointers.",
-                "potential_impact": "Critical: Arbitrary code execution, full host takeover, and stack integrity destruction.",
-                "recommended_mitigation": "Replace unbounded functions with safe alternatives specifying buffer capacity (e.g., `fgets`, `strncpy`, `snprintf`), and ensure explicit null-termination.",
-            }
-        if "CWE-134" in cwe or "FORMAT" in cat:
-            return {
-                "consequence": "Passing user-controlled input as a format string permits arbitrary read and write operations via format specifiers.",
-                "exploit_scenario": "An attacker passes `%x` or `%s` to leak stack memory and secret tokens, or `%n` to overwrite arbitrary pointers in memory.",
-                "potential_impact": "Critical: Information disclosure, ASLR defeat, and arbitrary memory write.",
-                "recommended_mitigation": "Always specify a constant format string literal (e.g. `printf(\"%s\", user_str);`) rather than passing external variables directly.",
-            }
-        if "CWE-476" in cwe or "NULL" in cat:
-            return {
-                "consequence": "Dereferencing a null pointer immediately causes a segmentation fault and application termination.",
-                "exploit_scenario": "An attacker forces conditions where an allocation or lookup returns NULL, then triggers access to crash the service.",
-                "potential_impact": "High / Medium: Application crash, Denial of Service (DoS).",
-                "recommended_mitigation": "Add an explicit check (`if (ptr == NULL) { return -1; }`) immediately following acquisition before dereferencing.",
-            }
-        if "CWE-457" in cwe or "UNINIT" in cat:
-            return {
-                "consequence": "Reading uninitialized variables introduces indeterminate values into program logic.",
-                "exploit_scenario": "An attacker observes uninitialized stack memory contents or causes nondeterministic branching based on residual memory values.",
-                "potential_impact": "Medium: Information disclosure and unpredictable runtime behavior.",
-                "recommended_mitigation": "Explicitly initialize variables at declaration (e.g., `int x = 0;`).",
-            }
+        from compiler.cwe_catalog import get_cwe_details
+        details = get_cwe_details(cwe_id or category)
         return {
-            "consequence": "Security policy violation that compromises program confidentiality, integrity, or availability.",
-            "exploit_scenario": "An attacker triggers the unvalidated code path to exploit lack of validation or resource limits.",
-            "potential_impact": raw_impact or "Medium / High: Undefined behavior, memory corruption, or service degradation.",
-            "recommended_mitigation": "Apply safe standard library constructs and explicit bounds/range validation.",
+            "problem": details.get("problem", ""),
+            "why_dangerous": details.get("why_dangerous", ""),
+            "consequence": details.get("why_dangerous", ""),
+            "exploit_scenario": details.get("why_dangerous", ""),
+            "potential_impact": details.get("potential_impact", "") or raw_impact,
+            "recommended_mitigation": details.get("mitigation", ""),
         }
 
     def validate_candidate(
@@ -1364,6 +1387,19 @@ class RepairPlanner:
                 })
 
         return sec_findings
+
+    @staticmethod
+    def _generate_diff(original: str, candidate: str, filename: str = "source.c") -> str:
+        if not original or not candidate or original == candidate:
+            return ""
+        diff_lines = list(difflib.unified_diff(
+            original.splitlines(keepends=True),
+            candidate.splitlines(keepends=True),
+            fromfile=f"a/{filename}",
+            tofile=f"b/{filename}",
+            n=3,
+        ))
+        return "".join(diff_lines)
 
     @staticmethod
     def _build_repair_plan(
@@ -1669,6 +1705,7 @@ class RepairPlanner:
         language: str = "c",
         findings: Optional[List[Any]] = None,
         deadline: Optional[float] = None,
+        flagged_lines: Optional[Set[int]] = None,
     ) -> Tuple[str, List[str]]:
         """
         Stage 6 Deterministic Rule Engine.
@@ -1682,6 +1719,24 @@ class RepairPlanner:
         applied_steps: List[str] = []
 
         if language == "c":
+            # Requirement 1: Do-no-harm on valid C code.
+            # If the code compiles cleanly, deterministic rules must leave it byte-identical.
+            from compiler.repair_job_manager import check_c_syntax_errors
+            if flagged_lines is None:
+                if findings:
+                    flagged_lines = {
+                        _get_f_line(f) for f in findings
+                        if _get_f_line(f) is not None
+                    }
+                else:
+                    is_clean, err_lines = check_c_syntax_errors(source_code)
+                    if is_clean or not err_lines:
+                        return source_code, []
+                    flagged_lines = set(err_lines)
+
+            if not flagged_lines:
+                return source_code, []
+
             # 1. Lexical corrections (character normalizations & keyword typos)
             try:
                 from compiler.lexical_corrector import fix_common_lexical_issues
@@ -1731,26 +1786,252 @@ class RepairPlanner:
             except Exception:
                 pass
 
-            # Delimiter normalization: missing comma between numeric literal arguments
+            # Delimiter normalization: missing comma between numeric literal or identifier arguments (token-aware & line-gated)
             try:
-                def _fix_missing_argument_commas(src: str) -> Tuple[str, List[str]]:
+                def _fix_missing_argument_commas(src: str, f_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
+                    if f_lines is None or len(f_lines) == 0:
+                        from compiler.repair_job_manager import _lightweight_check
+                        is_ok, errs, _ = _lightweight_check(src)
+                        if is_ok or not errs:
+                            return src, []
+                        f_lines = set(errs)
+                    if not f_lines:
+                        return src, []
                     fixes = []
                     lines = src.splitlines(keepends=True)
                     new_lines = []
-                    for line in lines:
-                        if re.search(r'\b\d+\s+\d+\b', line):
-                            fixed_line = re.sub(r'(\b\d+)\s+(\d+\b)', r'\1, \2', line)
-                            if fixed_line != line:
-                                fixes.append("Inserted missing comma between argument literals")
-                                new_lines.append(fixed_line)
+                    from compiler.repair_job_manager import _split_line_tokens
+                    for l_idx, line in enumerate(lines, 1):
+                        if l_idx not in f_lines and (l_idx + 1) not in f_lines and (l_idx - 1) not in f_lines:
+                            new_lines.append(line)
+                            continue
+                        segs = _split_line_tokens(line)
+                        new_segs = []
+                        for kind, seg in segs:
+                            if kind == "code":
+                                # Control headers use whitespace as syntax (`if x > 0)`);
+                                # the generic missing-argument-comma rule must never turn
+                                # these keywords into invalid identifiers such as `if,`.
+                                if re.match(r"^\s*(?:if|while|for|switch)\b", seg):
+                                    new_segs.append(seg)
+                                    continue
+                                if re.search(r'\b\d+\s+\d+\b', seg):
+                                    f_seg = re.sub(r'(\b\d+)\s+(\d+\b)', r'\1, \2', seg)
+                                    if f_seg != seg:
+                                        fixes.append("Inserted missing comma between argument literals")
+                                        new_segs.append(f_seg)
+                                        continue
+                                if re.search(r'\b([a-zA-Z_]\w*)\s+([a-zA-Z_]\w*)\b', seg) and not re.search(r'\b(int|char|void|float|double|long|short|unsigned|signed|struct)\s+', seg):
+                                    f_seg = re.sub(r'(\b[a-zA-Z_]\w*)\s+([a-zA-Z_]\w*\b)', r'\1, \2', seg)
+                                    if f_seg != seg:
+                                        fixes.append("Inserted missing comma between identifier arguments")
+                                        new_segs.append(f_seg)
+                                        continue
+                            new_segs.append(seg)
+                        new_lines.append("".join(new_segs))
+                    return "".join(new_lines), fixes
+
+                # These token repairs are syntax-only. Feeding security/semantic
+                # finding lines into the broad text heuristics can mutate valid
+                # declarations (for example, the two words in `long long`).
+                syntax_findings = []
+                for finding in findings or []:
+                    category = (finding.get("category", "") if isinstance(finding, dict)
+                                else getattr(finding, "category", ""))
+                    category = category.value if hasattr(category, "value") else str(category)
+                    rule_id = (finding.get("rule_id", "") if isinstance(finding, dict)
+                               else getattr(finding, "rule_id", ""))
+                    if category.upper() in ("SYNTAX", "LEXICAL") or "SYNTAX" in str(rule_id).upper():
+                        syntax_findings.append(finding)
+                f_lines_set = {
+                    _get_f_line(f) for f in syntax_findings if _get_f_line(f) is not None
+                } if syntax_findings else set()
+                # Finding categories can be merged or incomplete by upstream
+                # analyzers. Confirm the current C source still has a compiler
+                # syntax error before applying broad delimiter guesses; otherwise
+                # a valid statement (e.g. `return x > 0;`) can be rewritten.
+                try:
+                    from compiler.repair_job_manager import check_c_syntax_errors
+                    syntax_guessing_allowed, _ = check_c_syntax_errors(current_code)
+                    syntax_guessing_allowed = not syntax_guessing_allowed
+                except Exception:
+                    syntax_guessing_allowed = False
+                # Do not run syntax-token guessing for security-only or semantic-only
+                # findings. Its fallback parser scan can otherwise mistake valid text
+                # such as `return x` for a missing comma and corrupt an unrelated fix.
+                if syntax_findings and syntax_guessing_allowed:
+                    comma_src, comma_steps = _fix_missing_argument_commas(current_code, f_lines=f_lines_set)
+                    if comma_steps and comma_src != current_code:
+                        current_code = comma_src
+                        applied_steps.extend(comma_steps)
+            except Exception:
+                pass
+
+            # Stray token removal (token-aware & line-gated)
+            try:
+                def _fix_stray_tokens(src: str, f_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
+                    if f_lines is None or len(f_lines) == 0:
+                        from compiler.repair_job_manager import _lightweight_check
+                        is_ok, errs, _ = _lightweight_check(src)
+                        if is_ok or not errs:
+                            return src, []
+                        f_lines = set(errs)
+                    if not f_lines:
+                        return src, []
+                    fixes = []
+                    lines = src.splitlines(keepends=True)
+                    new_lines = []
+                    for l_idx, line in enumerate(lines, 1):
+                        if l_idx in f_lines or (l_idx - 1) in f_lines or (l_idx + 1) in f_lines:
+                            # If line contains standalone stray tokens @, $, or ` (never strip #)
+                            if re.search(r'^\s*[@$`]\s*$', line):
+                                fixes.append("Removed stray token character")
+                                continue
+                            if re.search(r'\breturn\s*,\s*', line):
+                                f_line = re.sub(r'\breturn\s*,\s*', 'return ', line)
+                                if f_line != line:
+                                    fixes.append("Removed stray comma after return statement")
+                                    new_lines.append(f_line)
+                                    continue
+                            f_line = re.sub(r'[@$`]', '', line)
+                            if f_line != line:
+                                fixes.append("Removed stray token character")
+                                new_lines.append(f_line)
                                 continue
                         new_lines.append(line)
                     return "".join(new_lines), fixes
 
-                comma_src, comma_steps = _fix_missing_argument_commas(current_code)
-                if comma_steps and comma_src != current_code:
-                    current_code = comma_src
-                    applied_steps.extend(comma_steps)
+                if syntax_findings and syntax_guessing_allowed:
+                    stray_src, stray_steps = _fix_stray_tokens(current_code, f_lines=f_lines_set)
+                    if stray_steps and stray_src != current_code:
+                        current_code = stray_src
+                        applied_steps.extend(stray_steps)
+            except Exception:
+                pass
+
+            # Misspelled identifier correction by edit distance (Levenshtein <= 2)
+            try:
+                def _lev(s1: str, s2: str) -> int:
+                    if len(s1) < len(s2):
+                        return _lev(s2, s1)
+                    if len(s2) == 0:
+                        return len(s1)
+                    prev = list(range(len(s2) + 1))
+                    for i, c1 in enumerate(s1):
+                        curr = [i + 1]
+                        for j, c2 in enumerate(s2):
+                            curr.append(min(prev[j + 1] + 1, curr[j] + 1, prev[j] + (0 if c1 == c2 else 1)))
+                        prev = curr
+                    return prev[-1]
+
+                def _fix_misspelled_identifiers(src: str) -> Tuple[str, List[str]]:
+                    from compiler.repair_job_manager import _lightweight_check
+                    is_ok, err_lines, out = _lightweight_check(src)
+                    if is_ok or not err_lines:
+                        return src, []
+                    # Check for undeclared identifiers in GCC output
+                    und_matches = re.findall(r"error:\s*['`]([a-zA-Z_]\w*)['`]\s*undeclared", out)
+                    did_mean = re.findall(r"did you mean\s*['`]([a-zA-Z_]\w*)['`]", out)
+                    if not und_matches and not did_mean:
+                        return src, []
+                    # Extract declared identifiers from file declarations
+                    declared = set(re.findall(r"\b(?:int|char|float|double|void|long|short|unsigned|signed|size_t|bool)\s+(?:\*+\s*)?([a-zA-Z_]\w*)", src))
+                    declared.update(re.findall(r"\b([a-zA-Z_]\w*)\s*\(", src))
+                    # Extract names declared by the headers the file includes
+                    STANDARD_HEADER_SYMBOLS = {
+                        "stdio.h": {"printf", "scanf", "fprintf", "sprintf", "snprintf", "fopen", "fclose", "fread", "fwrite", "fputs", "fgets", "puts", "getchar", "putchar", "perror", "stdin", "stdout", "stderr", "NULL", "EOF", "FILE", "size_t"},
+                        "stdlib.h": {"malloc", "free", "calloc", "realloc", "exit", "abort", "atoi", "atol", "atof", "strtol", "strtoul", "rand", "srand", "qsort", "bsearch", "abs", "labs", "NULL", "size_t"},
+                        "string.h": {"strlen", "strcpy", "strncpy", "strcat", "strncat", "strcmp", "strncmp", "strchr", "strrchr", "strstr", "strtok", "memcpy", "memmove", "memset", "memcmp", "memchr", "NULL", "size_t"},
+                        "math.h": {"sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "pow", "sqrt", "ceil", "floor", "fabs", "fmod"},
+                        "ctype.h": {"isalpha", "isdigit", "isalnum", "isspace", "isupper", "islower", "toupper", "tolower"},
+                        "stdbool.h": {"bool", "true", "false"},
+                        "stddef.h": {"NULL", "size_t", "ptrdiff_t"},
+                        "stdint.h": {"int8_t", "int16_t", "int32_t", "int64_t", "uint8_t", "uint16_t", "uint32_t", "uint64_t"},
+                    }
+                    included_headers = re.findall(r'#include\s*<([a-zA-Z0-9_\.]+)>', src)
+                    for hdr in included_headers:
+                        if hdr in STANDARD_HEADER_SYMBOLS:
+                            declared.update(STANDARD_HEADER_SYMBOLS[hdr])
+                    fixes = []
+                    res_code = src
+                    for bad_name in und_matches:
+                        if len(bad_name) <= 2 and not did_mean:
+                            continue
+                        max_dist = 1 if len(bad_name) <= 4 else 2
+                        # Find best match in declared
+                        cands = [d for d in declared if _lev(bad_name, d) <= max_dist and bad_name != d]
+                        if did_mean and did_mean[0] in declared:
+                            target = did_mean[0]
+                        elif cands:
+                            target = min(cands, key=lambda c: _lev(bad_name, c))
+                        else:
+                            continue
+                        # Try replacing bad_name on flagged error lines
+                        lines = res_code.splitlines(keepends=True)
+                        for el in err_lines:
+                            if 1 <= el <= len(lines):
+                                orig_l = lines[el - 1]
+                                new_l = re.sub(r'\b' + re.escape(bad_name) + r'\b', target, orig_l)
+                                if new_l != orig_l:
+                                    lines[el - 1] = new_l
+                                    fixes.append(f"Corrected misspelled identifier '{bad_name}' to '{target}'")
+                        res_code = "".join(lines)
+                    return res_code, fixes
+
+                ident_src, ident_steps = _fix_misspelled_identifiers(current_code)
+                if ident_steps and ident_src != current_code:
+                    current_code = ident_src
+                    applied_steps.extend(ident_steps)
+            except Exception:
+                pass
+
+            # Deterministic rule for implicit declaration -> add missing #include (e.g. clean_guard.c)
+            try:
+                def _fix_implicit_declarations(src: str) -> Tuple[str, List[str]]:
+                    from compiler.repair_job_manager import _lightweight_check
+                    is_ok, err_lines, out = _lightweight_check(src)
+                    if is_ok:
+                        return src, []
+                    missing_headers = []
+                    m_notes = re.findall(r"note:\s*include\s*['<]([a-zA-Z0-9_\.]+)['>]\s*or provide a declaration", out)
+                    missing_headers.extend(m_notes)
+                    m_hdr_def = re.findall(r"note:\s*['`]([a-zA-Z_]\w*)['`]\s*is defined in header\s*['<]([a-zA-Z0-9_\.]+)['>]", out)
+                    for _, hdr in m_hdr_def:
+                        missing_headers.append(hdr)
+                    KNOWN_HEADER_FOR_FUNC = {
+                        "printf": "stdio.h", "scanf": "stdio.h", "fprintf": "stdio.h", "sprintf": "stdio.h",
+                        "snprintf": "stdio.h", "puts": "stdio.h", "fopen": "stdio.h", "fclose": "stdio.h",
+                        "malloc": "stdlib.h", "free": "stdlib.h", "exit": "stdlib.h", "abort": "stdlib.h",
+                        "memcpy": "string.h", "memset": "string.h", "strlen": "string.h", "strcpy": "string.h",
+                        "strcmp": "string.h", "strcat": "string.h",
+                        "sqrt": "math.h", "pow": "math.h", "sin": "math.h", "cos": "math.h",
+                    }
+                    imp_funcs = re.findall(r"(?:warning|error):\s*(?:implicit declaration of function|call to undeclared function)\s*['`]([a-zA-Z_]\w*)['`]", out)
+                    for fn in imp_funcs:
+                        if fn in KNOWN_HEADER_FOR_FUNC:
+                            missing_headers.append(KNOWN_HEADER_FOR_FUNC[fn])
+
+                    KNOWN_LIBC_HEADERS = {"stdio.h", "stdlib.h", "string.h", "math.h", "ctype.h", "stdbool.h", "stddef.h", "stdint.h", "limits.h", "time.h", "assert.h"}
+                    unique_hdrs = [h for h in dict.fromkeys(missing_headers) if h in KNOWN_LIBC_HEADERS]
+                    if not unique_hdrs:
+                        return src, []
+
+                    res_code = src
+                    fixes = []
+                    for hdr in unique_hdrs:
+                        if f"<{hdr}>" not in res_code:
+                            test_code = f"#include <{hdr}>\n" + res_code
+                            t_ok, t_errs, _ = _lightweight_check(test_code)
+                            if t_ok or len(t_errs) < len(err_lines):
+                                res_code = test_code
+                                err_lines = t_errs
+                                fixes.append(f"Added missing header '#include <{hdr}>' for implicit declaration")
+                    return res_code, fixes
+
+                inc_src, inc_steps = _fix_implicit_declarations(current_code)
+                if inc_steps and inc_src != current_code:
+                    current_code = inc_src
+                    applied_steps.extend(inc_steps)
             except Exception:
                 pass
 
@@ -2104,12 +2385,14 @@ class RepairPlanner:
                 st = "PARTIALLY_REPAIRED" if not compiles else "REPAIR_PLAN_READY"
                 can_cont = False
                 cand_id = f"cand_partial_{logger.run_id}"
+                partial_diff = self._generate_diff(source_code, partial_candidate, filename)
                 cand_dict = {
                     "id": cand_id,
                     "title": f"Partial Deterministic Proposal ({len(partial_steps)} fixes applied)",
                     "explanation": f"Partially repaired ({len(partial_steps)} fixes applied, {rem_errs} remaining).",
                     "proposed_code": partial_candidate,
-                    "diff": self._generate_diff(source_code, partial_candidate, filename) if hasattr(self, "_generate_diff") else "",
+                    "diff": partial_diff,
+                    "unified_diff": partial_diff,
                     "repair_provider": "deterministic_rules",
                     "is_valid": compiles,
                     "fixes_applied": partial_steps,
@@ -2175,6 +2458,8 @@ class RepairPlanner:
                 "has_candidate": bool(cand_dict),
                 "candidate_id": cand_dict["id"] if cand_dict else None,
                 "proposed_code": partial_candidate if partial_candidate else None,
+                "diff": cand_dict.get("diff", "") if cand_dict else "",
+                "unified_diff": cand_dict.get("unified_diff", "") if cand_dict else "",
                 "partial_candidate": partial_candidate,
                 "fixes_applied": partial_steps,
                 "fixes_applied_count": max(0, findings_before - findings_after),
@@ -2317,6 +2602,51 @@ class RepairPlanner:
 
         # Check if clean program
         if not findings or before_scores["total_findings_count"] == 0:
+            status_val, label_val, msg_val = _classify_program_status(
+                source_code, findings, lang_id=lang_id, default_status="CLEAN"
+            )
+            if status_val == "COMPILATION_FAILED" and operation_name != "analyze":
+                from compiler.patch_validator import SandboxedCompiler
+                c_comp = SandboxedCompiler()
+                if c_comp.is_available() and lang_id == "c":
+                    _, gcc_err_out, _ = c_comp.compile_check(source_code)
+                    err_lines = [int(m) for m in re.findall(r":(\d+):(?:\d+:)? (?:fatal )?error:", gcc_err_out)]
+                    if err_lines:
+                        findings = [
+                            Finding(
+                                id=f"gcc_err_{l}",
+                                category=FindingCategory.SYNTAX,
+                                location=SourceLocation(line=l, col=1, file_path=filename),
+                                explanation=f"GCC compilation error at line {l}",
+                                evidence=source_code.splitlines()[l-1] if 0 < l <= len(source_code.splitlines()) else "",
+                                severity=FindingSeverity.HIGH,
+                                confidence=1.0,
+                                status=FindingStatus.CONFIRMED,
+                            )
+                            for l in sorted(list(dict.fromkeys(err_lines)))
+                        ]
+                        before_scores["total_findings_count"] = len(findings)
+            if (not findings or before_scores["total_findings_count"] == 0) and status_val == "COMPILATION_FAILED":
+                return {
+                    "status": "COMPILATION_FAILED",
+                    "workflow_state": "COMPILATION_FAILED",
+                    "terminal_status": "COMPILATION_FAILED",
+                    "label": label_val,
+                    "message": msg_val,
+                    "stopping_reason": msg_val,
+                    "run_id": logger.run_id,
+                    "candidate": None,
+                    "candidate_id": None,
+                    "findings": [],
+                    "unified_findings": [],
+                    "classified_findings": {},
+                    "pipeline_stages": pipeline_stages,
+                    "pipeline_events": [e.to_dict() for e in logger.ordered_events] if logger else [],
+                    "baseline_scores": before_scores,
+                    "original_assessment": before_scores,
+                    "before_metrics": before_scores,
+                    "after_metrics": before_scores,
+                }
             logger.record_stage(
                 stage_id="deterministic_rules",
                 stage_name="7. Deterministic Rule Engine",
@@ -2611,7 +2941,10 @@ class RepairPlanner:
                     det_steps.append("removed AI-manipulation comment")
 
             if det_code and det_code.strip() != source_code.strip():
-                val_det = self.validate_candidate(source_code, det_code, filename=filename, language=lang_id)
+                val_det = self.validate_candidate(
+                    source_code, det_code, filename=filename, language=lang_id,
+                    original_findings=findings,
+                )
                 t_det_ms = round((time.perf_counter() - t_det_start) * 1000.0, 2)
                 gcc_early_ok = True
                 if lang_id == "c":
@@ -2679,15 +3012,33 @@ class RepairPlanner:
             # Tier 1: Try CodeT5 model for localized C syntax repair only
             # -------------------------------------------------------------
             if cand is None:
-                is_codet5_domain = False
-                codet5_findings = []
+                is_codet5_domain = self.codet5_enabled and self.codet5.is_available() and (lang_id in ("c", "cpp", "c++"))
+                codet5_findings = [f for f in findings if self.codet5.is_supported_finding(f)] if is_codet5_domain else []
 
-                if not is_codet5_domain:
+                if not self.codet5_enabled:
                     logger.record_stage(
                         stage_id="codet5_model",
                         stage_name="8. CodeT5 Model Inference",
                         status=StageStatus.SKIPPED,
-                        description="CodeT5 bypassed; Qwen is the sole ML repair agent per simplified architecture.",
+                        description="CodeT5 disabled via config repair.codet5_enabled=False.",
+                        duration_ms=0.0,
+                    )
+                    repair_strategy = "qwen_repair"
+                elif not self.codet5.is_available():
+                    logger.record_stage(
+                        stage_id="codet5_model",
+                        stage_name="8. CodeT5 Model Inference",
+                        status=StageStatus.SKIPPED,
+                        description="CodeT5 weights/adapters not available locally.",
+                        duration_ms=0.0,
+                    )
+                    repair_strategy = "qwen_repair"
+                elif not is_codet5_domain:
+                    logger.record_stage(
+                        stage_id="codet5_model",
+                        stage_name="8. CodeT5 Model Inference",
+                        status=StageStatus.SKIPPED,
+                        description=f"Language '{lang_id}' is not in CodeT5 domain (C/C++ only).",
                         duration_ms=0.0,
                     )
                     repair_strategy = "qwen_repair"
@@ -2696,7 +3047,7 @@ class RepairPlanner:
                         stage_id="codet5_model",
                         stage_name="8. CodeT5 Model Inference",
                         status=StageStatus.SKIPPED,
-                        description="No supported localized C syntax findings for CodeT5 (security/complex findings routed to Qwen).",
+                        description="No supported localized C syntax/semantic findings for CodeT5 (security/complex findings routed to Qwen).",
                         duration_ms=0.0,
                     )
                     repair_strategy = "qwen_repair"
@@ -2853,7 +3204,6 @@ class RepairPlanner:
 
             _needs_qwen = (cand is None) or (
                 workflow_state in ("PARTIALLY_REPAIRED",)
-                and not is_budget_exceeded(headroom_s=10.0)
             )
             if _needs_qwen:
                 is_security_primary = any(
@@ -2864,8 +3214,9 @@ class RepairPlanner:
                     coordinator_feedback = None
                     windows_processed = 0
                     qwen_input_code = partial_candidate if partial_candidate else source_code
-                    if is_budget_exceeded(headroom_s=5.0):
-                        return _build_budget_exceeded_response("qwen_ollama")
+                    # Dedicated budget for Qwen tier (default 60.0s) so it is never starved by analysis or CodeT5
+                    qwen_dedicated_budget_s = float(os.environ.get("QWEN_DEDICATED_BUDGET_SECONDS", 60.0))
+                    t_qwen_stage_start = time.perf_counter()
 
                     t_stage9_start = time.perf_counter()
                     from compiler.patch_validator import SandboxedCompiler, PatchIntegrityInspector
@@ -2909,10 +3260,10 @@ class RepairPlanner:
                             stopping_reason = "Repair run cancelled by user signal."
                             break
 
-                        rem_budget = time_budget_s - (time.perf_counter() - t0)
-                        if is_budget_exceeded(headroom_s=1.0) and rem_budget <= 2.0:
-                            coordinator_feedback = f"Time budget ({round(time_budget_s, 1)}s) expired."
-                            stopping_reason = f"Time budget ({round(time_budget_s, 1)}s) expired."
+                        rem_qwen_budget = qwen_dedicated_budget_s - (time.perf_counter() - t_qwen_stage_start)
+                        if rem_qwen_budget <= 1.0:
+                            coordinator_feedback = f"Qwen dedicated budget ({round(qwen_dedicated_budget_s, 1)}s) expired."
+                            stopping_reason = f"Qwen dedicated budget ({round(qwen_dedicated_budget_s, 1)}s) expired."
                             break
 
                         if current_ok or current_err_count == 0:
@@ -2951,8 +3302,8 @@ class RepairPlanner:
                         for win in windows_to_repair:
                             if cancel_event and cancel_event.is_set():
                                 break
-                            rem_budget = time_budget_s - (time.perf_counter() - t0)
-                            if is_budget_exceeded(headroom_s=1.0) and rem_budget <= 2.0:
+                            rem_qwen_budget = qwen_dedicated_budget_s - (time.perf_counter() - t_qwen_stage_start)
+                            if rem_qwen_budget <= 1.0:
                                 break
 
                             win_adopted_tier = None
@@ -2973,8 +3324,11 @@ class RepairPlanner:
                                 )
                                 scope_ok, _ = PatchIntegrityInspector.inspect(win["win_src"], det_win_cand, original_findings=[dummy_f], filename=filename)
                                 if scope_ok:
-                                    cand_win_text = det_win_cand
-                                    win_adopted_tier = "deterministic"
+                                    test_splice = splice_window_into_source(current_qwen_code, det_win_cand, win["win_start"], win["win_end"])
+                                    t_ok, t_errs, _ = _lightweight_check(test_splice)
+                                    if t_ok or len(t_errs) < current_err_count:
+                                        cand_win_text = det_win_cand
+                                        win_adopted_tier = "deterministic"
 
                             # Tier 2: CodeT5 (capped at ~6s)
                             if not cand_win_text and self.codet5_enabled and self.codet5.is_available() and lang_id == "c":
@@ -3001,8 +3355,11 @@ class RepairPlanner:
                                         )
                                         scope_ok, _ = PatchIntegrityInspector.inspect(win["win_src"], raw_c5, original_findings=[dummy_f], filename=filename)
                                         if scope_ok:
-                                            cand_win_text = raw_c5
-                                            win_adopted_tier = "codet5"
+                                            test_splice = splice_window_into_source(current_qwen_code, raw_c5, win["win_start"], win["win_end"])
+                                            t_ok, t_errs, _ = _lightweight_check(test_splice)
+                                            if t_ok or len(t_errs) < current_err_count:
+                                                cand_win_text = raw_c5
+                                                win_adopted_tier = "codet5"
                                 except Exception:
                                     pass
 
@@ -3011,6 +3368,7 @@ class RepairPlanner:
                                 llm_calls += 1
                                 total_qwen_attempts += 1
                                 t_q_start = time.perf_counter()
+                                rem_at_entry = round(qwen_dedicated_budget_s - (time.perf_counter() - t_qwen_stage_start), 2)
                                 win_lines = win["win_src"].splitlines()
                                 rel_idx = win["win_rel"] - 1
                                 ev_line = win_lines[rel_idx].strip() if 0 <= rel_idx < len(win_lines) else ""
@@ -3023,9 +3381,13 @@ class RepairPlanner:
                                     severity=FindingSeverity.HIGH,
                                     confidence=1.0,
                                     status=FindingStatus.CONFIRMED,
+                                    metadata={"source": "qwen_escalation"},
                                 )
+                                print(f"[QWEN_ATTEMPT] file={filename} line={win['err_line']} remaining_budget_s={rem_at_entry}")
+                                print(f"[QWEN_REQUEST] model={model_name} num_ctx=4096 timeout=75.0s")
                                 q_raw = None
                                 q_stopped = False
+                                parse_result = "unknown"
                                 if hasattr(self.ollama, "coordinate_repair_decision"):
                                     try:
                                         q_dec = self.ollama.coordinate_repair_decision(
@@ -3036,27 +3398,35 @@ class RepairPlanner:
                                             model_name=model_name,
                                         )
                                         if isinstance(q_dec, dict):
+                                            parse_result = "json_success"
                                             if q_dec.get("action") == "stop" or q_dec.get("strategy") == "NONE":
                                                 q_stopped = True
                                                 q_raw = None
                                             else:
                                                 q_raw = q_dec.get("candidate_code")
-                                    except Exception:
-                                        pass
+                                        else:
+                                            parse_result = "non_dict_response"
+                                    except Exception as ex:
+                                        parse_result = f"exception_{ex}"
                                 if not q_raw and not q_stopped:
                                     q_res = self.ollama.generate_repair(
                                         win["win_src"], dummy_f, model_name=model_name, language=lang_id
                                     )
                                     q_raw = q_res[0] if isinstance(q_res, tuple) else q_res
+                                    parse_result = "code_block_extract" if q_raw else "empty"
                                 llm_time_ms += (time.perf_counter() - t_q_start) * 1000.0
+                                print(f"[QWEN_RESPONSE] parse_result={parse_result} raw_length={len(q_raw) if q_raw else 0}")
                                 if q_raw and isinstance(q_raw, str) and q_raw.strip() != win["win_src"].strip():
                                     q_raw = remove_manipulation_comments_from_source(q_raw)
                                     if lang_id == "c":
                                         q_raw = re.sub(r'\b([0-9]+)[uU]?[lL]{1,2}\b', r'(long long)\1', q_raw)
-                                    scope_ok, _ = PatchIntegrityInspector.inspect(win["win_src"], q_raw, original_findings=[dummy_f], filename=filename)
+                                    scope_ok, scope_reasons = PatchIntegrityInspector.inspect(win["win_src"], q_raw, original_findings=[dummy_f], filename=filename)
+                                    print(f"[QWEN_VALIDATION] scope_ok={scope_ok} reasons={scope_reasons}")
                                     if scope_ok:
                                         cand_win_text = q_raw
                                         win_adopted_tier = "qwen"
+                                else:
+                                    print(f"[QWEN_VALIDATION] candidate_empty_or_identical={bool(not q_raw or q_raw.strip() == win['win_src'].strip())}")
 
                             if cand_win_text and win_adopted_tier:
                                 repaired_candidates.append({
@@ -3153,7 +3523,15 @@ class RepairPlanner:
                             diagnostics={"codet5_calls": codet5_calls, "accepted": accepted_by_tier.get('codet5', 0)},
                         )
                     qwen_dur_ms = round(max(0.0, t_stage9_total_ms - codet5_time_ms), 2)
-                    if cand:
+                    if llm_calls == 0 and total_qwen_attempts == 0:
+                        logger.record_stage(
+                            stage_id="qwen_ollama",
+                            stage_name="9. Local Qwen Model through Ollama",
+                            status=StageStatus.SKIPPED,
+                            description="All issues resolved or handled before Qwen HTTP call.",
+                            duration_ms=0.0,
+                        )
+                    elif cand and accepted_by_tier.get("qwen", 0) > 0:
                         q_strat_clean = "whole_program_synthesis" if "codet5" in str(q_strat).lower() else (q_strat or "qwen_repair")
                         logger.record_stage(
                             stage_id="qwen_ollama",
@@ -3673,6 +4051,7 @@ class RepairPlanner:
                     is_clean_gcc, gcc_out_str, _ = c_comp.compile_check(cand)
 
             applied_cnt = max(len(fixes_applied_list), findings_before - findings_after) if 'fixes_applied_list' in locals() else 0
+            can_cont_val = False
 
             if cand == original_code and not final_val.is_valid:
                 st_status = "UNRESOLVED"
