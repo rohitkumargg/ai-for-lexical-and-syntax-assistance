@@ -175,7 +175,7 @@ class WindowRepairCache:
 
     def __init__(self, cache_file: str = CACHE_FILE):
         self.cache_file = cache_file
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._cache: Dict[str, str] = {}
         self._load()
 
@@ -455,7 +455,7 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
                 continue
             t = text
             # Missing bracket in array dimension: int arr[5; -> int arr[5];
-            t2 = re.sub(r'(\[\s*\d+)\s*;', r'\1];', t)
+            t2 = re.sub(r'(\[\s*[^\];]+?)\s*;', r'\1];', t)
             if t2 != t:
                 fixes.append("Closed array dimension with missing ']'")
                 t = t2
@@ -463,6 +463,27 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
             t2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', t)
             if t2 != t:
                 fixes.append("Inserted missing comma between parameter declarations")
+                t = t2
+            # Missing comma in function call argument list: add(10 20) -> add(10, 20)
+            def _fix_call_args(m):
+                fn = m.group(1)
+                if fn in {'if', 'while', 'for', 'switch', 'return', 'sizeof'}:
+                    return m.group(0)
+                inside = m.group(2)
+                toks = inside.split()
+                if len(toks) >= 2 and ',' not in inside and ';' not in inside:
+                    valid = True
+                    for tok in toks:
+                        if not re.match(r'^(?:[a-zA-Z_]\w*|\d+(?:\.\d+)?|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')(?:\s*\[[^\]]+\])?$', tok):
+                            valid = False
+                            break
+                    if valid:
+                        return f"{fn}(" + ", ".join(toks) + ")"
+                return m.group(0)
+
+            t2 = re.sub(r'\b([a-zA-Z_]\w*)\s*\(([^()]+)\)', _fix_call_args, t)
+            if t2 != t:
+                fixes.append("Inserted missing comma between function call arguments")
                 t = t2
             # Extra parenthesis: for ((i = 0; ... -> for (i = 0; ...
             if t.count('(') > t.count(')'):
@@ -528,7 +549,7 @@ class RepairJobManager:
         os.makedirs(self.jobs_dir, exist_ok=True)
         self._jobs: Dict[str, RepairJob] = {}
         self._cancel_events: Dict[str, threading.Event] = {}
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._load_persisted_jobs()
 
     def _load_persisted_jobs(self) -> None:
@@ -694,12 +715,13 @@ class RepairJobManager:
                 jid for jid, job in self._jobs.items()
                 if (now - getattr(job, "updated_at", job.created_at)) > max_age_s
             ]
-            for jid in expired_ids:
-                try:
-                    self.delete_job(jid)
+        for jid in expired_ids:
+            try:
+                if self.delete_job(jid):
                     deleted += 1
-                except Exception:
-                    pass
+            except Exception:
+                pass
+        with self._lock:
             if os.path.isdir(self.jobs_dir):
                 for fname in os.listdir(self.jobs_dir):
                     if fname.endswith(".json"):
@@ -1324,6 +1346,20 @@ class RepairJobManager:
 
                 final_adopted_code = curr_assembled
 
+            if job.language == "c":
+                try:
+                    from compiler.security_auto_fixer import SecurityAutoFixer
+                    sec_fixer = SecurityAutoFixer()
+                    sec_res = sec_fixer.apply_fixes(final_adopted_code)
+                    if sec_res and sec_res.source and sec_res.source.strip() != final_adopted_code.strip():
+                        sec_ok, sec_errs, _ = _lightweight_check(sec_res.source)
+                        if sec_ok or len(sec_errs) <= len(_lightweight_check(final_adopted_code)[1]):
+                            final_adopted_code = sec_res.source
+                            job.windows_done += len(sec_res.applied_steps) or 1
+                            job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(sec_res.applied_steps) or 1)
+                except Exception:
+                    pass
+
             # ---------------------------------------------------------------
             # Final Analysis & Plan Packaging
             # ---------------------------------------------------------------
@@ -1336,7 +1372,7 @@ class RepairJobManager:
                 filename=job.filename,
                 language=job.language,
                 run_id=job.job_id,
-                time_budget_s=15.0, # floor already prepared
+                time_budget_s=max(60.0, float(os.environ.get("SERVER_TIME_BUDGET_SECONDS", 120.0))),
                 approval_token=job.approval_token,
                 operation=job.operation,
                 is_job_subtask=True,
@@ -1448,8 +1484,43 @@ class RepairJobManager:
                 )
 
                 candidate_id = plan_res.get("candidate_id")
-                if candidate_id:
-                    from compiler.improvement_advisor import candidate_registry, DecisionState
+                from compiler.improvement_advisor import candidate_registry, DecisionState, ImprovementCandidate, ImprovementStrategy
+                if not candidate_id:
+                    candidate_id = f"cand_{job.job_id}"
+                    plan_res["candidate_id"] = candidate_id
+                    plan_res["has_candidate"] = True
+                    candidate_obj = ImprovementCandidate(
+                        id=candidate_id,
+                        strategy=ImprovementStrategy.CONSERVATIVE,
+                        category="MULTI_FUNCTION_REPAIR",
+                        priority="HIGH",
+                        title=f"Autonomous Multi-Function Repair ({job.windows_done} steps)",
+                        explanation=plan_res.get("stopping_reason", "Autonomous multi-function repair"),
+                        line=1,
+                        col=1,
+                        evidence="",
+                        original_code=job.original_code,
+                        original_source_hash=planner._sha256(job.original_code),
+                        proposed_code=final_adopted_code,
+                        proposed_source_hash=plan_res["candidate_source_hash"],
+                        filename=job.filename,
+                        unified_diff=plan_res["diff"],
+                        expected_effect="Eliminates detected compiler errors and hardens security.",
+                        assumptions=[],
+                        trade_offs="Preserves existing program structure.",
+                        relevant_metric="Security Risk & Code Quality",
+                        predicted_metric_delta="",
+                        confidence=0.95 if plan_res["validation_passed"] else 0.4,
+                        validation_passed=plan_res["validation_passed"],
+                        validation_state=DecisionState.VALIDATED.value if plan_res["validation_passed"] else DecisionState.VALIDATION_FAILED.value,
+                        is_eligible_for_application=plan_res["validation_passed"],
+                        validation_report=final_validation.to_dict(),
+                        user_decision_state=DecisionState.AWAITING_USER_DECISION.value if plan_res["validation_passed"] else DecisionState.VALIDATION_FAILED.value,
+                        run_id=job.job_id,
+                    )
+                    candidate_registry.register(candidate_obj)
+                    plan_res["candidate"] = candidate_obj.to_dict()
+                else:
                     candidate_obj = candidate_registry.get(candidate_id)
                     if candidate_obj:
                         candidate_obj.proposed_code = final_adopted_code

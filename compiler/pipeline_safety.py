@@ -17,13 +17,35 @@ from compiler.security_auto_fixer import SecurityAutoFixer, AutoFixResult, _spli
 from test_parser import parse_source, has_any_errors, get_all_error_strings, build_symbols
 
 
-def collect_semantic_issues(tree) -> List[Dict[str, Any]]:
+def collect_semantic_issues(tree, source_text: Optional[str] = None) -> List[Dict[str, Any]]:
     """Run SemanticChecker and UndeclaredIdentifierChecker to gather all semantic diagnostics."""
     if tree is None:
         return []
     checker = SemanticChecker()
     checker.visit(tree)
     issues = list(checker.get_issues())
+
+    # Filter out library typedef identifiers and variables declared using them
+    typedef_names = {"sqlite3", "sqlite3_stmt", "FILE", "size_t", "uint8_t", "uint16_t", "uint32_t", "uint64_t", "int8_t", "int16_t", "int32_t", "int64_t", "bool"}
+    typedef_vars = set()
+    if not source_text:
+        try:
+            if hasattr(tree, "start") and hasattr(tree.start, "getInputStream"):
+                source_text = tree.start.getInputStream().getText(0, getattr(tree.stop, "stop", 999999))
+        except Exception:
+            pass
+
+    if source_text:
+        import re
+        for m in re.finditer(r'\b(?:sqlite3|sqlite3_stmt|FILE|size_t)\s*\*+\s*([a-zA-Z_]\w*)\b', source_text):
+            typedef_vars.add(m.group(1))
+
+    if typedef_names or typedef_vars:
+        ignored = typedef_names | typedef_vars
+        issues = [
+            iss for iss in issues
+            if not (iss.get("kind") in ("undeclared", "use_before_declare") and iss.get("name") in ignored)
+        ]
 
     try:
         symbols = build_symbols(tree)

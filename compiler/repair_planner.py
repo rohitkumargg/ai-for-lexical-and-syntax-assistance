@@ -480,6 +480,8 @@ def _classify_program_status(
             is_clean_gcc = False
 
     if not is_clean_gcc:
+        if default_status in ("UNRESOLVED", "VALIDATION_FAILED"):
+            return default_status, "Repair Failed", default_reason or "Automated repair unavailable."
         err_msg = default_reason or "Source code fails GCC compiler syntax check."
         return "COMPILATION_FAILED", "Compilation Failed", err_msg
 
@@ -1786,6 +1788,19 @@ class RepairPlanner:
             except Exception:
                 pass
 
+            # 2B. Unambiguous syntax delimiters & missing semicolons / array dimensions / commas
+            try:
+                from compiler.repair_job_manager import _fix_unambiguous_syntax_delimiters
+                delim_code, delim_steps = _fix_unambiguous_syntax_delimiters(current_code, flagged_lines=flagged_lines)
+                if delim_steps and delim_code != current_code:
+                    current_code = delim_code
+                    applied_steps.extend(delim_steps)
+                elif delim_code != current_code:
+                    current_code = delim_code
+                    applied_steps.append("Fixed unambiguous syntax delimiters and missing semicolons")
+            except Exception:
+                pass
+
             # Delimiter normalization: missing comma between numeric literal or identifier arguments (token-aware & line-gated)
             try:
                 def _fix_missing_argument_commas(src: str, f_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
@@ -2039,7 +2054,7 @@ class RepairPlanner:
             try:
                 from compiler.security_auto_fixer import SecurityAutoFixer
                 sec_fixer = SecurityAutoFixer()
-                sec_res = sec_fixer.apply_fixes(current_code)
+                sec_res = sec_fixer.apply_fixes(current_code, deadline=deadline)
                 if sec_res and sec_res.source != current_code:
                     current_code = sec_res.source
                     applied_steps.extend(sec_res.applied_steps)
@@ -2386,6 +2401,40 @@ class RepairPlanner:
                 can_cont = False
                 cand_id = f"cand_partial_{logger.run_id}"
                 partial_diff = self._generate_diff(source_code, partial_candidate, filename)
+                try:
+                    from compiler.improvement_advisor import candidate_registry, ImprovementCandidate, ImprovementStrategy, DecisionState
+                    cand_obj = ImprovementCandidate(
+                        id=cand_id,
+                        strategy=ImprovementStrategy.CONSERVATIVE,
+                        category="SYNTAX",
+                        priority="HIGH",
+                        title=f"Partial Deterministic Proposal ({len(partial_steps)} fixes applied)",
+                        explanation=f"Partially repaired ({len(partial_steps)} fixes applied, {rem_errs} remaining).",
+                        line=1,
+                        col=1,
+                        evidence="",
+                        original_code=source_code,
+                        original_source_hash=orig_hash,
+                        proposed_code=partial_candidate,
+                        proposed_source_hash=self._sha256(partial_candidate),
+                        filename=filename,
+                        unified_diff=partial_diff,
+                        expected_effect="Applies partial deterministic repairs.",
+                        assumptions=[],
+                        trade_offs="",
+                        relevant_metric="Code Quality",
+                        predicted_metric_delta="",
+                        confidence=0.7,
+                        validation_passed=compiles,
+                        validation_state=DecisionState.VALIDATED.value if compiles else DecisionState.VALIDATION_FAILED.value,
+                        is_eligible_for_application=True,
+                        validation_report={"is_valid": compiles, "syntax_passed": compiles},
+                        user_decision_state=DecisionState.AWAITING_USER_DECISION.value,
+                        run_id=logger.run_id,
+                    )
+                    candidate_registry.register(cand_obj)
+                except Exception:
+                    pass
                 cand_dict = {
                     "id": cand_id,
                     "title": f"Partial Deterministic Proposal ({len(partial_steps)} fixes applied)",
@@ -2916,7 +2965,7 @@ class RepairPlanner:
         # -------------------------------------------------------------
         # Stage 6: Deterministic Rule Engine & ML Repair Synthesis
         # -------------------------------------------------------------
-        if is_budget_exceeded(headroom_s=5.0):
+        if is_budget_exceeded(headroom_s=0.5):
             return _build_budget_exceeded_response("deterministic_rules")
 
         try:
@@ -3023,7 +3072,7 @@ class RepairPlanner:
                         description="CodeT5 disabled via config repair.codet5_enabled=False.",
                         duration_ms=0.0,
                     )
-                    repair_strategy = "qwen_repair"
+                    repair_strategy = "qwen_fallback"
                 elif not self.codet5.is_available():
                     logger.record_stage(
                         stage_id="codet5_model",
@@ -3032,7 +3081,7 @@ class RepairPlanner:
                         description="CodeT5 weights/adapters not available locally.",
                         duration_ms=0.0,
                     )
-                    repair_strategy = "qwen_repair"
+                    repair_strategy = "qwen_fallback"
                 elif not is_codet5_domain:
                     logger.record_stage(
                         stage_id="codet5_model",
@@ -3041,7 +3090,7 @@ class RepairPlanner:
                         description=f"Language '{lang_id}' is not in CodeT5 domain (C/C++ only).",
                         duration_ms=0.0,
                     )
-                    repair_strategy = "qwen_repair"
+                    repair_strategy = "qwen_fallback"
                 elif not codet5_findings:
                     logger.record_stage(
                         stage_id="codet5_model",
@@ -3050,7 +3099,7 @@ class RepairPlanner:
                         description="No supported localized C syntax/semantic findings for CodeT5 (security/complex findings routed to Qwen).",
                         duration_ms=0.0,
                     )
-                    repair_strategy = "qwen_repair"
+                    repair_strategy = "qwen_fallback"
                 else:
                     t_c5_start = time.perf_counter()
                     c5_cand = None
@@ -3060,7 +3109,7 @@ class RepairPlanner:
     
                     c5_input_code = partial_candidate if partial_candidate else source_code
                     if is_budget_exceeded(headroom_s=5.0):
-                        return _build_budget_exceeded_response("codet5_model")
+                        c5_fail_reason = "time_budget_exceeded" 
 
                     if self.codet5.is_available():
                         max_c5 = int(os.environ.get("MAX_CODET5_ERRORS", "3"))
@@ -3097,9 +3146,30 @@ class RepairPlanner:
                                 line=f_line,
                                 col=f_col,
                             )
+                            if not raw_c5 and f_reason == "missing_semicolon":
+                                if f_col != 0:
+                                    raw_c5, raw_desc = self.codet5.generate_patch(
+                                        source_text=c5_sanitized_input,
+                                        reason=f_reason,
+                                        line=f_line,
+                                        col=0,
+                                    )
+                                if not raw_c5 and f_line > 1:
+                                    lines_c5 = c5_sanitized_input.splitlines()
+                                    if len(lines_c5) >= f_line - 1:
+                                        prev_len = len(lines_c5[f_line - 2])
+                                        raw_c5, raw_desc = self.codet5.generate_patch(
+                                            source_text=c5_sanitized_input,
+                                            reason=f_reason,
+                                            line=f_line - 1,
+                                            col=prev_len,
+                                        )
                             if raw_c5:
                                 raw_c5 = remove_manipulation_comments_from_source(raw_c5)
                             codet5_time_ms += (time.perf_counter() - _t_c5_call) * 1000.0
+                            if raw_desc and "timed out" in str(raw_desc).lower():
+                                c5_fail_reason = "codet5_timeout"
+                                break
                             if raw_c5 and raw_c5.strip() != c5_input_code.strip():
                                 from compiler.local_models import FullSourceRepairContract
                                 contract = FullSourceRepairContract.validate_and_create(
@@ -3142,6 +3212,8 @@ class RepairPlanner:
                         desc = c5_desc or "Repaired by CodeT5 model."
                         prov = "codet5"
                         strat = "codet5_primary"
+                        repair_provider = "codet5"
+                        repair_strategy = "codet5_primary"
                         cand_title = f"CodeT5 Primary Proposal: {desc}"
                         workflow_state = "PROPOSAL_READY"
                         terminal_status = "PROPOSAL_READY"
@@ -3254,6 +3326,14 @@ class RepairPlanner:
                     q_strat = "windowed_batch_synthesis"
                     q_expl = ""
 
+                    unresolved_actionable = list(actionable)
+                    if cand and cand.strip() != source_code.strip():
+                        try:
+                            cand_orch = self.orchestrator.run_analysis(cand, filename=filename, language=lang_id)
+                            unresolved_actionable = [f for f in cand_orch.findings if self.is_repair_objective_finding(f)]
+                        except Exception:
+                            pass
+
                     while True:
                         if cancel_event and cancel_event.is_set():
                             coordinator_feedback = "Repair run cancelled by user signal."
@@ -3266,18 +3346,36 @@ class RepairPlanner:
                             stopping_reason = f"Qwen dedicated budget ({round(qwen_dedicated_budget_s, 1)}s) expired."
                             break
 
-                        if current_ok or current_err_count == 0:
+                        # Only terminate as clean if both syntax errors AND actionable semantic/security defects are resolved
+                        if (current_ok or current_err_count == 0) and len(unresolved_actionable) == 0:
                             cand = current_qwen_code
                             workflow_state = "PROPOSAL_READY"
                             terminal_status = "PROPOSAL_READY"
-                            stopping_reason = "Clean compilation: gcc compiled whole file with zero syntax errors."
+                            stopping_reason = "Clean compilation: all syntax, semantic, and security findings resolved."
                             break
 
                         # Partition defect lines into non-overlapping windows for batching
-                        eligible_lines = [el for el in current_err_lines if el not in attempted_failed_lines]
+                        finding_for_line = {}
+                        if current_err_count > 0:
+                            eligible_lines = [el for el in current_err_lines if el not in attempted_failed_lines]
+                            if not eligible_lines:
+                                eligible_lines = current_err_lines
+                                attempted_failed_lines.clear()
+                        else:
+                            # Syntax compiles cleanly; repair remaining actionable (security/semantic) findings
+                            act_lines = []
+                            for f in unresolved_actionable:
+                                fl = _get_f_line(f)
+                                if fl and fl > 0:
+                                    act_lines.append(fl)
+                                    finding_for_line[fl] = f
+                            eligible_lines = [el for el in act_lines if el not in attempted_failed_lines]
+                            if not eligible_lines and act_lines:
+                                eligible_lines = act_lines
+                                attempted_failed_lines.clear()
+
                         if not eligible_lines:
-                            eligible_lines = current_err_lines
-                            attempted_failed_lines.clear()
+                            break
 
                         windows_to_repair = []
                         last_win_end = -999
@@ -3292,6 +3390,7 @@ class RepairPlanner:
                                     "win_start": win_start,
                                     "win_end": win_end,
                                     "win_rel": win_rel,
+                                    "finding": finding_for_line.get(err_l),
                                 })
                                 last_win_end = win_end
 
@@ -3372,17 +3471,31 @@ class RepairPlanner:
                                 win_lines = win["win_src"].splitlines()
                                 rel_idx = win["win_rel"] - 1
                                 ev_line = win_lines[rel_idx].strip() if 0 <= rel_idx < len(win_lines) else ""
-                                dummy_f = Finding(
-                                    id=f"win_err_{win['err_line']}",
-                                    category=FindingCategory.SYNTAX,
-                                    location=SourceLocation(line=win["win_rel"], col=1, file_path=filename),
-                                    explanation=f"Syntax error at line {win['err_line']}: {ev_line}",
-                                    evidence=ev_line,
-                                    severity=FindingSeverity.HIGH,
-                                    confidence=1.0,
-                                    status=FindingStatus.CONFIRMED,
-                                    metadata={"source": "qwen_escalation"},
-                                )
+                                real_f = win.get("finding")
+                                if real_f is not None:
+                                    dummy_f = Finding(
+                                        id=getattr(real_f, "id", f"win_err_{win['err_line']}"),
+                                        category=getattr(real_f, "category", FindingCategory.SECURITY),
+                                        location=SourceLocation(line=win["win_rel"], col=getattr(real_f.location, "col", 1) if getattr(real_f, "location", None) else 1, file_path=filename),
+                                        explanation=getattr(real_f, "explanation", f"Issue at line {win['err_line']}: {ev_line}"),
+                                        evidence=getattr(real_f, "evidence", ev_line) or ev_line,
+                                        severity=getattr(real_f, "severity", FindingSeverity.HIGH),
+                                        confidence=getattr(real_f, "confidence", 1.0),
+                                        status=FindingStatus.CONFIRMED,
+                                        metadata={"source": "qwen_escalation", **(getattr(real_f, "metadata", {}) or {})},
+                                    )
+                                else:
+                                    dummy_f = Finding(
+                                        id=f"win_err_{win['err_line']}",
+                                        category=FindingCategory.SYNTAX,
+                                        location=SourceLocation(line=win["win_rel"], col=1, file_path=filename),
+                                        explanation=f"Syntax error at line {win['err_line']}: {ev_line}",
+                                        evidence=ev_line,
+                                        severity=FindingSeverity.HIGH,
+                                        confidence=1.0,
+                                        status=FindingStatus.CONFIRMED,
+                                        metadata={"source": "qwen_escalation"},
+                                    )
                                 print(f"[QWEN_ATTEMPT] file={filename} line={win['err_line']} remaining_budget_s={rem_at_entry}")
                                 print(f"[QWEN_REQUEST] model={model_name} num_ctx=4096 timeout=75.0s")
                                 q_raw = None
@@ -3450,7 +3563,15 @@ class RepairPlanner:
                             batch_code = splice_window_into_source(batch_code, rc["cand_win"], rc["win_start"], rc["win_end"])
 
                         b_ok, b_errs, b_out = _lightweight_check(batch_code)
-                        if b_ok or len(b_errs) < current_err_count:
+                        is_improved = False
+                        if current_err_count > 0:
+                            if b_ok or len(b_errs) < current_err_count:
+                                is_improved = True
+                        else:
+                            if b_ok or len(b_errs) == 0:
+                                is_improved = True
+
+                        if is_improved:
                             # Batch splice succeeded!
                             current_qwen_code = batch_code
                             cand = batch_code
@@ -3464,9 +3585,12 @@ class RepairPlanner:
                             consecutive_no_progress = 0
                             prov = "qwen2.5-coder" if accepted_by_tier.get("qwen", 0) > 0 else ("codet5" if accepted_by_tier.get("codet5", 0) > 0 else "deterministic_rules")
                             repair_provider = prov
-                            repair_strategy = "qwen_repair" if prov == "qwen2.5-coder" else ("codet5_repair" if prov == "codet5" else "deterministic")
-                            if b_ok:
-                                stopping_reason = "Clean compilation: gcc compiled whole file with zero syntax errors."
+                            if repair_provider == "codet5":
+                                repair_strategy = "codet5_primary"
+                            elif repair_strategy != "qwen_fallback":
+                                repair_strategy = "qwen_repair" if prov == "qwen2.5-coder" else "deterministic"
+                            if b_ok and (not unresolved_actionable or len(unresolved_actionable) == 0):
+                                stopping_reason = "Clean compilation: all syntax, semantic, and security findings resolved."
                                 break
                         else:
                             # Fall back to window-by-window testing
@@ -3474,7 +3598,15 @@ class RepairPlanner:
                             for rc in sorted(repaired_candidates, key=lambda w: w["win_start"], reverse=True):
                                 s_cand = splice_window_into_source(current_qwen_code, rc["cand_win"], rc["win_start"], rc["win_end"])
                                 s_ok, s_errs, _ = _lightweight_check(s_cand)
-                                if s_ok or len(s_errs) < current_err_count:
+                                s_improved = False
+                                if current_err_count > 0:
+                                    if s_ok or len(s_errs) < current_err_count:
+                                        s_improved = True
+                                else:
+                                    if s_ok or len(s_errs) == 0:
+                                        s_improved = True
+
+                                if s_improved:
                                     current_qwen_code = s_cand
                                     cand = s_cand
                                     current_ok = s_ok
@@ -3486,9 +3618,12 @@ class RepairPlanner:
                                     attempted_failed_lines.clear()
                                     prov = "qwen2.5-coder" if accepted_by_tier.get("qwen", 0) > 0 else ("codet5" if accepted_by_tier.get("codet5", 0) > 0 else "deterministic_rules")
                                     repair_provider = prov
-                                    repair_strategy = "qwen_repair" if prov == "qwen2.5-coder" else ("codet5_repair" if prov == "codet5" else "deterministic")
-                                    if s_ok:
-                                        stopping_reason = "Clean compilation: gcc compiled whole file with zero syntax errors."
+                                    if repair_provider == "codet5":
+                                        repair_strategy = "codet5_primary"
+                                    elif repair_strategy != "qwen_fallback":
+                                        repair_strategy = "qwen_repair" if prov == "qwen2.5-coder" else "deterministic"
+                                    if s_ok and (not unresolved_actionable or len(unresolved_actionable) == 0):
+                                        stopping_reason = "Clean compilation: all syntax, semantic, and security findings resolved."
                                     break
                             if any_adopted:
                                 consecutive_no_progress = 0
@@ -3513,24 +3648,45 @@ class RepairPlanner:
                     t_stage9_total_ms = round((time.perf_counter() - t_stage9_start) * 1000.0, 2)
                     llm_time_ms = t_stage9_total_ms
                     if codet5_calls > 0:
-                        c5_status = StageStatus.PASSED if accepted_by_tier.get('codet5', 0) > 0 else StageStatus.FAILED
-                        logger.record_stage(
-                            stage_id="codet5_model",
-                            stage_name="8. CodeT5 Model Inference",
-                            status=c5_status,
-                            description=f"CodeT5 attempted {codet5_calls} window(s) ({round(codet5_time_ms, 1)} ms); {accepted_by_tier.get('codet5', 0)} accepted.",
-                            duration_ms=round(codet5_time_ms, 2),
-                            diagnostics={"codet5_calls": codet5_calls, "accepted": accepted_by_tier.get('codet5', 0)},
-                        )
+                        prev_c5 = next((ev for ev in logger.events if ev.stage_id == "codet5_model"), None)
+                        if accepted_by_tier.get('codet5', 0) > 0:
+                            logger.record_stage(
+                                stage_id="codet5_model",
+                                stage_name="8. CodeT5 Model Inference",
+                                status=StageStatus.PASSED,
+                                description=f"CodeT5 attempted {codet5_calls} window(s) ({round(codet5_time_ms, 1)} ms); {accepted_by_tier.get('codet5', 0)} accepted.",
+                                duration_ms=round(codet5_time_ms, 2),
+                                diagnostics={"codet5_calls": codet5_calls, "accepted": accepted_by_tier.get('codet5', 0)},
+                            )
+                        elif prev_c5 is None:
+                            logger.record_stage(
+                                stage_id="codet5_model",
+                                stage_name="8. CodeT5 Model Inference",
+                                status=StageStatus.FAILED,
+                                description=f"CodeT5 attempted {codet5_calls} window(s) ({round(codet5_time_ms, 1)} ms); 0 accepted.",
+                                duration_ms=round(codet5_time_ms, 2),
+                                failure_reason="codet5_generation_failed",
+                                diagnostics={"codet5_calls": codet5_calls, "accepted": 0},
+                            )
                     qwen_dur_ms = round(max(0.0, t_stage9_total_ms - codet5_time_ms), 2)
                     if llm_calls == 0 and total_qwen_attempts == 0:
-                        logger.record_stage(
-                            stage_id="qwen_ollama",
-                            stage_name="9. Local Qwen Model through Ollama",
-                            status=StageStatus.SKIPPED,
-                            description="All issues resolved or handled before Qwen HTTP call.",
-                            duration_ms=0.0,
-                        )
+                        if repair_strategy == "qwen_fallback" or (unresolved_actionable and len(unresolved_actionable) > 0):
+                            logger.record_stage(
+                                stage_id="qwen_ollama",
+                                stage_name="9. Local Qwen Model through Ollama",
+                                status=StageStatus.FAILED,
+                                description=f"Qwen fallback attempted but produced no applicable patches for {len(unresolved_actionable)} remaining issue(s).",
+                                duration_ms=qwen_dur_ms,
+                                failure_reason="qwen_no_candidates",
+                            )
+                        else:
+                            logger.record_stage(
+                                stage_id="qwen_ollama",
+                                stage_name="9. Local Qwen Model through Ollama",
+                                status=StageStatus.SKIPPED,
+                                description="All issues resolved or handled before Qwen HTTP call.",
+                                duration_ms=0.0,
+                            )
                     elif cand and accepted_by_tier.get("qwen", 0) > 0:
                         q_strat_clean = "whole_program_synthesis" if "codet5" in str(q_strat).lower() else (q_strat or "qwen_repair")
                         logger.record_stage(
@@ -3698,8 +3854,12 @@ class RepairPlanner:
                 }
     
             # Build proposal package without modifying original editor source
-            repair_provider = prov or repair_provider or ("qwen2.5-coder" if accepted_by_tier.get("qwen", 0) > 0 else "deterministic_rules")
-            repair_strategy = strat or repair_strategy or ("qwen_repair" if repair_provider == "qwen2.5-coder" else ("codet5_repair" if repair_provider == "codet5" else "deterministic_rules"))
+            repair_provider = prov or repair_provider or ("qwen2.5-coder" if accepted_by_tier.get("qwen", 0) > 0 else ("codet5" if accepted_by_tier.get("codet5", 0) > 0 else "deterministic_rules"))
+            if repair_provider == "codet5" or accepted_by_tier.get("codet5", 0) > 0:
+                repair_provider = "codet5"
+                repair_strategy = "codet5_primary"
+            elif repair_strategy != "qwen_fallback":
+                repair_strategy = strat or repair_strategy or ("qwen_repair" if repair_provider == "qwen2.5-coder" else "deterministic_rules")
             agent_explanation = desc or stopping_reason
 
             # Enforce header invariant BEFORE analyzing, diffing, hashing, or storing candidate
@@ -3819,7 +3979,12 @@ class RepairPlanner:
             fixes_applied_pre = partial_steps if partial_steps else det_applied_pre
             applied_cnt_pre = max(len(fixes_applied_pre), len(findings) - len(cand_findings))
             agent_explanation = f"Autonomous repair applied {applied_cnt_pre} fix(es) across {windows_processed} window(s) using [{tiers_str}]."
-            cand_title = f"Repair Proposal: {applied_cnt_pre} issue(s) fixed across {windows_processed} window(s) using [{tiers_str}]"
+            if repair_strategy == "codet5_primary" or repair_provider == "codet5":
+                cand_title = f"CodeT5 Primary Proposal: {applied_cnt_pre} issue(s) fixed across {windows_processed} window(s)"
+            elif repair_strategy == "qwen_fallback":
+                cand_title = f"Qwen Fallback Proposal: {applied_cnt_pre} issue(s) fixed across {windows_processed} window(s)"
+            else:
+                cand_title = f"Repair Proposal: {applied_cnt_pre} issue(s) fixed across {windows_processed} window(s) using [{tiers_str}]"
             if not cand_assumptions and "int value = 0;" in cand and "int value = ;" in original_code:
                 cand_assumptions.append("Assumed default initialization value 0 for empty initializer; requires explicit user approval.")
     

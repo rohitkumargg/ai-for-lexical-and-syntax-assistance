@@ -241,11 +241,14 @@ class SandboxedCompiler:
             with open(temp_c_file, "w", encoding="utf-8", newline="") as f:
                 f.write(source_code)
 
+            mock_headers_dir = os.path.join(project_root, "data", "mock_headers")
             cmd = [
                 self.compiler_path,
                 "-fsyntax-only",
-                temp_c_file,
             ]
+            if os.path.isdir(mock_headers_dir):
+                cmd.extend(["-I", mock_headers_dir])
+            cmd.append(temp_c_file)
 
             try:
                 proc = subprocess.run(
@@ -355,6 +358,11 @@ LIBC_HEADER_ALLOWLIST: Dict[str, List[str]] = {
     ],
     "<stdbool.h>": [
         r"\bbool\b", r"\btrue\b", r"\bfalse\b"
+    ],
+    "<sqlite3.h>": [
+        r"\bsqlite3\b", r"\bsqlite3_stmt\b", r"\bsqlite3_open\b",
+        r"\bsqlite3_close\b", r"\bsqlite3_exec\b", r"\bsqlite3_prepare_v2\b",
+        r"\bsqlite3_step\b", r"\bsqlite3_finalize\b", r"\bsqlite3_bind_text\b"
     ],
 }
 
@@ -579,7 +587,7 @@ class PatchIntegrityInspector:
             w_body = m.group(3).strip()
             orig_wrapper_pat = re.compile(rf'\b{w_type}\s*\({re.escape(w_cond)}\)\s*\{{', re.DOTALL)
             if not orig_wrapper_pat.search(original_code):
-                if "case" in original_code or "default" in original_code:
+                if ("case" in w_body or "default" in w_body) and ("case" in original_code or "default" in original_code):
                     reasons.append(
                         f"Integrity rejection: Control-flow wrapper '{w_type}({w_cond})' introduced around statements outside finding scope."
                     )
@@ -661,6 +669,12 @@ class PatchIntegrityInspector:
 
             for tag, i1, i2, j1, j2 in sm.get_opcodes():
                 if tag != 'equal':
+                    # Header insertions/updates (e.g. #include <stdio.h> for fgets/stdin or <sqlite3.h>) are legitimate
+                    if tag in ('insert', 'replace') and all(
+                        cand_split[k].strip().startswith('#include') or not cand_split[k].strip()
+                        for k in range(j1, j2)
+                    ):
+                        continue
                     affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
                         near_finding = any(abs(l_num - fl) <= 2 for fl in finding_lines)
@@ -1282,7 +1296,7 @@ class PatchValidator:
             if tree is None or has_any_errors(listeners):
                 return False, 1, "Semantic validation blocked: syntax errors present in candidate"
 
-            issues = collect_semantic_issues(tree)
+            issues = collect_semantic_issues(tree, source_text=cand)
             fatal_issues = [i for i in issues if i.get("kind") in ("undeclared", "redeclared")]
 
             if fatal_issues:

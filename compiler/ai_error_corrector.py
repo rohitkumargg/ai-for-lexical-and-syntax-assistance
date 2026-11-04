@@ -378,6 +378,20 @@ def apply_patch(source_text: str, patch: PatchCommand) -> str:
 
         if patch.op == "INS":
             tok = patch.payload or ""
+            if tok == ";":
+                lines = source_text.splitlines(keepends=True)
+                l_idx = (patch.line or 1) - 1
+                if 0 <= l_idx < len(lines):
+                    line_prefix = lines[l_idx][:(patch.col or 0)].strip()
+                    if not line_prefix and l_idx > 0:
+                        prev_idx = l_idx - 1
+                        while prev_idx >= 0 and not lines[prev_idx].strip():
+                            prev_idx -= 1
+                        if prev_idx >= 0:
+                            p_line = lines[prev_idx].rstrip("\r\n")
+                            ending = "\r\n" if lines[prev_idx].endswith("\r\n") else "\n"
+                            lines[prev_idx] = p_line + ";" + ending
+                            return "".join(lines)
             return source_text[:abs_pos] + tok + source_text[abs_pos:]
 
         if patch.op == "DEL":

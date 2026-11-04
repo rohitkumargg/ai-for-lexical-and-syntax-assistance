@@ -659,7 +659,7 @@ function renderPrimaryIndicators() {
                 badgePoor.className = "tile-badge badge-risk";
                 badgePoor.textContent = "[INVERSE Q]";
             }
-            if (descPoor) descPoor.textContent = "Inverse of Code Quality (100 - Q)";
+            if (descPoor) descPoor.textContent = "Inverse of Overall Code Quality (100 - Overall)";
         } else {
             elPoor.textContent = "--%";
             elPoor.style.color = "var(--text-secondary)";
@@ -3026,10 +3026,14 @@ async function _runRepairAfterPrescan() {
                         if (cancelBtn) cancelBtn.style.display = "none";
 
                         const result = job.result || {};
-                        const remainingCount = (result.unresolved_findings || result.remaining_findings || []).length;
+                        const remainingCount = typeof result.fixes_remaining_count === 'number'
+                            ? result.fixes_remaining_count
+                            : (result.findings_after ?? (result.unresolved_findings || result.remaining_findings || result.findings || []).length);
                         const repairSucceeded = result.status === "FULLY_REPAIRED"
                             || ((result.validation_passed === true || result.validation_report?.is_valid === true) && remainingCount === 0);
-                        setProgress(100, repairSucceeded
+                        const appliedCount = result.fixes_applied_count || (job.windows_done || 0);
+                        const finalPct = repairSucceeded ? 100 : Math.min(90, Math.max(10, Math.round((appliedCount / Math.max(1, appliedCount + remainingCount)) * 100)));
+                        setProgress(finalPct, repairSucceeded
                             ? "Full repair validated — no actionable issues remain"
                             : `Repair attempt finished — ${remainingCount} issue(s) still need repair`);
                         renderCoordinatedPlan(result);
@@ -3415,7 +3419,7 @@ function renderCoordinatedPlan(plan) {
 
     const overallVal = tileAssessment.overall_code_quality != null ? Number(tileAssessment.overall_code_quality) : ((qScore != null && optScore != null && vulnScore != null) ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore)))) : null);
     const optimalVal = tileAssessment.optimal_code != null ? Number(tileAssessment.optimal_code) : (optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null);
-    const poorVal = tileAssessment.poor_code != null ? Number(tileAssessment.poor_code) : (qScore != null ? Math.max(0, Math.min(100, Math.round(100 - qScore))) : null);
+    const poorVal = (overallVal != null) ? Math.max(0, Math.min(100, Math.round(100 - overallVal))) : (tileAssessment.poor_code != null ? Number(tileAssessment.poor_code) : (qScore != null ? Math.max(0, Math.min(100, Math.round(100 - qScore))) : null));
 
     // 1. Overall Code Quality %
     const elOverall = document.getElementById("pi-val-overall");

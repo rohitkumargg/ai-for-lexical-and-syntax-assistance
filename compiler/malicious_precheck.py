@@ -515,7 +515,12 @@ class MaliciousCodePrecheck:
                 )
 
             # Unbounded scanf("%s", ...) check
-            if re.search(r'scanf\s*\(\s*"%s"', line_str):
+            m_sc = re.search(r'scanf\s*\(\s*"%s"\s*,\s*([a-zA-Z_]\w*)', line_str)
+            if m_sc or re.search(r'scanf\s*\(\s*"%s"', line_str):
+                dest_var = m_sc.group(1) if m_sc else "destination buffer"
+                m_decl = re.search(rf'char\s+{dest_var}\s*\[(\d+)\]', source_code) if m_sc else None
+                cap_str = f" of declared capacity {m_decl.group(1)} bytes" if m_decl else ""
+                safe_w = f"%{int(m_decl.group(1))-1}s" if m_decl else "%63s"
                 findings.append(
                     PrecheckFinding(
                         rule_id="PRECHECK-BUFFER-001",
@@ -526,10 +531,10 @@ class MaliciousCodePrecheck:
                         line=idx,
                         column=line_str.find("scanf"),
                         snippet=line_str,
-                        explanation="scanf with '%s' format specifier performs unbounded input reading into destination buffer.",
-                        recommended_mitigation="Specify maximum field width in scanf (e.g. '%63s') or use fgets.",
+                        explanation=f"scanf with '%s' has no input width limit and can overflow buffer '{dest_var}'{cap_str}. [CWE-120]",
+                        recommended_mitigation=f"Specify maximum safe field width '{safe_w}' in scanf or use fgets.",
                         confidence=0.95,
-                        evidence="scanf(\"%s\")",
+                        evidence=f"scanf(\"%s\", {dest_var})" if m_sc else "scanf(\"%s\")",
                         blocks_execution=False,
                         requires_review=False,
                         is_malicious_intent=False,

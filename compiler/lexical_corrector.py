@@ -49,6 +49,7 @@ CHAR_NORMALIZATIONS = {
 
 # Safe token-level normalizations.
 TOKEN_NORMALIZATIONS = {
+    "===": "==",
     "=<=": "<=",
     "=>=": ">=",
     "=<": "<=",

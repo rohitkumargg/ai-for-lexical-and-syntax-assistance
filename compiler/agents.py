@@ -282,7 +282,7 @@ class SemanticAgent(BaseCompilerAgent):
                 )
                 return findings
 
-            issues = collect_semantic_issues(tree)
+            issues = collect_semantic_issues(tree, source_text=source_text)
             lines = source_text.splitlines()
 
             for iss in issues:

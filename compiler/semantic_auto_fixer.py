@@ -278,10 +278,13 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
     # -------------------------------------------------------------
     if kind == "dot_on_pointer":
         # e.g. ptr.field -> ptr->field
-        # Look around column or search for .<name>
         mname = issue.get("name")
-        if mname:
+        if mname and re.search(rf"\b{re.escape(mname)}\.", text):
+            updated = re.sub(rf"\b{re.escape(mname)}\.", f"{mname}->", text)
+        elif mname and re.search(rf"\.\s*{re.escape(mname)}\b", text):
             updated = re.sub(rf"\.(?=\s*{re.escape(mname)}\b)", "->", text, count=1)
+        elif re.search(r'\b[a-zA-Z_]\w*\.[a-zA-Z_]\w*', text):
+            updated = re.sub(r'(\b[a-zA-Z_]\w*)\.([a-zA-Z_]\w*)', r'\1->\2', text)
         else:
             updated = text[:col] + text[col:].replace(".", "->", 1)
         if updated != text:

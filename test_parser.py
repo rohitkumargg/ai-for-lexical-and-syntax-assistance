@@ -11,13 +11,18 @@ from antlr4.tree.Tree import TerminalNodeImpl
 from compiler.error_classifier import classify_error_message
 from compiler.error_corrector import apply_correction
 from compiler.lexical_corrector import fix_common_lexical_issues
-try:
-    from compiler.ai_error_corrector import ai_correct_source_patch_mode
-    from compiler.ai_error_corrector import ai_generate_patch_candidates
-except (ImportError, Exception):
-    def ai_correct_source_patch_mode(*args, **kwargs):
+def ai_correct_source_patch_mode(*args, **kwargs):
+    try:
+        from compiler.ai_error_corrector import ai_correct_source_patch_mode as _fn
+        return _fn(*args, **kwargs)
+    except Exception:
         return None, None
-    def ai_generate_patch_candidates(*args, **kwargs):
+
+def ai_generate_patch_candidates(*args, **kwargs):
+    try:
+        from compiler.ai_error_corrector import ai_generate_patch_candidates as _fn
+        return _fn(*args, **kwargs)
+    except Exception:
         return []
 from compiler.identifier_corrector import fix_identifier_typo_at
 from compiler.semantic_checker import SemanticChecker
@@ -142,9 +147,10 @@ class CollectingErrorListener(ErrorListener):
 
 
 def parse_source(source_text: str, source_name: str = "<input>"):
-    print(f"\n{'=' * 70}")
-    print(f"Parsing: {source_name}")
-    print("=" * 70)
+    if not source_name.startswith("verifier-") and source_name != "<sec_round_0>":
+        print(f"\n{'=' * 70}")
+        print(f"Parsing: {source_name}")
+        print("=" * 70)
 
     input_stream = InputStream(source_text)
 

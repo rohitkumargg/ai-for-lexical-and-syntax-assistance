@@ -227,6 +227,7 @@ class CodeT5Manager:
         reason: str,
         line: int,
         col: int,
+        timeout: Optional[float] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Generate a candidate patch using CodeT5 + LoRA.
@@ -236,16 +237,28 @@ class CodeT5Manager:
         if any(w in reason_str for w in ("security", "unbounded", "overflow", "injection", "buffer", "format", "taint", "strcpy", "system", "gets")):
             return None, f"Security finding '{reason}' outside CodeT5 token-patch domain"
 
+        timeout_s = timeout if timeout is not None else float(os.environ.get("CODET5_TIMEOUT_SECONDS", "8.0"))
         try:
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
             from compiler.ai_error_corrector import ai_correct_source_patch_mode
-            candidate, desc = ai_correct_source_patch_mode(
-                source_text=source_text,
-                reason=reason,
-                error_line=line,
-                error_column=col,
-                base_model_path=self.get_base_model_path(),
-                adapter_dir=self.patch_adapter_dir,
-            )
+
+            def _run_inference():
+                return ai_correct_source_patch_mode(
+                    source_text=source_text,
+                    reason=reason,
+                    error_line=line,
+                    error_column=col,
+                    base_model_path=self.get_base_model_path(),
+                    adapter_dir=self.patch_adapter_dir,
+                )
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_run_inference)
+                try:
+                    candidate, desc = future.result(timeout=timeout_s)
+                except FuturesTimeoutError:
+                    return None, f"CodeT5 inference timed out (>{timeout_s}s)"
+
             self._is_loaded = True
             if candidate and candidate != source_text:
                 return candidate, desc

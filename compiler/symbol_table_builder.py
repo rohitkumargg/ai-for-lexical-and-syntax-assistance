@@ -19,6 +19,14 @@ BUILTIN_FUNCTIONS = {
     "free": {"kind": "func", "type": "void", "line": 0, "builtin": True},
     "strncpy": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
     "strncat": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
+    "sqlite3_open": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_close": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_exec": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_prepare_v2": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_step": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_finalize": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_bind_text": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "sqlite3_bind_int": {"kind": "func", "type": "int", "line": 0, "builtin": True},
 }
 
 
@@ -46,6 +54,8 @@ class SymbolTableBuilder(SimpleCVisitor):
         # Preload builtins
         for name, info in BUILTIN_FUNCTIONS.items():
             self.symbols[name] = dict(info)
+        self.symbols["sqlite3"] = {"kind": "type", "type": "sqlite3", "line": 0, "builtin": True}
+        self.symbols["sqlite3_stmt"] = {"kind": "type", "type": "sqlite3_stmt", "line": 0, "builtin": True}
 
     def _type_text(self, type_ctx) -> str:
         if type_ctx is None:

@@ -417,10 +417,11 @@ class ScanfSecurityAnalyzer:
                             is_uncertain=False,
                             severity="HIGH",
                             message=(
-                                f"Unbounded '{conv.raw_spec}' format specifier in {fn_name} overflows buffer '{var_name}' "
-                                f"of capacity {capacity} bytes. Maximum safe width is {safe_spec} to allow 1 byte for null terminator."
+                                f"Unbounded '{conv.raw_spec}' format specifier in '{fn_name}' has no input width limit and can overflow destination buffer '{var_name}' "
+                                f"(declared capacity: {capacity} bytes). Maximum safe width is '{safe_spec}' (leaving 1 byte for null terminator). [CWE-120]"
                             ),
-                            suggestion=f"use {safe_spec} to prevent buffer overflow",
+                            suggestion=f"use '{safe_spec}' to prevent buffer overflow (CWE-120)",
+
                             safe_replacement_spec=safe_spec,
                         )
                     )
@@ -441,10 +442,11 @@ class ScanfSecurityAnalyzer:
                             is_uncertain=False,
                             severity="HIGH",
                             message=(
-                                f"Format specifier '{conv.raw_spec}' in {fn_name} exceeds buffer '{var_name}' "
-                                f"capacity of {capacity} bytes (maximum safe width is {safe_spec} to allow 1 byte for null terminator)."
+                                f"Format specifier '{conv.raw_spec}' in '{fn_name}' exceeds buffer '{var_name}' "
+                                f"capacity of {capacity} bytes (maximum safe width is '{safe_spec}' to allow 1 byte for null terminator). [CWE-120]"
                             ),
-                            suggestion=f"use {safe_spec} to prevent buffer overflow",
+                            suggestion=f"use '{safe_spec}' to prevent buffer overflow (CWE-120)",
+
                             safe_replacement_spec=safe_spec,
                         )
                     )

@@ -12,6 +12,7 @@ from collections import OrderedDict
 
 _CALL_CACHE: OrderedDict[str, List[CallSite]] = OrderedDict()
 _VAR_CACHE: OrderedDict[str, Dict[str, VarDeclaration]] = OrderedDict()
+_PARSE_SYNTAX_STATUS_CACHE: OrderedDict[str, int] = OrderedDict()
 _EXTRACT_CACHE_MAX = 256
 
 def clear_extractor_cache():
@@ -348,28 +349,38 @@ def extract_call_sites(source_text: str) -> List[CallSite]:
     if source_text in _CALL_CACHE:
         _CALL_CACHE.move_to_end(source_text)
         return list(_CALL_CACHE[source_text])
-    err_cnt = 0
-    try:
-        input_stream = InputStream(source_text)
-        lexer = SimpleCLexer(input_stream)
-        lexer.removeErrorListeners()
-        token_stream = CommonTokenStream(lexer)
-        parser = SimpleCParser(token_stream)
-        parser.removeErrorListeners()
-        tree = parser.program()
-        err_cnt = parser.getNumberOfSyntaxErrors()
-        if err_cnt == 0:
-            visitor = _AstEntityVisitor()
-            visitor.visit(tree)
-            res = visitor.calls
-            if len(_CALL_CACHE) >= _EXTRACT_CACHE_MAX:
-                _CALL_CACHE.popitem(last=False)
-            _CALL_CACHE[source_text] = res
-            return list(res)
-    except Exception as e:
-        logger.warning(f"AST call extraction raised exception: {e}; falling back to regex mode.")
+    known_err_cnt = _PARSE_SYNTAX_STATUS_CACHE.get(source_text)
+    if known_err_cnt is not None and known_err_cnt > 0:
+        err_cnt = known_err_cnt
+    elif "===" in source_text or re.search(r'\[[^\]\n]*;', source_text) or re.search(r'[@$`]', source_text):
+        err_cnt = 1
+        _PARSE_SYNTAX_STATUS_CACHE[source_text] = 1
+    else:
+        err_cnt = 0
+        try:
+            input_stream = InputStream(source_text)
+            lexer = SimpleCLexer(input_stream)
+            lexer.removeErrorListeners()
+            token_stream = CommonTokenStream(lexer)
+            parser = SimpleCParser(token_stream)
+            parser.removeErrorListeners()
+            tree = parser.program()
+            err_cnt = parser.getNumberOfSyntaxErrors()
+            if len(_PARSE_SYNTAX_STATUS_CACHE) >= _EXTRACT_CACHE_MAX:
+                _PARSE_SYNTAX_STATUS_CACHE.popitem(last=False)
+            _PARSE_SYNTAX_STATUS_CACHE[source_text] = err_cnt
+            if err_cnt == 0:
+                visitor = _AstEntityVisitor()
+                visitor.visit(tree)
+                res = visitor.calls
+                if len(_CALL_CACHE) >= _EXTRACT_CACHE_MAX:
+                    _CALL_CACHE.popitem(last=False)
+                _CALL_CACHE[source_text] = res
+                return list(res)
+        except Exception as e:
+            logger.warning(f"AST call extraction raised exception: {e}; falling back to regex mode.")
 
-    logger.warning(f"AST parsing had {err_cnt} syntax errors; falling back to regex call extraction mode.")
+    logger.debug(f"AST parsing had {err_cnt} syntax errors; falling back to regex call extraction mode.")
     # Regex fallback for snippets
     calls: List[CallSite] = []
     clean_text = strip_c_comments_and_strings(source_text)
@@ -416,24 +427,38 @@ def extract_var_declarations(source_text: str) -> Dict[str, VarDeclaration]:
     if source_text in _VAR_CACHE:
         _VAR_CACHE.move_to_end(source_text)
         return dict(_VAR_CACHE[source_text])
-    err_cnt = 0
-    try:
-        input_stream = InputStream(source_text)
-        lexer = SimpleCLexer(input_stream)
-        lexer.removeErrorListeners()
-        token_stream = CommonTokenStream(lexer)
-        parser = SimpleCParser(token_stream)
-        parser.removeErrorListeners()
-        tree = parser.program()
-        err_cnt = parser.getNumberOfSyntaxErrors()
-        if err_cnt == 0:
-            visitor = _AstEntityVisitor()
-            visitor.visit(tree)
-            return visitor.decls
-    except Exception as e:
-        logger.warning(f"AST variable extraction raised exception: {e}; falling back to regex mode.")
+    known_err_cnt = _PARSE_SYNTAX_STATUS_CACHE.get(source_text)
+    if known_err_cnt is not None and known_err_cnt > 0:
+        err_cnt = known_err_cnt
+    elif "===" in source_text or re.search(r'\[[^\]\n]*;', source_text) or re.search(r'[@$`]', source_text):
+        err_cnt = 1
+        _PARSE_SYNTAX_STATUS_CACHE[source_text] = 1
+    else:
+        err_cnt = 0
+        try:
+            input_stream = InputStream(source_text)
+            lexer = SimpleCLexer(input_stream)
+            lexer.removeErrorListeners()
+            token_stream = CommonTokenStream(lexer)
+            parser = SimpleCParser(token_stream)
+            parser.removeErrorListeners()
+            tree = parser.program()
+            err_cnt = parser.getNumberOfSyntaxErrors()
+            if len(_PARSE_SYNTAX_STATUS_CACHE) >= _EXTRACT_CACHE_MAX:
+                _PARSE_SYNTAX_STATUS_CACHE.popitem(last=False)
+            _PARSE_SYNTAX_STATUS_CACHE[source_text] = err_cnt
+            if err_cnt == 0:
+                visitor = _AstEntityVisitor()
+                visitor.visit(tree)
+                res_decls = visitor.decls
+                if len(_VAR_CACHE) >= _EXTRACT_CACHE_MAX:
+                    _VAR_CACHE.popitem(last=False)
+                _VAR_CACHE[source_text] = res_decls
+                return dict(res_decls)
+        except Exception as e:
+            logger.warning(f"AST variable extraction raised exception: {e}; falling back to regex mode.")
 
-    logger.warning(f"AST parsing had {err_cnt} syntax errors; falling back to regex variable declaration extraction mode.")
+    logger.debug(f"AST parsing had {err_cnt} syntax errors; falling back to regex variable declaration extraction mode.")
     # Regex fallback
     decls: Dict[str, VarDeclaration] = {}
     decl_re = re.compile(

@@ -86,6 +86,14 @@ BUILTIN_LIBRARY_SIGNATURES: Dict[str, _FuncSig] = {
     "waitpid": _FuncSig("waitpid", "int", ["int", "int*", "int"], 0, 0),
     "exit": _FuncSig("exit", "void", ["int"], 0, 0),
     "_exit": _FuncSig("_exit", "void", ["int"], 0, 0),
+    "sqlite3_open": _FuncSig("sqlite3_open", "int", ["char*", "void*"], 0, 0),
+    "sqlite3_close": _FuncSig("sqlite3_close", "int", ["void*"], 0, 0),
+    "sqlite3_exec": _FuncSig("sqlite3_exec", "int", ["void*", "char*", "void*", "void*", "void*"], 0, 0),
+    "sqlite3_prepare_v2": _FuncSig("sqlite3_prepare_v2", "int", ["void*", "char*", "int", "void*", "void*"], 0, 0),
+    "sqlite3_step": _FuncSig("sqlite3_step", "int", ["void*"], 0, 0),
+    "sqlite3_finalize": _FuncSig("sqlite3_finalize", "int", ["void*"], 0, 0),
+    "sqlite3_bind_text": _FuncSig("sqlite3_bind_text", "int", ["void*", "int", "char*", "int", "void*"], 0, 0),
+    "sqlite3_bind_int": _FuncSig("sqlite3_bind_int", "int", ["void*", "int", "int"], 0, 0),
 }
 
 
