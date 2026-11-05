@@ -3323,6 +3323,11 @@ class RepairPlanner:
                     consecutive_no_progress = 0
                     total_qwen_attempts = 0
                     attempted_failed_lines: set[int] = set()
+                    # Keep validator feedback per source location so a stalled
+                    # window is retried with the concrete reason its last model
+                    # candidate was rejected, instead of asking Qwen the same
+                    # unconstrained question up to the stall limit.
+                    qwen_rejection_feedback: Dict[int, str] = {}
                     q_strat = "windowed_batch_synthesis"
                     q_expl = ""
 
@@ -3473,11 +3478,19 @@ class RepairPlanner:
                                 ev_line = win_lines[rel_idx].strip() if 0 <= rel_idx < len(win_lines) else ""
                                 real_f = win.get("finding")
                                 if real_f is not None:
+                                    base_explanation = getattr(real_f, "explanation", f"Issue at line {win['err_line']}: {ev_line}")
+                                    rejection_feedback = qwen_rejection_feedback.get(win["err_line"])
+                                    if rejection_feedback:
+                                        base_explanation = (
+                                            f"{base_explanation}\n\nYour previous candidate was rejected by independent validation:\n"
+                                            f"{rejection_feedback}\nRevise only this repair window. Return a complete corrected window. "
+                                            "Do not use NULL/0 placeholders or replace shell calls with popen. If safe behavior cannot be inferred from this source, stop and explain the missing information."
+                                        )
                                     dummy_f = Finding(
                                         id=getattr(real_f, "id", f"win_err_{win['err_line']}"),
                                         category=getattr(real_f, "category", FindingCategory.SECURITY),
                                         location=SourceLocation(line=win["win_rel"], col=getattr(real_f.location, "col", 1) if getattr(real_f, "location", None) else 1, file_path=filename),
-                                        explanation=getattr(real_f, "explanation", f"Issue at line {win['err_line']}: {ev_line}"),
+                                        explanation=base_explanation,
                                         evidence=getattr(real_f, "evidence", ev_line) or ev_line,
                                         severity=getattr(real_f, "severity", FindingSeverity.HIGH),
                                         confidence=getattr(real_f, "confidence", 1.0),
@@ -3485,11 +3498,18 @@ class RepairPlanner:
                                         metadata={"source": "qwen_escalation", **(getattr(real_f, "metadata", {}) or {})},
                                     )
                                 else:
+                                    base_explanation = f"Syntax error at line {win['err_line']}: {ev_line}"
+                                    rejection_feedback = qwen_rejection_feedback.get(win["err_line"])
+                                    if rejection_feedback:
+                                        base_explanation += (
+                                            f"\n\nYour previous candidate was rejected by independent validation:\n{rejection_feedback}\n"
+                                            "Revise only this repair window and return a complete corrected window."
+                                        )
                                     dummy_f = Finding(
                                         id=f"win_err_{win['err_line']}",
                                         category=FindingCategory.SYNTAX,
                                         location=SourceLocation(line=win["win_rel"], col=1, file_path=filename),
-                                        explanation=f"Syntax error at line {win['err_line']}: {ev_line}",
+                                        explanation=base_explanation,
                                         evidence=ev_line,
                                         severity=FindingSeverity.HIGH,
                                         confidence=1.0,
@@ -3538,6 +3558,8 @@ class RepairPlanner:
                                     if scope_ok:
                                         cand_win_text = q_raw
                                         win_adopted_tier = "qwen"
+                                    else:
+                                        qwen_rejection_feedback[win["err_line"]] = "; ".join(scope_reasons)
                                 else:
                                     print(f"[QWEN_VALIDATION] candidate_empty_or_identical={bool(not q_raw or q_raw.strip() == win['win_src'].strip())}")
 

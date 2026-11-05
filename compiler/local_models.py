@@ -499,8 +499,10 @@ class OllamaClient:
                     f"```\n\n"
                     f"INSTRUCTIONS:\n"
                     f"1. Fix the security defect safely using bounded, secure standard alternatives (e.g., fgets, snprintf, bounds validation, initializing memory).\n"
-                    f"2. Return ONLY the complete corrected C code inside a single ```c ... ``` block.\n"
-                    f"3. Do not include markdown conversational commentary or explanations.\n"
+                    f"2. For CWE-78/system()/popen() findings, do not replace system() with popen() or another shell API. Use shell-free argument-vector execution only when the source establishes the intended executable and allowed arguments; never invent an allowlist or change the program's behavior to guess one. If intent cannot be inferred safely, return no candidate and state that user input is needed.\n"
+                    f"3. Never replace a call result or data flow with NULL/0 merely to silence a finding. Keep return values and pointers meaningful, validate input, and handle errors without dereferencing null pointers.\n"
+                    f"4. Return ONLY the complete corrected C code inside a single ```c ... ``` block.\n"
+                    f"5. Do not include markdown conversational commentary or explanations.\n"
                 )
             else:
                 prompt = (
