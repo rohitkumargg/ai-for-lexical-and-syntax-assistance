@@ -26583,3 +26583,392 @@ Errors: No entries
 Logs: ⚡ RUNNING
 Executing 16-Stage Compiler & Repair Pipeline...
 Analyzing tokens, grammar AST, semantic scope, and coordinating repair candidates..."
+examples/week11_testing/ademo2_repaired.c,730,c,unspecified,True,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task02':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:23:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[5];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task06':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:48:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'a';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task32':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:249:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[4];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task36':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:274:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'b';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task62':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:472:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[2];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task66':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:497:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'c';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task24':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:193:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task54':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:419:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c: In function 'task84':
+C:\Users\rohit\AppData\Local\Temp\tmpiw4rirzu.c:642:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^",0,,91%,100%,9%,0%,49/100 (2710.05 ms | 484.29 MB | 64.8212 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),122.67,"Status:  | Progress: 
+Card: Budget: 114.1s
+Plan Explanation: Source code is valid (zero errors, warnings allowed).
+Proposed Changes (Unified Diff):
+View Full Code
+No diff available
+Apply Repair
+Dismiss
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: bb539adc2fde4ca08fec02f362c819d2
+15 stages recorded
+19:13:44.214
+✓ PASSED
+0. Security gate
+1201.92 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+19:13:44.214
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo2_repaired.c' (730 lines, 9375 bytes, SHA-256: fb8ca1840543...).
+19:13:45.917
+✓ PASSED
+2. Lexical Analysis
+15.72 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+19:13:45.917
+✓ PASSED
+3. Syntax Analysis
+678.31 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+19:13:45.917
+✗ FAILED
+4. Semantic Analysis
+1007.58 ms
+Details ▼
+6 semantic type/scope issue(s) found.
+19:13:46.908
+✓ PASSED
+5. Security Vulnerability Analysis
+990.8 ms
+Details ▼
+Static security analysis passed; zero detected vulnerabilities.
+19:13:46.908
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 6 finding(s) across 1 categories; identified 0 root causes.
+19:13:49.735
+✓ PASSED
+7. Deterministic Rule Engine
+--
+Verified program: all statements valid and clean of compiler errors.
+19:13:49.735
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Program verified clean; CodeT5 ML stage skipped.
+19:13:49.735
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Program verified clean; Qwen model inference skipped.
+19:13:49.735
+⊘ SKIPPED
+10. Repair Candidate Generation
+skipped
+No syntax or semantic errors; candidate generation skipped.
+19:13:49.735
+✓ PASSED
+11. Patch Validation
+--
+Original code validated; no syntax or semantic errors.
+19:13:46.926
+✓ PASSED
+14. Code Quality & Optimization Metrics
+10.58 ms
+Details ▼
+Evaluated 5 quality components (82.0%) and 0 optimization opportunity(ies).
+19:13:46.926
+✓ PASSED
+15. Security Risk Scoring
+7.06 ms
+Details ▼
+Assessed security risk score (0.0% / 100) using severity and exposure weights.
+19:13:46.927
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.53 ms
+Details ▼
+Tracked hardware telemetry: 2710.05 ms, 484.29 MB peak RSS, 64.8212 J estimated TDP energy."
+examples/week11_testing/arena_500line_final_80_errors.c,694,c,unspecified,True,,200,0,,0,,95%,100%,5%,0%,57/100 (1879.46 ms | 492.47 MB | 44.9995 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),176.8,"Status:  | Progress: 
+Card: Budget: 163.2s
+Plan Explanation: Autonomous repair applied 100 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (100):
+Syntax error: Syntax error (missing_semicolon_after_global): missing ';' at 'int' (Line 20): Syntax error (missing_semicolon_after_global): mi
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 1a2417e918f64dd9bca568b412195271
+18 stages recorded
+19:15:43.434
+✓ PASSED
+0. Security gate
+3204.41 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+19:15:43.434
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'arena_500line_final_80_errors.c' (694 lines, 14920 bytes, SHA-256: bc1ffdcdf131...).
+19:15:44.971
+✗ FAILED
+2. Lexical Analysis
+45.71 ms
+Details ▼
+19 lexical issue(s) detected.
+19:15:44.971
+✗ FAILED
+3. Syntax Analysis
+1137.27 ms
+Details ▼
+81 syntax parser error(s) identified.
+19:15:44.971
+⊘ SKIPPED
+4. Semantic Analysis
+352.67 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+19:15:45.308
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+336.5 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+19:15:45.308
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 100 finding(s) across 2 categories; identified 79 root causes.
+19:16:05.007
+✓ PASSED
+7. Deterministic Rule Engine
+18717.79 ms
+Details ▼
+Deterministic rule engine resolved all findings (84 fixes applied): corrected keyword typo 'whlie' -> 'while'; corrected keyword typo 'whlie' -> 'while'; corrected keyword typo 'whlie' -> 'while'
+19:16:05.008
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Deterministic rules fully resolved all issues; CodeT5 ML stage skipped.
+19:16:05.008
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Deterministic rules fully resolved all issues; Qwen reasoning escalation skipped.
+19:16:31.001
+✓ PASSED
+10. Repair Candidate Generation
+11685.83 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+19:16:31.001
+✓ PASSED
+11. Patch Validation
+14220.81 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+19:16:31.001
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_b943bc05fb08). Original source preserved; awaiting user click on Apply.
+19:16:31.001
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+19:15:45.315
+✓ PASSED
+14. Code Quality & Optimization Metrics
+4.39 ms
+Details ▼
+Evaluated 5 quality components (73.2%) and 0 optimization opportunity(ies).
+19:15:45.315
+⊘ SKIPPED
+15. Security Risk Scoring
+2.92 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+19:15:45.316
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.29 ms
+Details ▼
+Tracked hardware telemetry: 1879.46 ms, 492.47 MB peak RSS, 44.9995 J estimated TDP energy.
+19:15:46.047
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/week11_testing/prof_demo_pack_safe_massfix.c,768,c,unspecified,False,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c: In function 'arena_solve_0':
+C:\Users\rohit\AppData; Parser error (rc=1): Line 20:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 22:4 - PARSE Error: missing ';' ; Apply failed (status=N/A (No Patch Offered)); Incomplete metrics displayed",N/A (No Patch Offered),1,"C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c: In function 'arena_solve_0':
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:20:5: error: expected ',' or ';' before 'int'
+     int best = 0;
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:22:5: error: expected ',' or ';' before 'for'
+     for (i = 0; i < 8; i = i + 1) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:22:19: warning: statement with no effect [-Wunused-value]
+     for (i = 0; i < 8; i = i + 1) {
+                 ~~^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:22:33: error: expected ';' before ')' token
+     for (i = 0; i < 8; i = i + 1) {
+                                 ^
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:22:33: error: expected statement before ')' token
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:24:5: error: expected ';' before '}' token
+     }
+     ^
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:25:5: error: 'best' undeclared (first use in this function)
+     best = arr[0];
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:25:5: note: each undeclared identifier is reported only once for each function it appears in
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:28:5: warning: implicit declaration of function 'whlie' [-Wimplicit-function-declaration]
+     whlie (i < n) {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:28:19: error: expected ';' before '{' token
+     whlie (i < n) {
+                   ^
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:768:1: error: expected declaration or statement at end of input
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:21:9: warning: variable 'low' set but not used [-Wunused-but-set-variable]
+     int low = 0
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:19:9: warning: unused variable 'ans' [-Wunused-variable]
+     int ans = 0
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxxrqm5bj.c:768:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^",1,"Line 20:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 22:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 24:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 28:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 35:23 - PARSE Error: missing ')' at '{' (offending: {)
+Line 50:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 52:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 54:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 58:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 67:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 80:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 82:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 84:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 88:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 110:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 112:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 114:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 118:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 127:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 140:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 142:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 144:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 148:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 170:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 172:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 174:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 178:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 187:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 200:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 202:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 204:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 208:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 230:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 232:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 234:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 238:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 247:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 248:22 - PARSE Error: missing ')' at '{' (offending: {)
+Line 260:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 262:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 264:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 268:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 290:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 292:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 294:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 298:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 307:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 320:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 322:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 324:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 328:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 350:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 352:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 354:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 358:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 367:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 380:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 382:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 384:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 388:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 410:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 412:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 414:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 418:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 427:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 440:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 442:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 444:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 448:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 470:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 472:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 474:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 478:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 487:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 500:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 502:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 504:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 508:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 530:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 532:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 534:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 538:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 545:23 - PARSE Error: missing ')' at '{' (offending: {)
+Line 547:8 - PARSE Error: missing ';' at '}' (offending: })
+Line 560:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 562:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 564:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 568:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 590:4 - PARSE Error: missing ';' at 'int' (offending: int)
+Line 592:4 - PARSE Error: missing ';' at 'for' (offending: for)
+Line 594:4 - PARSE Error: missing ';' at '}' (offending: })
+Line 598:18 - PARSE Error: missing ';' at '{' (offending: {)
+Line 622:4 - PARSE Error: missing ';' at 'prinft' (offending: prinft)
+Line 623:18 - PARSE Error: missing ')' at '{' (offending: {)",--%,100%,27%,--%,--/100 (Run repair to compute),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),5109.51,"Status:  | Progress: 
+Card: 
+Steps: No entries
+Errors: No entries
+Logs: ℹ️ No pipeline runs yet. Click 'Run Analyzer & Repair' (Ctrl+Enter) to execute the 16-stage pipeline."

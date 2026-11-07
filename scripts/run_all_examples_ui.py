@@ -211,10 +211,7 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
                 const btnDisabled = btn ? btn.disabled : false;
                 const cancelVisible = cancelBtn && cancelBtn.style.display !== 'none';
                 const hasJob = Boolean(window.activeRepairJobId);
-                const statusBadge = document.getElementById('compiler-status-badge');
-                const badgeText = statusBadge ? statusBadge.innerText.toUpperCase() : '';
-                const isBusy = badgeText.includes('ANALYZ') || badgeText.includes('RUNNING') || badgeText.includes('REPAIR');
-                return runningFlag || btnDisabled || cancelVisible || hasJob || isBusy;
+                return runningFlag || btnDisabled || cancelVisible || hasJob;
             }"""
         )
 

@@ -3139,7 +3139,22 @@ class RepairPlanner:
             # -------------------------------------------------------------
             # Tier 1: Try CodeT5 model for localized C syntax repair only
             # -------------------------------------------------------------
-            if cand is None:
+            if kwargs.get("is_job_subtask"):
+                logger.record_stage(
+                    stage_id="codet5_model",
+                    stage_name="8. CodeT5 Model Inference",
+                    status=StageStatus.SKIPPED,
+                    description="Partitioned multi-function runner active; monolithic CodeT5 inference skipped.",
+                    duration_ms=0.1,
+                )
+                logger.record_stage(
+                    stage_id="qwen_ollama",
+                    stage_name="9. Local Qwen Model through Ollama",
+                    status=StageStatus.SKIPPED,
+                    description="Partitioned multi-function runner active; monolithic Qwen inference skipped.",
+                    duration_ms=0.1,
+                )
+            elif cand is None:
                 is_codet5_domain = self.codet5_enabled and self.codet5.is_available() and (lang_id in ("c", "cpp", "c++"))
                 codet5_findings = [f for f in findings if self.codet5.is_supported_finding(f)] if is_codet5_domain else []
 
@@ -3353,9 +3368,9 @@ class RepairPlanner:
                     "escalating remaining issues to Qwen."
                 )
 
-            _needs_qwen = (cand is None) or (
+            _needs_qwen = ((cand is None) or (
                 workflow_state in ("PARTIALLY_REPAIRED",)
-            )
+            )) and not kwargs.get("is_job_subtask")
             if _needs_qwen:
                 is_security_primary = any(
                     (getattr(f, "category", "") == "SECURITY" or getattr(f, "category", None) == FindingCategory.SECURITY)

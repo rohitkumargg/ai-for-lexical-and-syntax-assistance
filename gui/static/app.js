@@ -3057,6 +3057,7 @@ async function _runRepairAfterPrescan() {
                             : `Repair attempt finished — ${remainingCount} issue(s) still need repair`);
                         renderCoordinatedPlan(result);
                         isRepairRunning = false;
+                        activeRepairJobId = null;
                         setAllRunButtonsDisabled(false);
 
                         // Requirement 4: Map every server status explicitly; unknown -> show raw status
@@ -3069,6 +3070,7 @@ async function _runRepairAfterPrescan() {
                         if (typeof cancelTimer !== "undefined") clearTimeout(cancelTimer);
                         if (cancelBtn) cancelBtn.style.display = "none";
                         isRepairRunning = false;
+                        activeRepairJobId = null;
                         setAllRunButtonsDisabled(false);
                         setProgress(0, "Repair cancelled by user");
                         setStatus("CANCELLED");
@@ -3080,6 +3082,7 @@ async function _runRepairAfterPrescan() {
                         if (typeof cancelTimer !== "undefined") clearTimeout(cancelTimer);
                         if (cancelBtn) cancelBtn.style.display = "none";
                         isRepairRunning = false;
+                        activeRepairJobId = null;
                         setAllRunButtonsDisabled(false);
                         const err = job.error || "Repair job execution failed.";
                         setProgress(0, "Repair error: " + err);
