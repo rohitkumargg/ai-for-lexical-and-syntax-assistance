@@ -817,27 +817,37 @@ class PatchValidator:
             candidate_code, filename=filename, language=lang_id, action="candidate_patch_validation"
         )
         if cand_gate.is_blocked:
-            remaining_risks.append(f"Security Gate Blocked: {cand_gate.message}")
-            stage_results[ValidationStage.SECURITY.value] = StageResult(
-                stage=ValidationStage.SECURITY,
-                passed=False,
-                error_count=1,
-                message=cand_gate.explanation,
-                details=cand_gate.to_dict(),
+            # Check if this blockage was already present in original_code (not introduced by candidate)
+            orig_gate = PreExecutionSecurityGate.check_submission(
+                original_code, filename=filename, language=lang_id, action="candidate_patch_validation"
             )
-            return PatchValidationReport(
-                verdict=ValidationVerdict.FAILED_SECURITY,
-                is_valid=False,
-                syntax_passed=False,
-                semantic_passed=False,
-                compilation_passed=False,
-                security_passed=False,
-                tests_passed=None,
-                remaining_risks=remaining_risks,
-                stage_results=stage_results,
-                structured_diff=diff,
-                explanation=f"Candidate rejected by security policy: {cand_gate.message}",
-            )
+            is_new_threat = True
+            if orig_gate.is_blocked:
+                if cand_gate.reason_code == orig_gate.reason_code or (cand_gate.evidence and cand_gate.evidence in original_code):
+                    is_new_threat = False
+
+            if is_new_threat:
+                remaining_risks.append(f"Security Gate Blocked: {cand_gate.message}")
+                stage_results[ValidationStage.SECURITY.value] = StageResult(
+                    stage=ValidationStage.SECURITY,
+                    passed=False,
+                    error_count=1,
+                    message=cand_gate.explanation,
+                    details=cand_gate.to_dict(),
+                )
+                return PatchValidationReport(
+                    verdict=ValidationVerdict.FAILED_SECURITY,
+                    is_valid=False,
+                    syntax_passed=False,
+                    semantic_passed=False,
+                    compilation_passed=False,
+                    security_passed=False,
+                    tests_passed=None,
+                    remaining_risks=remaining_risks,
+                    stage_results=stage_results,
+                    structured_diff=diff,
+                    explanation=f"Candidate rejected by security policy: {cand_gate.message}",
+                )
 
         if lang_id == "python":
             # -------------------------------------------------------------
