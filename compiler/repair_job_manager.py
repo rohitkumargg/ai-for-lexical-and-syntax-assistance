@@ -412,7 +412,7 @@ def _split_line_tokens(line: str) -> List[Tuple[str, str]]:
     return segments
 
 
-def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
+def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
     fixes = []
     # If no flagged lines provided, check if program is already valid C
     if flagged_lines is None:
@@ -565,6 +565,24 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
 
     return assembled, fixes
 
+
+
+
+def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
+    curr_src = src
+    all_fixes = []
+    curr_flagged = flagged_lines
+    for _ in range(4):
+        new_src, fixes = _fix_unambiguous_syntax_delimiters_once(curr_src, curr_flagged)
+        if not fixes or new_src == curr_src:
+            break
+        all_fixes.extend(fixes)
+        curr_src = new_src
+        is_clean, err_lines = check_c_syntax_errors(curr_src)
+        if is_clean or not err_lines:
+            break
+        curr_flagged = set(err_lines)
+    return curr_src, all_fixes
 
 class RepairJobManager:
     """Singleton manager controlling job lifecycles, persistence, background execution, and cancellation."""
