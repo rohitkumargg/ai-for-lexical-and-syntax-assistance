@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from playwright.async_api import Page, async_playwright
 
+project_root = Path(__file__).resolve().parent.parent
 BASE_URL = os.environ.get("ANTIGRAVITY_URL", "http://127.0.0.1:5000")
 REPORTS_DIR = Path("reports/run_all")
 CSV_PATH = REPORTS_DIR / "results.csv"
@@ -176,6 +177,7 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
 
     # 3. Wait for analysis & repair to finish, handling security modal if displayed
     repair_done = False
+    modal_approved = False
     timeout_s = 180.0
     start_wait = time.time()
 
@@ -187,11 +189,15 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
                 return modal && modal.style.display !== 'none' && getComputedStyle(modal).display !== 'none';
             }"""
         )
-        if modal_visible:
+        if modal_visible and not modal_approved:
             # Click Approve Once & Continue
             approve_btn = page.locator("#sec-btn-approve")
-            if await approve_btn.is_visible():
-                await approve_btn.click()
+            if await approve_btn.is_visible() and await approve_btn.is_enabled():
+                try:
+                    await approve_btn.click(timeout=3000)
+                    modal_approved = True
+                except Exception:
+                    pass
                 await page.wait_for_timeout(500)
 
         # Check if repair is running
