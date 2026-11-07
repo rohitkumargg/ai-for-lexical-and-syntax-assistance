@@ -26972,3 +26972,1349 @@ Card:
 Steps: No entries
 Errors: No entries
 Logs: ℹ️ No pipeline runs yet. Click 'Run Analyzer & Repair' (Ctrl+Enter) to execute the 16-stage pipeline."
+examples/week11_testing/prof_demo_pack_safe_massfix.c,0,unknown,unknown,False,"Exception during execution: Page.evaluate: ReferenceError: Cannot access 'activeRepairSequence' before initialization
+    at resetExecutionStateOnProblemChange (http://127.0.0.1:5000/static/app.js?v=b940751e27:2662:5)
+    at openFileInTab (http://127.0.0.1:5000/static/app.js?v=b940751e27:2732:5)
+    at eval (eval at evaluate (:370:30), <anonymous>:3:24)
+    at UtilityScript.evaluate (<anonymous>:377:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)",ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,"Page.evaluate: ReferenceError: Cannot access 'activeRepairSequence' before initialization
+    at resetExecutionStateOnProblemChange (http://127.0.0.1:5000/static/app.js?v=b940751e27:2662:5)
+    at openFileInTab (http://127.0.0.1:5000/static/app.js?v=b940751e27:2732:5)
+    at eval (eval at evaluate (:370:30), <anonymous>:3:24)
+    at UtilityScript.evaluate (<anonymous>:377:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+examples/week11_testing/prof_demo_pack_safe_massfix.c,0,unknown,unknown,False,"Exception during execution: Page.evaluate: TypeError: window.editor.setValue is not a function
+    at eval (eval at evaluate (:370:30), <anonymous>:6:31)
+    at UtilityScript.evaluate (<anonymous>:377:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)",ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,"Page.evaluate: TypeError: window.editor.setValue is not a function
+    at eval (eval at evaluate (:370:30), <anonymous>:6:31)
+    at UtilityScript.evaluate (<anonymous>:377:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+examples/week11_testing/prof_demo_pack_safe_massfix.c,768,c,unspecified,True,,200,0,,0,,95%,100%,5%,0%,41/100 (3469 ms | 343.21 MB | 159.5933 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),105.35,"Status:  | Progress: 
+Card: Budget: 10.0s
+Plan Explanation: Autonomous repair resolving detected root causes.
+Proposed Changes (Unified Diff):
+View Full Code
+--- a/prof_demo_pack_safe_massfix.c
++++ b/prof_demo_pack_safe_massfix.c
+@@ -16,23 +16,23 @@
+ int arena_solve_0(int n, int q, int bias) {
+     int arr[8];
+     int i = 0;
+
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 4a6aea6759d343959b7e6a61dec39408
+11 stages recorded
+20:50:43.355
+✓ PASSED
+0. Security gate
+1279.13 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+20:50:43.356
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'prof_demo_pack_safe_massfix.c' (768 lines, 16528 bytes, SHA-256: 3fbae9fdea9a...).
+20:50:45.344
+✗ FAILED
+2. Lexical Analysis
+71.58 ms
+Details ▼
+22 lexical issue(s) detected.
+20:50:45.344
+✗ FAILED
+3. Syntax Analysis
+1198.97 ms
+Details ▼
+94 syntax parser error(s) identified.
+20:50:45.344
+⊘ SKIPPED
+4. Semantic Analysis
+713.28 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+20:50:46.807
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+1462.09 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+20:50:46.807
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 116 finding(s) across 2 categories; identified 92 root causes.
+20:50:46.830
+✓ PASSED
+14. Code Quality & Optimization Metrics
+13.85 ms
+Details ▼
+Evaluated 5 quality components (73.2%) and 0 optimization opportunity(ies).
+20:50:46.831
+⊘ SKIPPED
+15. Security Risk Scoring
+9.23 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+20:50:54.116
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+7285.16 ms
+Details ▼
+Tracked hardware telemetry: 3469.0 ms, 343.21 MB peak RSS, 159.5933 J estimated TDP energy.
+20:50:56.435
+✗ FAILED
+Time Budget Exceeded in static_analysis
+13264.63 ms
+Execution halted: time budget slice reached at stage 'static_analysis'."
+examples/week11_testing/asecuritydemo.c,380,c,unspecified,False,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_system_1':
+C:\Users\rohit\AppData; Apply failed (status=N/A (No Patch Offered))",N/A (No Patch Offered),1,"C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_system_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:33:5: warning: implicit declaration of function 'scanf' [-Wimplicit-function-declaration]
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:33:5: warning: incompatible implicit declaration of built-in function 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:33:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:33:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:33:19: note: each undeclared identifier is reported only once for each function it appears in
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:34:5: warning: implicit declaration of function 'system' [-Wimplicit-function-declaration]
+     system(cmd);
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_gets_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:40:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:40:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:40:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:39:10: warning: unused variable 'buf' [-Wunused-variable]
+     char buf[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_mixed_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:47:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:47:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:47:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:46:10: warning: unused variable 'buf' [-Wunused-variable]
+     char buf[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_typo_main_style':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:53:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:53:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:53:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_system_2':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:60:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:60:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:60:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_gets_2':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:68:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:68:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:68:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:66:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_scnaf_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:75:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:75:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:75:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:74:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_sprintf_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:81:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:81:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:81:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:80:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_system_3':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:87:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:87:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:87:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_sprintf_2':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:94:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:94:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:94:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:93:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_gets_3':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:100:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:100:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:100:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:99:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_strcpy_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:107:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:107:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:107:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:106:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[20];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:105:10: warning: unused variable 'dst' [-Wunused-variable]
+     char dst[10];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:114:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:114:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:114:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:113:10: warning: unused variable 'out' [-Wunused-variable]
+     char out[16];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:112:10: warning: unused variable 'name' [-Wunused-variable]
+     char name[32];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_2':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:122:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:122:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:122:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:121:10: warning: unused variable 'logbuf' [-Wunused-variable]
+     char logbuf[30];
+          ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_3':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:131:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:131:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:131:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:130:10: warning: unused variable 'b' [-Wunused-variable]
+     char b[40];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:129:10: warning: unused variable 'a' [-Wunused-variable]
+     char a[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_4':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:139:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:139:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:139:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:138:10: warning: unused variable 'msg' [-Wunused-variable]
+     char msg[20];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:137:10: warning: unused variable 'user' [-Wunused-variable]
+     char user[20];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_5':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:146:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:146:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:146:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_6':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:154:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:154:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:154:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:153:10: warning: unused variable 'two' [-Wunused-variable]
+     char two[50];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:152:10: warning: unused variable 'one' [-Wunused-variable]
+     char one[8];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_7':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:161:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:161:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:161:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:160:10: warning: unused variable 'data' [-Wunused-variable]
+     char data[12];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_8':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:168:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:168:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:168:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:167:10: warning: unused variable 'dest' [-Wunused-variable]
+     char dest[10];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:166:10: warning: unused variable 'source' [-Wunused-variable]
+     char source[30];
+          ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_9':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:176:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:176:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:176:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'vuln_combo_10':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:183:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:183:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:183:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:182:10: warning: unused variable 's' [-Wunused-variable]
+     char s[15];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_1':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:248:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:248:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:248:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_2':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:265:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:265:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:265:15: warning: format '%s' expects argument of type 'char *', but argument 2 has type 'int *' [-Wformat=]
+     scanf(""%11s"", arr);
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:258:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_3':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:272:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:272:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:272:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:271:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:270:10: warning: unused variable 'dst' [-Wunused-variable]
+     char dst[10];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_4':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:279:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:279:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:279:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:278:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_5':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:285:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:285:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:285:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:284:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_6':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:292:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:292:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:292:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_7':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:299:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:299:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:299:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:298:10: warning: unused variable 'line' [-Wunused-variable]
+     char line[25];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_8':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:305:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:305:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:305:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_9':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:313:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:313:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:313:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:312:10: warning: unused variable 'b' [-Wunused-variable]
+     char b[24];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:311:10: warning: unused variable 'a' [-Wunused-variable]
+     char a[12];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c: In function 'scenario_10':
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:319:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:319:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:319:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpxv19h359.c:318:10: warning: unused variable 'x' [-Wunused-variable]
+     char x[20];
+          ^",0,,61%,96%,39%,100%,26/100 (6966.67 ms | 532.56 MB | 167.6199 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),126.25,"Status:  | Progress: 
+Card: Budget: 10.0s
+Plan Explanation: Autonomous repair resolving detected root causes.
+Remaining Unresolved Issues (2):
+Stopping Reason: Processed 39 repair steps; 2 actionable issue(s) remain. [CRITICAL SECURITY] SEC-CMD-EXEC at line 36: CWE-78 OS command injection: input flows from line 35 to system() 
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: c01806825f45465a8b7158591b757368
+11 stages recorded
+20:53:20.634
+✓ PASSED
+0. Security gate
+1920.68 ms
+Details ▼
+1. Scan: Precheck completed: 10 pattern(s) identified. Risk: POTENTIALLY_DANGEROUS. Potentially dangerous patterns detected; review recommended.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-07T20:51:47.655780)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+20:53:20.634
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'asecuritydemo.c' (380 lines, 6169 bytes, SHA-256: 2657c9de1272...).
+20:53:22.846
+✓ PASSED
+2. Lexical Analysis
+9.75 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+20:53:22.846
+✓ PASSED
+3. Syntax Analysis
+415.5 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+20:53:22.846
+✗ FAILED
+4. Semantic Analysis
+1782.53 ms
+Details ▼
+71 semantic type/scope issue(s) found.
+20:53:27.532
+✗ FAILED
+5. Security Vulnerability Analysis
+4685.32 ms
+Details ▼
+50 security vulnerability finding(s) detected.
+20:53:27.532
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 121 finding(s) across 2 categories; identified 39 root causes.
+20:53:27.606
+✓ PASSED
+14. Code Quality & Optimization Metrics
+44.14 ms
+Details ▼
+Evaluated 5 quality components (78.2%) and 1 optimization opportunity(ies).
+20:53:27.606
+✓ PASSED
+15. Security Risk Scoring
+29.43 ms
+Details ▼
+Assessed security risk score (100.0% / 100) using severity and exposure weights.
+20:53:27.609
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+1.98 ms
+Details ▼
+Tracked hardware telemetry: 6966.67 ms, 532.56 MB peak RSS, 167.6199 J estimated TDP energy.
+20:53:33.604
+✗ FAILED
+Time Budget Exceeded in static_analysis
+13172.4 ms
+Execution halted: time budget slice reached at stage 'static_analysis'."
+examples/week11_testing/asecuritydemo.c,380,c,unspecified,False,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_system_1':
+C:\Users\rohit\AppData; Apply failed (status=N/A (No Patch Offered))",N/A (No Patch Offered),1,"C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_system_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:33:5: warning: implicit declaration of function 'scanf' [-Wimplicit-function-declaration]
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:33:5: warning: incompatible implicit declaration of built-in function 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:33:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:33:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:33:19: note: each undeclared identifier is reported only once for each function it appears in
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:34:5: warning: implicit declaration of function 'system' [-Wimplicit-function-declaration]
+     system(cmd);
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_gets_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:40:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:40:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:40:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:39:10: warning: unused variable 'buf' [-Wunused-variable]
+     char buf[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_mixed_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:47:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:47:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:47:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:46:10: warning: unused variable 'buf' [-Wunused-variable]
+     char buf[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_typo_main_style':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:53:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:53:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:53:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_system_2':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:60:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:60:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:60:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_gets_2':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:68:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:68:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:68:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:66:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_scnaf_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:75:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:75:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:75:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:74:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_sprintf_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:81:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:81:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:81:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:80:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_system_3':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:87:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:87:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:87:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_sprintf_2':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:94:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:94:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:94:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:93:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_gets_3':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:100:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:100:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:100:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:99:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_strcpy_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:107:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:107:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:107:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:106:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[20];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:105:10: warning: unused variable 'dst' [-Wunused-variable]
+     char dst[10];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:114:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:114:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:114:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:113:10: warning: unused variable 'out' [-Wunused-variable]
+     char out[16];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:112:10: warning: unused variable 'name' [-Wunused-variable]
+     char name[32];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_2':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:122:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:122:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:122:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:121:10: warning: unused variable 'logbuf' [-Wunused-variable]
+     char logbuf[30];
+          ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_3':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:131:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:131:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:131:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:130:10: warning: unused variable 'b' [-Wunused-variable]
+     char b[40];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:129:10: warning: unused variable 'a' [-Wunused-variable]
+     char a[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_4':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:139:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:139:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:139:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:138:10: warning: unused variable 'msg' [-Wunused-variable]
+     char msg[20];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:137:10: warning: unused variable 'user' [-Wunused-variable]
+     char user[20];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_5':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:146:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:146:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:146:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_6':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:154:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:154:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:154:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:153:10: warning: unused variable 'two' [-Wunused-variable]
+     char two[50];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:152:10: warning: unused variable 'one' [-Wunused-variable]
+     char one[8];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_7':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:161:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:161:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:161:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:160:10: warning: unused variable 'data' [-Wunused-variable]
+     char data[12];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_8':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:168:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:168:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:168:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:167:10: warning: unused variable 'dest' [-Wunused-variable]
+     char dest[10];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:166:10: warning: unused variable 'source' [-Wunused-variable]
+     char source[30];
+          ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_9':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:176:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:176:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:176:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'vuln_combo_10':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:183:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:183:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:183:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:182:10: warning: unused variable 's' [-Wunused-variable]
+     char s[15];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_1':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:248:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:248:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:248:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_2':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:265:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:265:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:265:15: warning: format '%s' expects argument of type 'char *', but argument 2 has type 'int *' [-Wformat=]
+     scanf(""%11s"", arr);
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:258:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_3':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:272:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:272:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:272:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:271:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:270:10: warning: unused variable 'dst' [-Wunused-variable]
+     char dst[10];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_4':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:279:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:279:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:279:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:278:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_5':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:285:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:285:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:285:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:284:10: warning: unused variable 's' [-Wunused-variable]
+     char s[10];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_6':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:292:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:292:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:292:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_7':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:299:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:299:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:299:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:298:10: warning: unused variable 'line' [-Wunused-variable]
+     char line[25];
+          ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_8':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:305:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:305:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:305:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_9':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:313:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:313:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:313:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:312:10: warning: unused variable 'b' [-Wunused-variable]
+     char b[24];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:311:10: warning: unused variable 'a' [-Wunused-variable]
+     char a[12];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c: In function 'scenario_10':
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:319:5: warning: incompatible implicit declaration of built-in function 'scanf'
+     scanf(""%11s"", arr);
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:319:5: note: include '<stdio.h>' or provide a declaration of 'scanf'
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:319:19: error: 'arr' undeclared (first use in this function)
+     scanf(""%11s"", arr);
+                   ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpi0fs_ceu.c:318:10: warning: unused variable 'x' [-Wunused-variable]
+     char x[20];
+          ^",0,,61%,96%,39%,100%,26/100 (5891.83 ms | 538.7 MB | 141.8647 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),126.14,"Status:  | Progress: 
+Card: Budget: 10.0s
+Plan Explanation: Autonomous repair resolving detected root causes.
+Remaining Unresolved Issues (2):
+Stopping Reason: Processed 39 repair steps; 2 actionable issue(s) remain. [CRITICAL SECURITY] SEC-CMD-EXEC at line 36: CWE-78 OS command injection: input flows from line 35 to system() 
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 9c6faf3fcd9f48bf80493444ec0ff81f
+11 stages recorded
+20:59:12.961
+✓ PASSED
+0. Security gate
+1900.77 ms
+Details ▼
+1. Scan: Precheck completed: 10 pattern(s) identified. Risk: POTENTIALLY_DANGEROUS. Potentially dangerous patterns detected; review recommended.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-07T20:57:36.580925)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+20:59:12.961
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'asecuritydemo.c' (380 lines, 6169 bytes, SHA-256: 2657c9de1272...).
+20:59:14.111
+✓ PASSED
+2. Lexical Analysis
+7.06 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+20:59:14.111
+✓ PASSED
+3. Syntax Analysis
+423.06 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+20:59:14.111
+✗ FAILED
+4. Semantic Analysis
+714.96 ms
+Details ▼
+71 semantic type/scope issue(s) found.
+20:59:18.806
+✗ FAILED
+5. Security Vulnerability Analysis
+4695.25 ms
+Details ▼
+50 security vulnerability finding(s) detected.
+20:59:18.807
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 121 finding(s) across 2 categories; identified 39 root causes.
+20:59:18.858
+✓ PASSED
+14. Code Quality & Optimization Metrics
+30.9 ms
+Details ▼
+Evaluated 5 quality components (78.2%) and 1 optimization opportunity(ies).
+20:59:18.858
+✓ PASSED
+15. Security Risk Scoring
+20.6 ms
+Details ▼
+Assessed security risk score (100.0% / 100) using severity and exposure weights.
+20:59:18.859
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.78 ms
+Details ▼
+Tracked hardware telemetry: 5891.83 ms, 538.7 MB peak RSS, 141.8647 J estimated TDP energy.
+20:59:24.804
+✗ FAILED
+Time Budget Exceeded in static_analysis
+12024.43 ms
+Execution halted: time budget slice reached at stage 'static_analysis'."
+examples/week11_testing/asecuritydemo.c,380,c,unspecified,True,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'vuln_strcpy_1':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:121:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[20];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'vuln_combo_1':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:127:10: warning: unused variable 'out' [-Wunused-variable]
+     char out[16];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'vuln_combo_8':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:178:10: warning: unused variable 'source' [-Wunused-variable]
+     char source[30];
+          ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'scenario_2':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:281:14: warning: format '%s' expects argument of type 'char *', but argument 2 has type 'int *' [-Wformat=]
+     scanf(""%4s"", arr);
+              ^
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:274:10: warning: unused variable 's' [-Wunused-variable]
+     char s[20];
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'scenario_3':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:287:10: warning: unused variable 'src' [-Wunused-variable]
+     char src[100];
+          ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c: In function 'scenario_9':
+C:\Users\rohit\AppData\Local\Temp\tmpwkwuusui.c:334:10: warning: unused variable 'b' [-Wunused-variable]
+     char b[24];
+          ^",0,,61%,96%,39%,100%,30/100 (6611.41 ms | 368.12 MB | 155.8871 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),136.22,"Status:  | Progress: 
+Card: Budget: 10.0s
+Plan Explanation: Autonomous repair resolving detected root causes.
+Proposed Changes (Unified Diff):
+View Full Code
+--- a/asecuritydemo.c
++++ b/asecuritydemo.c
+@@ -28,122 +28,134 @@
+     return m;
+ }
+ 
++#include <stdio.h>
++#include <stdlib.h>
+ int vuln_system_1() {
+     char cmd[100];
+
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 88c9df74963243229eae2f2703b9a651
+11 stages recorded
+21:05:52.410
+✓ PASSED
+0. Security gate
+1048.56 ms
+Details ▼
+1. Scan: Precheck completed: 10 pattern(s) identified. Risk: POTENTIALLY_DANGEROUS. Potentially dangerous patterns detected; review recommended.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-07T21:04:17.623665)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:05:52.410
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'asecuritydemo.c' (380 lines, 6169 bytes, SHA-256: 2657c9de1272...).
+21:05:54.343
+✓ PASSED
+2. Lexical Analysis
+10.17 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+21:05:54.343
+✓ PASSED
+3. Syntax Analysis
+1126.84 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+21:05:54.343
+✗ FAILED
+4. Semantic Analysis
+791.79 ms
+Details ▼
+71 semantic type/scope issue(s) found.
+21:05:58.966
+✗ FAILED
+5. Security Vulnerability Analysis
+4622.93 ms
+Details ▼
+50 security vulnerability finding(s) detected.
+21:05:58.967
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 121 finding(s) across 2 categories; identified 39 root causes.
+21:05:59.027
+✓ PASSED
+14. Code Quality & Optimization Metrics
+35.81 ms
+Details ▼
+Evaluated 5 quality components (78.2%) and 1 optimization opportunity(ies).
+21:05:59.027
+✓ PASSED
+15. Security Risk Scoring
+23.87 ms
+Details ▼
+Assessed security risk score (100.0% / 100) using severity and exposure weights.
+21:06:05.805
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+6777.93 ms
+Details ▼
+Tracked hardware telemetry: 6611.41 ms, 368.12 MB peak RSS, 155.8871 J estimated TDP energy.
+21:06:11.873
+✗ FAILED
+Time Budget Exceeded in static_analysis
+19695.78 ms
+Execution halted: time budget slice reached at stage 'static_analysis'."
+examples/week11_testing/ademo2.c,729,c,unspecified,True,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task02':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:23:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[5];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task06':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:48:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'a';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task32':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:249:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[4];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task36':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:274:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'b';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task62':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:472:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[2];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task66':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:497:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'c';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task24':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:193:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task54':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:419:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c: In function 'task84':
+C:\Users\rohit\AppData\Local\Temp\tmpbfmi7a2o.c:642:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^",0,,91%,100%,9%,0%,55/100 (1886.98 ms | 552.82 MB | 45.5132 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),126.6,"Status:  | Progress: 
+Card: Budget: 119.0s
+Plan Explanation: Autonomous repair applied 119 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (125):
+Syntax error: Syntax error (missing_semicolon): missing ';' at 'return' (Line 19): Syntax error (missing_semicolon): missing ';' at 'return'
+S
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 1f9fb5e43ceb4547acea44ece8ea122b
+18 stages recorded
+21:10:33.513
+✓ PASSED
+0. Security gate
+177.12 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:10:33.513
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo2.c' (729 lines, 9311 bytes, SHA-256: 15995594a3fd...).
+21:10:34.910
+✗ FAILED
+2. Lexical Analysis
+65.36 ms
+Details ▼
+24 lexical issue(s) detected.
+21:10:34.910
+✗ FAILED
+3. Syntax Analysis
+852.52 ms
+Details ▼
+100 syntax parser error(s) identified.
+21:10:34.910
+⊘ SKIPPED
+4. Semantic Analysis
+476 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:10:35.393
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+482.64 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:10:35.393
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 124 finding(s) across 2 categories; identified 81 root causes.
+21:10:43.133
+✓ PASSED
+7. Deterministic Rule Engine
+6499.68 ms
+Details ▼
+Deterministic rule engine resolved all findings (87 fixes applied): corrected keyword typo 'breka' -> 'break'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'contniue' -> 'continue'
+21:10:43.133
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:10:43.133
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:10:53.130
+✓ PASSED
+10. Repair Candidate Generation
+4743.41 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:10:53.131
+✓ PASSED
+11. Patch Validation
+5199.66 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+21:10:53.131
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_e7074e31f27b). Original source preserved; awaiting user click on Apply.
+21:10:53.131
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:10:35.404
+✓ PASSED
+14. Code Quality & Optimization Metrics
+6.28 ms
+Details ▼
+Evaluated 5 quality components (75.0%) and 1 optimization opportunity(ies).
+21:10:35.404
+⊘ SKIPPED
+15. Security Risk Scoring
+4.18 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:10:35.405
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.82 ms
+Details ▼
+Tracked hardware telemetry: 1886.98 ms, 552.82 MB peak RSS, 45.5132 J estimated TDP energy.
+21:10:36.450
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/generated_1000_lines.c,995,c,unspecified,False,"Parser error (rc=1): Line 7:0 - PARSE Error: extraneous input 'typedef' expecting {'const', 'volatile', 'static', 'extern",200,0,,1,"Line 7:0 - PARSE Error: extraneous input 'typedef' expecting {'const', 'volatile', 'static', 'extern', 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: typedef)",87%,90%,13%,0%,45/100 (2835.54 ms | 566.95 MB | 68.5095 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),150.63,"Status:  | Progress: 
+Card: Budget: 140.2s
+Plan Explanation: Autonomous repair applied 12 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (12):
+Syntax error: Syntax error (extraneous_token): extraneous input 'viod' expecting {<EOF>, 'const', 'volatile', 'static', 'extern', 'int', 'float'
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: d55f958f458a4b159de6f7f0aa0518e0
+18 stages recorded
+21:13:12.910
+✓ PASSED
+0. Security gate
+2674.48 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:13:12.910
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'generated_1000_lines.c' (995 lines, 20294 bytes, SHA-256: 5ec832d3e3bf...).
+21:13:14.933
+✗ FAILED
+2. Lexical Analysis
+41.75 ms
+Details ▼
+4 lexical issue(s) detected.
+21:13:14.933
+✗ FAILED
+3. Syntax Analysis
+1251.42 ms
+Details ▼
+9 syntax parser error(s) identified.
+21:13:14.934
+⊘ SKIPPED
+4. Semantic Analysis
+729.63 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:13:15.725
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+791.26 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:13:15.725
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 13 finding(s) across 2 categories; identified 9 root causes.
+21:13:29.007
+✓ PASSED
+7. Deterministic Rule Engine
+10515.13 ms
+Details ▼
+Deterministic rule engine resolved all findings (8 fixes applied): corrected keyword typo 'viod' -> 'void'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'viod' -> 'void'
+21:13:29.007
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:13:29.007
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:13:43.443
+✓ PASSED
+10. Repair Candidate Generation
+6307.4 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:13:43.445
+✓ PASSED
+11. Patch Validation
+8082.42 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security scoring skipped: [INCONCLUSIVE].
+21:13:43.445
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_48a440b68d41). Original source preserved; awaiting user click on Apply.
+21:13:43.445
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:13:15.747
+✓ PASSED
+14. Code Quality & Optimization Metrics
+12.89 ms
+Details ▼
+Evaluated 5 quality components (71.2%) and 1 optimization opportunity(ies).
+21:13:15.747
+⊘ SKIPPED
+15. Security Risk Scoring
+8.6 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:13:15.750
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+2.5 ms
+Details ▼
+Tracked hardware telemetry: 2835.54 ms, 566.95 MB peak RSS, 68.5095 J estimated TDP energy.
+21:13:18.296
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
