@@ -1,0 +1,1087 @@
+file,lines,language,expected_class,passed,failure_cause,apply_http_status,gcc_rc,gcc_stderr,parser_rc,parser_stderr,metrics_overall_quality,metrics_optimal_code,metrics_poor_code,metrics_vulnerability_risk,metrics_green,metrics_model_accuracy,elapsed_s,run_output
+examples/week11_testing/ademo.c,509,c,unspecified,False,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case1':
+C:\Users\rohit\AppData\Local\T; Parser error (rc=-1): Command '['C:\\Users\\rohit\\AppData\\Local\\Programs\\Python\\Python314\\python.exe', 'test_parser.; Apply failed (status=N/A (No Patch Offered))",N/A (No Patch Offered),1,"C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case1':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:19:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:18:9: warning: unused variable 'a' [-Wunused-variable]
+     int a = 1
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case2':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:23:14: error: expected ']' before ';' token
+     int arr[3;
+              ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case3':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:28:21: error: expected ')' before ';' token
+     int x = add(3, 4;
+                     ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:30:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case4':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:33:19: error: expected ')' before numeric constant
+     int x = add(4 5);
+                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:33:13: error: too few arguments to function 'add'
+     int x = add(4 5);
+             ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:1:5: note: declared here
+ int add(int a, int b) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case3':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:37:23: error: expected ';', ',' or ')' before 'int'
+ int bad_param_5(int a int b) {
+                       ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case6':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:45:13: error: 'breka' undeclared (first use in this function)
+             breka;
+             ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:45:13: note: each undeclared identifier is reported only once for each function it appears in
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case7':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:58:13: error: 'contniue' undeclared (first use in this function)
+             contniue;
+             ^~~~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case8':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:67:5: warning: implicit declaration of function 'whlie' [-Wimplicit-function-declaration]
+     whlie (a < 5) {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:67:19: error: expected ';' before '{' token
+     whlie (a < 5) {
+                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:71:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case9':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:76:5: warning: implicit declaration of function 'fro' [-Wimplicit-function-declaration]
+     fro (i = 0; i < 5; i = i + 1) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:76:15: error: expected ')' before ';' token
+     fro (i = 0; i < 5; i = i + 1) {
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:76:35: error: expected ';' before '{' token
+     fro (i = 0; i < 5; i = i + 1) {
+                                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:75:9: warning: unused variable 's' [-Wunused-variable]
+     int s = 0;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:80:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case10':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:85:23: error: expected ';' before 'i'
+     for (i = 0; i < 5 i = i + 1) {
+                       ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case11':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:94:16: error: expected ';' before 'i'
+     for (i = 0 i < 5; i = i + 1) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:94:16: warning: suggest parentheses around assignment used as truth value [-Wparentheses]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:94:32: error: expected ';' before ')' token
+     for (i = 0 i < 5; i = i + 1) {
+                                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case12':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:105:5: error: 'esle' undeclared (first use in this function)
+     esle {
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:105:10: error: expected ';' before '{' token
+     esle {
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:109:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case13':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:113:8: error: expected '(' before 'a'
+     if a > 3) {
+        ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:113:8: warning: statement with no effect [-Wunused-value]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:113:5: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
+     if a > 3) {
+     ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:113:13: note: ...this statement, but the latter is misleadingly indented as if it is guarded by the 'if'
+     if a > 3) {
+             ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:113:13: error: expected statement before ')' token
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case14':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:121:15: error: expected ')' before '{' token
+     if (a > 3 {
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:125:1: error: expected expression before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:125:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case15':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:129:16: error: expected ']' before ';' token
+     int b = a[0;
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:131:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case16':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:134:5: error: unknown type name 'cahr'
+     cahr x = 'a';
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case15':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:138:1: error: unknown type name 'viod'
+ viod note_17() {
+ ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:138:16: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+ viod note_17() {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case18':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:143:23: error: expected ')' before numeric constant
+     int x = add(add(1 18), 3);
+                       ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:143:17: error: too few arguments to function 'add'
+     int x = add(add(1 18), 3);
+                 ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:1:5: note: declared here
+ int add(int a, int b) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case19':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:148:30: error: expected ')' before ';' token
+     int x = add(add(1, 19), 3;
+                              ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:150:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:152:32: error: expected ';', ',' or ')' before 'int'
+ int bad_param3_20(int a, int b int c) {
+                                ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case21':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:157:22: error: expected ')' before numeric constant
+     int k = mix(1, 2 21);
+                      ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:157:13: error: too few arguments to function 'mix'
+     int k = mix(1, 2 21);
+             ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:13:5: note: declared here
+ int mix(int a, int b, int c) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case22':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:163:11: error: expected '(' before 'a'
+     while a < 5) {
+           ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:163:11: warning: statement with no effect [-Wunused-value]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:163:5: warning: this 'while' clause does not guard... [-Wmisleading-indentation]
+     while a < 5) {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:163:16: note: ...this statement, but the latter is misleadingly indented as if it is guarded by the 'while'
+     while a < 5) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:163:16: error: expected statement before ')' token
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case23':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:171:18: error: expected ')' before '{' token
+     while (a < 5 {
+                  ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:175:1: error: expected expression before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:175:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case24':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:182:9: error: expected ';' before '}' token
+         }
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case25':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:194:9: error: expected ';' before '}' token
+         }
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case26':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:201:5: error: expected ',' or ';' before 'int'
+     int w = 27;
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:202:16: error: 'w' undeclared (first use in this function)
+     return q + w;
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case27':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:207:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:206:9: warning: unused variable 'a' [-Wunused-variable]
+     int a = 27
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:208:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case28':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:211:14: error: expected ']' before ';' token
+     int arr[3;
+              ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case29':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:216:23: error: expected ')' before ';' token
+     int x = add(29, 30;
+                       ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:218:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case30':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:221:20: error: expected ')' before numeric constant
+     int x = add(30 31);
+                    ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:221:13: error: too few arguments to function 'add'
+     int x = add(30 31);
+             ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:1:5: note: declared here
+ int add(int a, int b) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case29':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:225:24: error: expected ';', ',' or ')' before 'int'
+ int bad_param_31(int a int b) {
+                        ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case32':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:233:13: error: 'breka' undeclared (first use in this function)
+             breka;
+             ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case33':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:246:13: error: 'contniue' undeclared (first use in this function)
+             contniue;
+             ^~~~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case34':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:255:19: error: expected ';' before '{' token
+     whlie (a < 5) {
+                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:259:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case35':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:264:15: error: expected ')' before ';' token
+     fro (i = 0; i < 5; i = i + 1) {
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:264:35: error: expected ';' before '{' token
+     fro (i = 0; i < 5; i = i + 1) {
+                                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:263:9: warning: unused variable 's' [-Wunused-variable]
+     int s = 0;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:268:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case36':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:273:23: error: expected ';' before 'i'
+     for (i = 0; i < 5 i = i + 1) {
+                       ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case37':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:282:16: error: expected ';' before 'i'
+     for (i = 0 i < 5; i = i + 1) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:282:16: warning: suggest parentheses around assignment used as truth value [-Wparentheses]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:282:32: error: expected ';' before ')' token
+     for (i = 0 i < 5; i = i + 1) {
+                                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case38':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:293:5: error: 'esle' undeclared (first use in this function)
+     esle {
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:293:10: error: expected ';' before '{' token
+     esle {
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:297:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case39':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:301:8: error: expected '(' before 'a'
+     if a > 3) {
+        ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:301:8: warning: statement with no effect [-Wunused-value]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:301:5: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
+     if a > 3) {
+     ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:301:13: note: ...this statement, but the latter is misleadingly indented as if it is guarded by the 'if'
+     if a > 3) {
+             ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:301:13: error: expected statement before ')' token
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case40':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:309:15: error: expected ')' before '{' token
+     if (a > 3 {
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:313:1: error: expected expression before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:313:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case41':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:317:16: error: expected ']' before ';' token
+     int b = a[0;
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:319:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case42':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:322:5: error: unknown type name 'cahr'
+     cahr x = 'a';
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case41':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:326:1: error: unknown type name 'viod'
+ viod note_43() {
+ ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:326:16: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+ viod note_43() {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case44':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:331:23: error: expected ')' before numeric constant
+     int x = add(add(1 44), 3);
+                       ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:331:17: error: too few arguments to function 'add'
+     int x = add(add(1 44), 3);
+                 ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:1:5: note: declared here
+ int add(int a, int b) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case45':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:336:30: error: expected ')' before ';' token
+     int x = add(add(1, 45), 3;
+                              ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:338:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:340:32: error: expected ';', ',' or ')' before 'int'
+ int bad_param3_46(int a, int b int c) {
+                                ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case47':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:345:22: error: expected ')' before numeric constant
+     int k = mix(1, 2 47);
+                      ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:345:13: error: too few arguments to function 'mix'
+     int k = mix(1, 2 47);
+             ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:13:5: note: declared here
+ int mix(int a, int b, int c) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case48':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:351:11: error: expected '(' before 'a'
+     while a < 5) {
+           ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:351:11: warning: statement with no effect [-Wunused-value]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:351:5: warning: this 'while' clause does not guard... [-Wmisleading-indentation]
+     while a < 5) {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:351:16: note: ...this statement, but the latter is misleadingly indented as if it is guarded by the 'while'
+     while a < 5) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:351:16: error: expected statement before ')' token
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case49':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:359:18: error: expected ')' before '{' token
+     while (a < 5 {
+                  ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:363:1: error: expected expression before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:363:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case50':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:370:9: error: expected ';' before '}' token
+         }
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case51':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:382:9: error: expected ';' before '}' token
+         }
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case52':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:389:5: error: expected ',' or ';' before 'int'
+     int w = 53;
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:390:16: error: 'w' undeclared (first use in this function)
+     return q + w;
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case53':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:395:5: error: expected ',' or ';' before 'return'
+     return a;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:394:9: warning: unused variable 'a' [-Wunused-variable]
+     int a = 53
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:396:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case54':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:399:14: error: expected ']' before ';' token
+     int arr[3;
+              ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case55':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:404:23: error: expected ')' before ';' token
+     int x = add(55, 56;
+                       ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:406:1: error: expected ',' or ';' before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case56':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:409:20: error: expected ')' before numeric constant
+     int x = add(56 57);
+                    ^~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:409:13: error: too few arguments to function 'add'
+     int x = add(56 57);
+             ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:1:5: note: declared here
+ int add(int a, int b) {
+     ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case55':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:413:24: error: expected ';', ',' or ')' before 'int'
+ int bad_param_57(int a int b) {
+                        ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case58':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:421:13: error: 'breka' undeclared (first use in this function)
+             breka;
+             ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case59':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:434:13: error: 'contniue' undeclared (first use in this function)
+             contniue;
+             ^~~~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case60':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:443:19: error: expected ';' before '{' token
+     whlie (a < 5) {
+                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:447:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case61':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:452:15: error: expected ')' before ';' token
+     fro (i = 0; i < 5; i = i + 1) {
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:452:35: error: expected ';' before '{' token
+     fro (i = 0; i < 5; i = i + 1) {
+                                   ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:451:9: warning: unused variable 's' [-Wunused-variable]
+     int s = 0;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:456:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case62':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:461:23: error: expected ';' before 'i'
+     for (i = 0; i < 5 i = i + 1) {
+                       ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case63':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:470:16: error: expected ';' before 'i'
+     for (i = 0 i < 5; i = i + 1) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:470:16: warning: suggest parentheses around assignment used as truth value [-Wparentheses]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:470:32: error: expected ';' before ')' token
+     for (i = 0 i < 5; i = i + 1) {
+                                ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case64':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:481:5: error: 'esle' undeclared (first use in this function)
+     esle {
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:481:10: error: expected ';' before '{' token
+     esle {
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:485:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case55':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:487:5: warning: 'main' is normally a non-static function [-Wmain]
+ int main() {
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:404:9: warning: unused variable 'x' [-Wunused-variable]
+     int x = add(55, 56;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case54':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case45':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:336:9: warning: unused variable 'x' [-Wunused-variable]
+     int x = add(add(1, 45), 3;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case41':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:317:9: warning: unused variable 'b' [-Wunused-variable]
+     int b = a[0;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case29':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:216:9: warning: unused variable 'x' [-Wunused-variable]
+     int x = add(29, 30;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case28':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case19':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:148:9: warning: unused variable 'x' [-Wunused-variable]
+     int x = add(add(1, 19), 3;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case15':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:129:9: warning: unused variable 'b' [-Wunused-variable]
+     int b = a[0;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case3':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:28:9: warning: unused variable 'x' [-Wunused-variable]
+     int x = add(3, 4;
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case2':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: error: expected declaration or statement at end of input
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case1':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:20:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c: In function 'case2':
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:509:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+At top level:
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:487:5: warning: 'main' defined but not used [-Wunused-function]
+ int main() {
+     ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:476:5: warning: 'case64' defined but not used [-Wunused-function]
+ int case64() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:467:5: warning: 'case63' defined but not used [-Wunused-function]
+ int case63() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:458:5: warning: 'case62' defined but not used [-Wunused-function]
+ int case62() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:449:5: warning: 'case61' defined but not used [-Wunused-function]
+ int case61() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:441:5: warning: 'case60' defined but not used [-Wunused-function]
+ int case60() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:428:5: warning: 'case59' defined but not used [-Wunused-function]
+ int case59() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:417:5: warning: 'case58' defined but not used [-Wunused-function]
+ int case58() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:398:5: warning: 'case54' defined but not used [-Wunused-function]
+ int case54() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:403:5: warning: 'case55' defined but not used [-Wunused-function]
+ int case55() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:408:5: warning: 'case56' defined but not used [-Wunused-function]
+ int case56() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:393:5: warning: 'case53' defined but not used [-Wunused-function]
+ int case53() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:387:5: warning: 'case52' defined but not used [-Wunused-function]
+ int case52() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:376:5: warning: 'case51' defined but not used [-Wunused-function]
+ int case51() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:365:5: warning: 'case50' defined but not used [-Wunused-function]
+ int case50() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:357:5: warning: 'case49' defined but not used [-Wunused-function]
+ int case49() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:349:5: warning: 'case48' defined but not used [-Wunused-function]
+ int case48() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:335:5: warning: 'case45' defined but not used [-Wunused-function]
+ int case45() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:344:5: warning: 'case47' defined but not used [-Wunused-function]
+ int case47() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:330:5: warning: 'case44' defined but not used [-Wunused-function]
+ int case44() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:315:5: warning: 'case41' defined but not used [-Wunused-function]
+ int case41() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:321:5: warning: 'case42' defined but not used [-Wunused-function]
+ int case42() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:307:5: warning: 'case40' defined but not used [-Wunused-function]
+ int case40() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:299:5: warning: 'case39' defined but not used [-Wunused-function]
+ int case39() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:288:5: warning: 'case38' defined but not used [-Wunused-function]
+ int case38() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:279:5: warning: 'case37' defined but not used [-Wunused-function]
+ int case37() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:270:5: warning: 'case36' defined but not used [-Wunused-function]
+ int case36() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:261:5: warning: 'case35' defined but not used [-Wunused-function]
+ int case35() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:253:5: warning: 'case34' defined but not used [-Wunused-function]
+ int case34() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:240:5: warning: 'case33' defined but not used [-Wunused-function]
+ int case33() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:229:5: warning: 'case32' defined but not used [-Wunused-function]
+ int case32() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:210:5: warning: 'case28' defined but not used [-Wunused-function]
+ int case28() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:215:5: warning: 'case29' defined but not used [-Wunused-function]
+ int case29() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:220:5: warning: 'case30' defined but not used [-Wunused-function]
+ int case30() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:205:5: warning: 'case27' defined but not used [-Wunused-function]
+ int case27() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:199:5: warning: 'case26' defined but not used [-Wunused-function]
+ int case26() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:188:5: warning: 'case25' defined but not used [-Wunused-function]
+ int case25() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:169:5: warning: 'case23' defined but not used [-Wunused-function]
+ int case23() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:161:5: warning: 'case22' defined but not used [-Wunused-function]
+ int case22() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:147:5: warning: 'case19' defined but not used [-Wunused-function]
+ int case19() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:156:5: warning: 'case21' defined but not used [-Wunused-function]
+ int case21() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:127:5: warning: 'case15' defined but not used [-Wunused-function]
+ int case15() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:133:5: warning: 'case16' defined but not used [-Wunused-function]
+ int case16() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:119:5: warning: 'case14' defined but not used [-Wunused-function]
+ int case14() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:111:5: warning: 'case13' defined but not used [-Wunused-function]
+ int case13() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:91:5: warning: 'case11' defined but not used [-Wunused-function]
+ int case11() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:82:5: warning: 'case10' defined but not used [-Wunused-function]
+ int case10() {
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:73:5: warning: 'case9' defined but not used [-Wunused-function]
+ int case9() {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:65:5: warning: 'case8' defined but not used [-Wunused-function]
+ int case8() {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:52:5: warning: 'case7' defined but not used [-Wunused-function]
+ int case7() {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:27:5: warning: 'case3' defined but not used [-Wunused-function]
+ int case3() {
+     ^~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp78oltvzj.c:32:5: warning: 'case4' defined but not used [-Wunused-function]
+ int case4() {
+     ^~~~~",-1,"Command '['C:\\Users\\rohit\\AppData\\Local\\Programs\\Python\\Python314\\python.exe', 'test_parser.py', '--file', 'C:\\Users\\rohit\\AppData\\Local\\Temp\\tmp78oltvzj.c']' timed out after 30 seconds",91%,100%,9%,0%,70/100 (1355.44 ms | 145.07 MB | 31.0735 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),121.16,"Status:  | Progress: 
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: f52c15e9875d4ff1b9e2a07cba967545
+18 stages recorded
+15:34:59.572
+✓ PASSED
+0. Security gate
+199.18 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+15:34:59.572
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo.c' (509 lines, 6327 bytes, SHA-256: 3f4175d6a645...).
+15:35:00.595
+✗ FAILED
+2. Lexical Analysis
+35.64 ms
+Details ▼
+19 lexical issue(s) detected.
+15:35:00.595
+✗ FAILED
+3. Syntax Analysis
+712.64 ms
+Details ▼
+72 syntax parser error(s) identified.
+15:35:00.595
+⊘ SKIPPED
+4. Semantic Analysis
+271.68 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+15:35:00.924
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+328.87 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+15:35:00.924
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 91 finding(s) across 2 categories; identified 58 root causes.
+15:35:10.872
+✓ PASSED
+7. Deterministic Rule Engine
+2437.73 ms
+Details ▼
+Deterministic rule engine resolved all findings (55 fixes applied): corrected keyword typo 'breka' -> 'break'; corrected keyword typo 'contniue' -> 'continue'; corrected keyword typo 'whlie' -> 'while'
+15:35:10.873
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Deterministic rules fully resolved all issues; CodeT5 ML stage skipped.
+15:35:10.873
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Deterministic rules fully resolved all issues; Qwen reasoning escalation skipped.
+15:35:13.272
+✓ PASSED
+10. Repair Candidate Generation
+1118.46 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+15:35:13.272
+✓ PASSED
+11. Patch Validation
+1265.12 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+15:35:13.272
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_a1ea5c27a6ae). Original source preserved; awaiting user click on Apply.
+15:35:13.272
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+15:35:00.931
+✓ PASSED
+14. Code Quality & Optimization Metrics
+3.97 ms
+Details ▼
+Evaluated 5 quality components (75.0%) and 1 optimization opportunity(ies).
+15:35:00.931
+⊘ SKIPPED
+15. Security Risk Scoring
+2.64 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+15:35:07.844
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+6912.38 ms
+Details ▼
+Tracked hardware telemetry: 1355.44 ms, 145.07 MB peak RSS, 31.0735 J estimated TDP energy.
+15:35:08.283
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/week11_testing/ademo.c,509,c,unspecified,False,Parser error (rc=-1): No module named 'test_parser',200,0,"C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c: In function 'case2':
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c:23:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c: In function 'case28':
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c:211:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c: In function 'case54':
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c:399:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c: In function 'case15':
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c:129:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c: In function 'case41':
+C:\Users\rohit\AppData\Local\Temp\tmpg8ffpnmf.c:317:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^",-1,No module named 'test_parser',91%,100%,9%,0%,66/100 (1325.24 ms | 336.79 MB | 31.1256 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),72.4,"Status:  | Progress: 
+Card: Budget: 66.1s
+Plan Explanation: Autonomous repair applied 89 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (92):
+Syntax error: Syntax error (missing_semicolon): missing ';' at 'return' (Line 19): Syntax error (missing_semicolon): missing ';' at 'return'
+Synt
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 946c62dc6c1b4b4bab1014fab440bf60
+18 stages recorded
+15:39:55.223
+✓ PASSED
+0. Security gate
+127.53 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+15:39:55.223
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo.c' (509 lines, 6327 bytes, SHA-256: 3f4175d6a645...).
+15:39:56.218
+✗ FAILED
+2. Lexical Analysis
+31.86 ms
+Details ▼
+19 lexical issue(s) detected.
+15:39:56.218
+✗ FAILED
+3. Syntax Analysis
+669.11 ms
+Details ▼
+72 syntax parser error(s) identified.
+15:39:56.218
+⊘ SKIPPED
+4. Semantic Analysis
+292.28 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+15:39:56.544
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+325.55 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+15:39:56.544
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 91 finding(s) across 2 categories; identified 58 root causes.
+15:40:02.099
+✓ PASSED
+7. Deterministic Rule Engine
+4537.95 ms
+Details ▼
+Deterministic rule engine resolved all findings (55 fixes applied): corrected keyword typo 'breka' -> 'break'; corrected keyword typo 'contniue' -> 'continue'; corrected keyword typo 'whlie' -> 'while'
+15:40:02.099
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Deterministic rules fully resolved all issues; CodeT5 ML stage skipped.
+15:40:02.099
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Deterministic rules fully resolved all issues; Qwen reasoning escalation skipped.
+15:40:08.426
+✓ PASSED
+10. Repair Candidate Generation
+2414.14 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+15:40:08.426
+✓ PASSED
+11. Patch Validation
+3884.89 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+15:40:08.426
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_05cded0eaec4). Original source preserved; awaiting user click on Apply.
+15:40:08.426
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+15:39:56.551
+✓ PASSED
+14. Code Quality & Optimization Metrics
+3.87 ms
+Details ▼
+Evaluated 5 quality components (75.0%) and 1 optimization opportunity(ies).
+15:39:56.551
+⊘ SKIPPED
+15. Security Risk Scoring
+2.58 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+15:39:56.552
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.94 ms
+Details ▼
+Tracked hardware telemetry: 1325.24 ms, 336.79 MB peak RSS, 31.1256 J estimated TDP energy.
+15:39:57.423
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/week11_testing/ademo.c,509,c,unspecified,True,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c: In function 'case2':
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c:23:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c: In function 'case28':
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c:211:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c: In function 'case54':
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c:399:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[3];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c: In function 'case15':
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c:129:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c: In function 'case41':
+C:\Users\rohit\AppData\Local\Temp\tmpduqoee0d.c:317:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^",0,,91%,100%,9%,0%,67/100 (1186.04 ms | 340.84 MB | 27.8701 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),69.76,"Status:  | Progress: 
+Card: Budget: 63.8s
+Plan Explanation: Autonomous repair applied 89 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (92):
+Syntax error: Syntax error (missing_semicolon): missing ';' at 'return' (Line 19): Syntax error (missing_semicolon): missing ';' at 'return'
+Synt
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 94e37def1ca44f91a2206b06215604b7
+18 stages recorded
+15:41:33.012
+✓ PASSED
+0. Security gate
+121.55 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+15:41:33.012
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo.c' (509 lines, 6327 bytes, SHA-256: 3f4175d6a645...).
+15:41:33.846
+✗ FAILED
+2. Lexical Analysis
+33.93 ms
+Details ▼
+19 lexical issue(s) detected.
+15:41:33.846
+✗ FAILED
+3. Syntax Analysis
+530.01 ms
+Details ▼
+72 syntax parser error(s) identified.
+15:41:33.846
+⊘ SKIPPED
+4. Semantic Analysis
+268.1 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+15:41:34.194
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+347.36 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+15:41:34.194
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 91 finding(s) across 2 categories; identified 58 root causes.
+15:41:38.501
+✓ PASSED
+7. Deterministic Rule Engine
+3447.86 ms
+Details ▼
+Deterministic rule engine resolved all findings (55 fixes applied): corrected keyword typo 'breka' -> 'break'; corrected keyword typo 'contniue' -> 'continue'; corrected keyword typo 'whlie' -> 'while'
+15:41:38.501
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Deterministic rules fully resolved all issues; CodeT5 ML stage skipped.
+15:41:38.501
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Deterministic rules fully resolved all issues; Qwen reasoning escalation skipped.
+15:41:44.757
+✓ PASSED
+10. Repair Candidate Generation
+3408.42 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+15:41:44.757
+✓ PASSED
+11. Patch Validation
+2821.2 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+15:41:44.757
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_3e385f9ab5d0). Original source preserved; awaiting user click on Apply.
+15:41:44.757
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+15:41:34.200
+✓ PASSED
+14. Code Quality & Optimization Metrics
+3.98 ms
+Details ▼
+Evaluated 5 quality components (75.0%) and 1 optimization opportunity(ies).
+15:41:34.201
+⊘ SKIPPED
+15. Security Risk Scoring
+2.66 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+15:41:34.201
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.33 ms
+Details ▼
+Tracked hardware telemetry: 1186.04 ms, 340.84 MB peak RSS, 27.8701 J estimated TDP energy.
+15:41:34.906
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
