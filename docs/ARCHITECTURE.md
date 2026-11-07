@@ -97,3 +97,4 @@ The system displays 6 primary indicators reflecting code health, green energy fo
 4. **Vulnerability Risk %** (`[RISK INDEX]`): Calibrated static risk index derived from CWE severity, exploitability, and confidence factor (0% for clean code).
 5. **Green Metrics** (`[ESTIMATED TDP]`): Energy consumption model computing total execution runtime (ms), memory footprint (MB), and estimated energy (Joules).
 6. **Model Accuracy & Repair** (`[BENCHMARKED]`): Empirical benchmark score of the active multi-tier repair pipeline (Rules -> CodeT5 -> Qwen).
+
