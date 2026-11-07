@@ -441,7 +441,7 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
             curr_stripped = line.strip()
             if (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
                     and ((curr_stripped.startswith("}") and not prev_stripped.startswith("#") and not prev_stripped.endswith("{"))
-                         or (re.match(r"^(?:return\b|for\b|while\b|if\b|(?:int|char|float|double|long|short|unsigned|signed|struct)\b)", curr_stripped)
+                         or (re.match(r"^(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b|[a-zA-Z_]\w*)", curr_stripped)
                              and (re.match(r"^(?:(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*\s+\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
                                   or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
                                   or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*$", prev_stripped))))
@@ -949,13 +949,17 @@ class RepairJobManager:
                     deterministic_steps += best_fix_count
                 if not deterministic_clean:
                     deterministic_clean, _, _ = _lightweight_check(deterministic_code)
-                if deterministic_clean and deterministic_code != job.original_code:
+                if deterministic_clean:
                     preamble, functions = split_top_level_functions(deterministic_code, language=job.language)
                     job.current_code = deterministic_code
                     job.windows_done = deterministic_steps
                     job.windows_by_tier["rules"] = deterministic_steps
                     job.function_index = job.function_total
-                    job.stage = f"Deterministic repair cleared compiler errors in {deterministic_steps} repair step(s); validating full program..."
+                    job.stage = (
+                        f"Deterministic repair cleared compiler errors in {deterministic_steps} repair step(s); validating full program..."
+                        if deterministic_steps > 0 else
+                        "Source program is clean with zero compiler errors; validating full program..."
+                    )
                     self._safe_save_job(job)
 
             # Generate prototypes for context-aware single function testing
@@ -1250,7 +1254,7 @@ class RepairJobManager:
 
             # Execute function repairs (sequential or optional parallel)
             repaired_functions = list(functions)
-            total_fns = 0 if deterministic_clean and deterministic_code != job.original_code else len(functions)
+            total_fns = 0 if deterministic_clean else len(functions)
 
             t_seq_start = time.perf_counter()
 

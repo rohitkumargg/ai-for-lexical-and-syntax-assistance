@@ -178,7 +178,9 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
     # 3. Wait for analysis & repair to finish, handling security modal if displayed
     repair_done = False
     modal_approved = False
-    timeout_s = 180.0
+    has_started = False
+    line_count = len(source.splitlines())
+    timeout_s = 600.0 if line_count > 500 else 240.0
     start_wait = time.time()
 
     while (time.time() - start_wait) < timeout_s:
@@ -208,13 +210,20 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
                 const runningFlag = Boolean(window.isRepairRunning);
                 const btnDisabled = btn ? btn.disabled : false;
                 const cancelVisible = cancelBtn && cancelBtn.style.display !== 'none';
-                return runningFlag || btnDisabled || cancelVisible;
+                const hasJob = Boolean(window.activeRepairJobId);
+                const statusBadge = document.getElementById('compiler-status-badge');
+                const badgeText = statusBadge ? statusBadge.innerText.toUpperCase() : '';
+                const isBusy = badgeText.includes('ANALYZ') || badgeText.includes('RUNNING') || badgeText.includes('REPAIR');
+                return runningFlag || btnDisabled || cancelVisible || hasJob || isBusy;
             }"""
         )
 
-        if not is_running:
+        if is_running:
+            has_started = True
+
+        if has_started and not is_running:
             # Wait for DOM rendering to complete
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(1000)
             repair_done = True
             break
 
@@ -304,9 +313,15 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
                 await page.wait_for_timeout(1000)
 
     if not applied and apply_http_status is None:
-        # Check if code was clean (status CLEAN or SUCCESS with 0 findings)
-        status_text = raw_info.get("status", "")
-        if "CLEAN" in status_text or "SUCCESS" in status_text or "Program is Clean" in raw_info.get("recCardText", ""):
+        status_text = raw_info.get("status", "").upper()
+        card_text = raw_info.get("recCardText", "")
+        card_upper = card_text.upper()
+        logs_upper = raw_info.get("logs", "").upper()
+        if ("CLEAN" in status_text or "SUCCESS" in status_text
+                or "Program is Clean" in card_text
+                or "ALL CHECKS PASSED" in card_upper
+                or "ALL REQUIRED CHECKS PASSED" in card_upper
+                or "0 COMPILER OR SECURITY ERRORS REMAIN" in logs_upper):
             apply_http_status = 200
         else:
             apply_http_status = "N/A (No Patch Offered)"

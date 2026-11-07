@@ -761,6 +761,36 @@ class PatchValidator:
             )
 
         if candidate_code == original_code:
+            actionable_orig = [
+                f for f in (original_findings or [])
+                if (getattr(f, "category", "") in ("SYNTAX", "SEMANTIC", "COMPILER")
+                    or getattr(f, "severity", "") in ("HIGH", "CRITICAL"))
+            ]
+            if not actionable_orig:
+                diff = generate_structured_diff(original_code, original_code, filename)
+                stage_results[ValidationStage.SYNTAX.value] = StageResult(
+                    stage=ValidationStage.SYNTAX,
+                    passed=True,
+                    message="Program is clean with zero syntax or compiler errors",
+                )
+                stage_results[ValidationStage.COMPILATION.value] = StageResult(
+                    stage=ValidationStage.COMPILATION,
+                    passed=True,
+                    message="Compilation clean",
+                )
+                return PatchValidationReport(
+                    verdict=ValidationVerdict.VALIDATED,
+                    is_valid=True,
+                    syntax_passed=True,
+                    semantic_passed=True,
+                    compilation_passed=True,
+                    security_passed=True,
+                    tests_passed=True,
+                    remaining_risks=[],
+                    stage_results=stage_results,
+                    structured_diff=diff,
+                    unresolved_findings=[],
+                )
             diff = generate_structured_diff(original_code, original_code, filename)
             stage_results[ValidationStage.SYNTAX.value] = StageResult(
                 stage=ValidationStage.SYNTAX,

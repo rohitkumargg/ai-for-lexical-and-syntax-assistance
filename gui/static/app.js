@@ -2821,6 +2821,19 @@ let activeRepairAbortController = null;
 let activeRepairRunId = null;
 let activeRepairJobId = null;
 
+try {
+    Object.defineProperty(window, 'isRepairRunning', {
+        get() { return isRepairRunning; },
+        set(v) { isRepairRunning = Boolean(v); },
+        configurable: true
+    });
+    Object.defineProperty(window, 'activeRepairJobId', {
+        get() { return activeRepairJobId; },
+        set(v) { activeRepairJobId = v; },
+        configurable: true
+    });
+} catch (e) {}
+
 async function cancelActiveRepair() {
     const cancelBtn = document.getElementById("btn-cancel-repair");
     if (cancelBtn) cancelBtn.style.display = "none";
