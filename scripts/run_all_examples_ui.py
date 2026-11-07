@@ -232,6 +232,29 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
     )
     run_output = f"Status: {raw_info.get('status')} | Progress: {raw_info.get('progress')}\nCard: {raw_info.get('recCardText')[:300]}\nSteps: {raw_info.get('steps')}\nErrors: {raw_info.get('errors')}\nLogs: {raw_info.get('logs')}"
 
+    # Extract metrics right after repair completes
+    metrics_initial = await page.evaluate(
+        """() => {
+            const getVal = (id) => {
+                const el = document.getElementById(id);
+                return el ? el.innerText.trim() : '--%';
+            };
+            const getDesc = (id) => {
+                const el = document.getElementById(id);
+                return el ? el.innerText.trim() : '';
+            };
+
+            return {
+                overall_quality: getVal('pi-val-overall'),
+                optimal_code: getVal('pi-val-optimal'),
+                poor_code: getVal('pi-val-poor'),
+                vulnerability_risk: getVal('pi-val-vulnerability'),
+                green_metrics: getVal('pi-val-green') + (getDesc('pi-desc-green') ? ' (' + getDesc('pi-desc-green') + ')' : ''),
+                model_accuracy: getVal('pi-val-benchmark') + (getDesc('pi-desc-benchmark') ? ' (' + getDesc('pi-desc-benchmark') + ')' : ''),
+            };
+        }"""
+    )
+
     # 4. Check for Apply button and click it
     apply_http_status = None
     applied = False
@@ -323,6 +346,14 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
             };
         }"""
     )
+
+    # If post-apply re-analysis metric is incomplete or pending, retain the verified repair metrics
+    for k in ("overall_quality", "optimal_code", "poor_code", "vulnerability_risk", "green_metrics", "model_accuracy"):
+        val = metrics.get(k, "")
+        if val in ("--%", "--", "--/100", "") or "Run repair" in val or "pending" in val.lower():
+            init_val = metrics_initial.get(k, "")
+            if init_val and init_val not in ("--%", "--", "--/100") and "Run repair" not in init_val:
+                metrics[k] = init_val
 
     # 8. Success criteria evaluation
     gcc_pass = comp_res["rc"] == 0

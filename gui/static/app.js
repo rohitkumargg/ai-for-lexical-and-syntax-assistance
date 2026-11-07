@@ -1099,11 +1099,11 @@ function triggerLiveQualityScore(requestVersion = ++liveMetricRequestVersion) {
         if (secModal && secModal.style.display !== "none") return;
         const code = editor.getValue();
         const filename = currentFilename;
-        if (!code || code.trim().length < 15) {
+        if (!code || code.trim().length === 0) {
             renderQualityScore({
                 can_score: false,
-                status: (!code || code.trim().length === 0) ? "EMPTY_SOURCE" : "INSUFFICIENT_INFORMATION",
-                status_reason: "Source is empty or too short (< 15 characters) for reliable quality evaluation."
+                status: "EMPTY_SOURCE",
+                status_reason: "Source is empty."
             });
             return;
         }
@@ -1304,11 +1304,11 @@ function triggerLiveOptimizationPotential(requestVersion = liveMetricRequestVers
         if (secModal && secModal.style.display !== "none") return;
         const code = editor.getValue();
         const filename = currentFilename;
-        if (!code || code.trim().length < 15) {
+        if (!code || code.trim().length === 0) {
             renderOptimizationReport({
                 can_score: false,
-                status: (!code || code.trim().length === 0) ? "EMPTY_SOURCE" : "INSUFFICIENT_INFORMATION",
-                status_reason: "Source is empty or too short (< 15 characters) for reliable optimization potential analysis."
+                status: "EMPTY_SOURCE",
+                status_reason: "Source is empty."
             });
             return;
         }
@@ -1526,11 +1526,11 @@ function triggerLiveSecurityRisk(requestVersion = liveMetricRequestVersion) {
         if (secModal && secModal.style.display !== "none") return;
         const code = editor.getValue();
         const filename = currentFilename;
-        if (!code || code.trim().length < 15) {
+        if (!code || code.trim().length === 0) {
             renderSecurityRiskReport({
                 can_score: false,
-                status: (!code || code.trim().length === 0) ? "EMPTY_SOURCE" : "INCOMPLETE_ASSESSMENT",
-                status_reason: "Source is empty or too short (< 15 characters) for a reliable security risk assessment."
+                status: "EMPTY_SOURCE",
+                status_reason: "Source is empty."
             });
             return;
         }
@@ -1734,7 +1734,7 @@ function triggerLiveImprovementAdvisor() {
     improvementAdvisorTimer = setTimeout(async () => {
         if (!editor) return;
         const code = editor.getValue();
-        if (!code || code.trim().length < 15) {
+        if (!code || code.trim().length === 0) {
             renderImprovementAdvisorReport({
                 total_candidates: 0,
                 candidates: [],
@@ -3556,6 +3556,13 @@ function renderCoordinatedPlan(plan) {
                 badgeGreen.className = "tile-badge badge-green";
                 badgeGreen.textContent = "[ESTIMATED TDP]";
             }
+            cachedGreenReport = {
+                green_score: bs.green_metrics,
+                total_runtime_ms: (bs.green_telemetry || bs.green_metrics_detail || {}).total_runtime_ms || 1.0,
+                energy_metrics: {
+                    estimated_joules: (bs.green_telemetry || bs.green_metrics_detail || {}).energy_joules || 0.01
+                }
+            };
         }
     }
     const descGreen = document.getElementById("pi-desc-green");

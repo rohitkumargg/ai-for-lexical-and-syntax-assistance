@@ -709,6 +709,16 @@ class CodeQualityScorer:
         syntax_errs: List[Any] = []
         semantic_errs: List[Any] = []
 
+        if (filename or "").endswith(".py"):
+            try:
+                import ast
+                ast.parse(source_code)
+            except SyntaxError as se:
+                syntax_errs.append(se)
+            except Exception:
+                pass
+            return syntax_errs, semantic_errs
+
         try:
             from test_parser import parse_source, has_any_errors
             tree, listeners, _ = parse_source(source_code, filename)

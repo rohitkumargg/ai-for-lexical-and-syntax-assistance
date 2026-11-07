@@ -185,12 +185,22 @@ class SecurityRiskScorer:
 
         # Check for syntax errors if not explicitly provided
         if has_syntax_errors is None and source_code:
-            try:
-                from test_parser import parse_source, has_any_errors
-                tree, listeners, _ = parse_source(source_code, filename)
-                has_syntax_errors = (tree is None) or has_any_errors(listeners)
-            except Exception:
-                has_syntax_errors = False
+            if (filename or "").endswith(".py"):
+                try:
+                    import ast
+                    ast.parse(source_code)
+                    has_syntax_errors = False
+                except SyntaxError:
+                    has_syntax_errors = True
+                except Exception:
+                    has_syntax_errors = False
+            else:
+                try:
+                    from test_parser import parse_source, has_any_errors
+                    tree, listeners, _ = parse_source(source_code, filename)
+                    has_syntax_errors = (tree is None) or has_any_errors(listeners)
+                except Exception:
+                    has_syntax_errors = False
         if not has_syntax_errors and findings:
             for f in findings:
                 f_cat = getattr(f, "category", "")

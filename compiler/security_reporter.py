@@ -545,12 +545,21 @@ class SecurityReporter:
         """
         # Prerequisite check: If baseline contains fatal syntax errors, static security rules cannot run reliably
         orig_has_syntax_errors = False
-        try:
-            from test_parser import parse_source, has_any_errors
-            orig_tree, orig_listeners, _ = parse_source(original_source, filename)
-            orig_has_syntax_errors = (orig_tree is None) or has_any_errors(orig_listeners)
-        except Exception:
-            pass
+        if (filename or "").endswith(".py"):
+            try:
+                import ast
+                ast.parse(original_source)
+            except SyntaxError:
+                orig_has_syntax_errors = True
+            except Exception:
+                pass
+        else:
+            try:
+                from test_parser import parse_source, has_any_errors
+                orig_tree, orig_listeners, _ = parse_source(original_source, filename)
+                orig_has_syntax_errors = (orig_tree is None) or has_any_errors(orig_listeners)
+            except Exception:
+                pass
 
         orig_report = self.analyze_source(original_source, filename)
         patch_report = self.analyze_source(patched_source, filename)
@@ -572,12 +581,21 @@ class SecurityReporter:
             )
 
         patch_has_syntax_errors = False
-        try:
-            from test_parser import parse_source, has_any_errors
-            patch_tree, patch_listeners, _ = parse_source(patched_source, filename)
-            patch_has_syntax_errors = (patch_tree is None) or has_any_errors(patch_listeners)
-        except Exception:
-            pass
+        if (filename or "").endswith(".py"):
+            try:
+                import ast
+                ast.parse(patched_source)
+            except SyntaxError:
+                patch_has_syntax_errors = True
+            except Exception:
+                pass
+        else:
+            try:
+                from test_parser import parse_source, has_any_errors
+                patch_tree, patch_listeners, _ = parse_source(patched_source, filename)
+                patch_has_syntax_errors = (patch_tree is None) or has_any_errors(patch_listeners)
+            except Exception:
+                pass
 
         if orig_has_syntax_errors or patch_has_syntax_errors:
             # Epistemological safeguard: baseline or candidate could not be verified statically.
