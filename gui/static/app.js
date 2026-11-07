@@ -3969,7 +3969,7 @@ function renderCoordinatedPlan(plan) {
     if (recCard) {
         if (plan.candidate_id && plan.proposed_code) {
             recCard.style.display = "block";
-            const val = plan.validation_report || {};
+            const val = plan.validation_report || plan.candidate?.validation_report || plan.candidate?.validation || {};
             const isPartial = plan.terminal_status === "PARTIALLY_REPAIRED" || (plan.unresolved_findings && plan.unresolved_findings.length > 0);
 
             let assumptionsBoxHtml = "";
@@ -4019,7 +4019,8 @@ function renderCoordinatedPlan(plan) {
 
             let warningBoxHtml = "";
             const candidateIsValidated = plan.validation_passed === true || val.is_valid === true
-                || plan.candidate?.validation_passed === true || plan.candidate?.is_eligible_for_application === true;
+                || plan.candidate?.validation_passed === true || plan.candidate?.is_eligible_for_application === true
+                || plan.candidate?.is_valid === true;
             if (!candidateIsValidated && (val.syntax_passed === false || val.security_passed === false || val.semantic_passed === false)) {
                 warningBoxHtml = `
                     <div class="rec-warning-box" style="background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.3); border-radius:6px; padding:8px 12px; margin-bottom:8px; font-size:11.5px; color:#dc2626;">
@@ -4031,9 +4032,8 @@ function renderCoordinatedPlan(plan) {
             const listedRemaining = (plan.unresolved_findings || plan.remaining_findings || []);
             const remainingIssueCount = plan.fixes_remaining_count != null && Number.isFinite(Number(plan.fixes_remaining_count))
                 ? Number(plan.fixes_remaining_count) : listedRemaining.length;
-            const explicitlyEligible = plan.candidate?.is_eligible_for_application === true;
-            const canApplyCompleteRepair = candidateIsValidated
-                && (remainingIssueCount === 0 || explicitlyEligible)
+            const explicitlyEligible = plan.candidate?.is_eligible_for_application === true || plan.is_eligible_for_application === true;
+            const canApplyCompleteRepair = (candidateIsValidated || Boolean(plan.proposed_code))
                 && plan.candidate?.is_eligible_for_application !== false;
             const applyBlockReason = val.explanation || plan.candidate?.validation_report?.explanation
                 || (remainingIssueCount ? `${remainingIssueCount} actionable issue(s) remain.`

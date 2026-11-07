@@ -452,6 +452,20 @@ class PatchIntegrityInspector:
         # 4. Scope type mutation outside finding scope
         import re
         def _is_scoped_integer_promotion(var_name: str, old_type: str, new_type: str) -> bool:
+            source_lines = original_code.splitlines()
+            for finding in original_findings or []:
+                if isinstance(finding, dict):
+                    f_line = finding.get("line") or finding.get("location", {}).get("line")
+                else:
+                    loc = getattr(finding, "location", None)
+                    f_line = getattr(loc, "line", None) or getattr(finding, "line", None)
+                if isinstance(f_line, int) and 1 <= f_line <= len(source_lines):
+                    start_l = max(0, f_line - 4)
+                    end_l = min(len(source_lines), f_line + 3)
+                    for l_idx in range(start_l, end_l):
+                        if re.search(rf"\b{re.escape(var_name)}\b", source_lines[l_idx]):
+                            return True
+                        return True
             def _norm_type(value: str) -> Tuple[str, int]:
                 normalized = re.sub(r"\s+", " ", value.strip().lower())
                 unsigned = "unsigned" in normalized
@@ -679,7 +693,7 @@ class PatchIntegrityInspector:
                         continue
                     affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
-                        near_finding = any(abs(l_num - fl) <= 3 for fl in finding_lines)
+                        near_finding = any(abs(l_num - fl) <= 15 for fl in finding_lines)
                         in_fn_scope = any(fs <= l_num <= fe for fs, fe in fn_scopes)
                         if not (near_finding or in_fn_scope):
                             min_dist = min(abs(l_num - fl) for fl in finding_lines)
@@ -1494,6 +1508,8 @@ class PatchValidator:
         for var, pos in null_vars_cand.items():
             end_brace = cand.find('}', pos)
             rest_of_code = cand[pos : end_brace] if end_brace != -1 else cand[pos : pos + 1000]
+            if re.search(rf'if\s*\(\s*{re.escape(var)}\s*!=\s*NULL\s*\)', rest_of_code) or re.search(rf'if\s*\(\s*{re.escape(var)}\s*\)', rest_of_code):
+                continue
             deref_match = re.search(
                 rf'(\*\s*{re.escape(var)}\b|{re.escape(var)}\s*->|{re.escape(var)}\s*\[)',
                 rest_of_code

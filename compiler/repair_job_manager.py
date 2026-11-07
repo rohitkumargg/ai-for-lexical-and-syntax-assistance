@@ -440,12 +440,15 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
             prev_stripped = prev_code.strip()
             curr_stripped = line.strip()
             if (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
-                    and ((curr_stripped.startswith("}") and prev_stripped in ("break", "continue"))
+                    and ((curr_stripped.startswith("}") and not prev_stripped.startswith("#") and not prev_stripped.endswith("{"))
                          or (re.match(r"^(?:return\b|for\b|while\b|if\b|(?:int|char|float|double|long|short|unsigned|signed|struct)\b)", curr_stripped)
-                             and re.match(r"^(?:(?:int|char|float|double|long|short|unsigned|signed|struct\s+\w+)\b[\w\s*\[\]]*\s+\w+\s*=|[A-Za-z_]\w*\s*=)", prev_stripped)))
+                             and (re.match(r"^(?:(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*\s+\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
+                                  or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
+                                  or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*$", prev_stripped))))
                     and not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped)):
                 ending = "\r\n" if prev.endswith("\r\n") else ("\n" if prev.endswith("\n") else "")
                 new_lines[-1] = prev_code.rstrip() + ";" + (" " + prev.split("//", 1)[1].rstrip("\r\n") if "//" in prev else "") + ending
+                fixes.append("Inserted missing semicolon")
 
         segments = _split_line_tokens(line)
         new_segments = []
@@ -458,6 +461,16 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
             t2 = re.sub(r'(\[\s*[^\];]+?)\s*;', r'\1];', t)
             if t2 != t:
                 fixes.append("Closed array dimension with missing ']'")
+                t = t2
+            # Empty initializer: int value = ; -> int value = 0;
+            t2 = re.sub(r'=\s*;', '= 0;', t)
+            if t2 != t:
+                fixes.append("Initialized variable with default value '0'")
+                t = t2
+            # Stray case label outside switch: wrap in switch(1)
+            t2 = re.sub(r'^\s*case\s+([^:;]+)\s*:\s*(.+)$', r'switch (1) { case \1: \2 break; }', t)
+            if t2 != t:
+                fixes.append("Wrapped isolated case label in switch statement")
                 t = t2
             # Missing comma in parameter list: int a int b -> int a, int b
             t2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', t)

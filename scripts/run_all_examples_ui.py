@@ -64,7 +64,11 @@ def compile_with_gcc(source_path: Path) -> Dict[str, Any]:
     with tempfile.NamedTemporaryFile(suffix=".o", delete=False) as tmp_o:
         obj_path = tmp_o.name
     try:
-        cmd = ["gcc", "-Wall", "-Wextra", "-std=c11", "-c", str(source_path), "-o", obj_path]
+        mock_headers_dir = project_root / "data" / "mock_headers"
+        cmd = ["gcc", "-Wall", "-Wextra", "-std=c11", "-c"]
+        if mock_headers_dir.is_dir():
+            cmd.extend(["-I", str(mock_headers_dir)])
+        cmd.extend([str(source_path), "-o", obj_path])
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         return {"rc": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
     except Exception as ex:

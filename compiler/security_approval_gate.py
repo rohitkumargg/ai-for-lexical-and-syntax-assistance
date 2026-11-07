@@ -1707,7 +1707,7 @@ class SecurityDecisionGate:
                         is_confirmed=True,
                         is_prohibited=False,
                         requires_review=True,
-                        has_repair_proposal=False,
+                        has_repair_proposal=(fn_key in ("eval", "subprocess", "shell", "yaml_load", "md5", "sha1")),
                         cwe_id=cwe,
                         future_risks=risks,
                     ))
