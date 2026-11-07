@@ -467,10 +467,10 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
             if t2 != t:
                 fixes.append("Initialized variable with default value '0'")
                 t = t2
-            # Stray case label outside switch: wrap in switch(1)
-            t2 = re.sub(r'^\s*case\s+([^:;]+)\s*:\s*(.+)$', r'switch (1) { case \1: \2 break; }', t)
+            # Stray case label outside switch: remove stray label
+            t2 = re.sub(r'^\s*(?:case\s+[^:]+|default)\s*:\s*', '', t)
             if t2 != t:
-                fixes.append("Wrapped isolated case label in switch statement")
+                fixes.append("Removed stray case/default label outside switch")
                 t = t2
             # Missing comma in parameter list: int a int b -> int a, int b
             t2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', t)
