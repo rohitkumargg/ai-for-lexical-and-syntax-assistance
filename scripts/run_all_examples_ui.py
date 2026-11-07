@@ -76,19 +76,22 @@ def find_example_files(root: Path) -> List[Path]:
 async def load_source(page: Page, source: str) -> None:
     """Load ``source`` into the editor.
 
-    The UI currently provides a hidden textarea (``#editor``).  We set its
-    value via JavaScript and then trigger the ``input`` event so the
-    application recognises the change.
+    The UI provides a CodeMirror (or similar) editor inside ``#editor``.
+    We set its content via ``eval_on_selector`` which works for both a textarea
+    or a contenteditable ``div``.  After updating the text we fire an ``input``
+    event so the application registers the change.
     """
-    await page.evaluate(
-        """(editorSel, code) => {
-            const el = document.querySelector(editorSel);
-            if (!el) return;
-            el.value = code;
+    await page.eval_on_selector(
+        EDITOR_SELECTOR,
+        """(el, code) => {
+            if (el.value !== undefined) {
+                el.value = code;
+            } else {
+                el.innerText = code;
+            }
             const ev = new Event('input', { bubbles: true });
             el.dispatchEvent(ev);
         }""",
-        EDITOR_SELECTOR,
         source,
     )
 
