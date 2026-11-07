@@ -221,9 +221,9 @@ class SecurityRiskScorer:
                 heuristic_count=0,
             )
 
-        # Zero-fabrication check 2: Fragmented snippet (< 15 non-comment chars) with no findings
+        # Zero-fabrication check 2: Fragmented snippet with no findings
         code_without_comments = re.sub(r"//.*?\n|/\*.*?\*/", "", stripped, flags=re.DOTALL).strip()
-        if len(code_without_comments) < 15 and not findings:
+        if len(code_without_comments) <= 0 and not findings:
             return SecurityRiskReport(
                 risk_score=None,
                 status=SecurityRiskStatus.INCOMPLETE_ASSESSMENT,

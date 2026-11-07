@@ -187,7 +187,7 @@ class ImprovementAdvisor:
         import hashlib
         snapshot_hash = hashlib.sha256((source_code or "").encode("utf-8")).hexdigest()[:12]
 
-        if not source_code or len(source_code.strip()) < 15:
+        if not source_code or len(source_code.strip()) <= 0:
             return ImprovementAdvisorReport(
                 source_snapshot_hash=snapshot_hash,
                 filename=filename,

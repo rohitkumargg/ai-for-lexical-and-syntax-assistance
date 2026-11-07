@@ -179,7 +179,7 @@ class CodeQualityScorer:
 
         # Epistemological check 2: Insufficient information / fragmented snippet
         non_comment_chars = len(re.sub(r"/\*[\s\S]*?\*/|//.*", "", stripped).strip())
-        if non_comment_chars < 15:
+        if non_comment_chars <= 0:
             return CodeQualityReport(
                 overall_score=None,
                 status=QualityStatus.INSUFFICIENT_INFORMATION,

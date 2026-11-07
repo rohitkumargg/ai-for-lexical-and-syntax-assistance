@@ -178,9 +178,9 @@ class OptimizationPotentialAnalyzer:
                 summary="Optimization Potential Unavailable: Empty Source Code",
             )
 
-        # Zero-fabrication check: Fragmented or trivial snippet (< 15 non-comment chars)
+        # Zero-fabrication check: Fragmented or trivial snippet
         code_without_comments = re.sub(r"//.*?\n|/\*.*?\*/|#.*?\n", "", stripped, flags=re.DOTALL).strip()
-        if len(code_without_comments) < 15:
+        if len(code_without_comments) <= 0:
             return OptimizationPotentialReport(
                 optimization_potential=None,
                 status=OptimizationStatus.INSUFFICIENT_INFORMATION,

@@ -2895,7 +2895,13 @@ async function runRepair() {
  */
 async function _runRepairAfterPrescan() {
     const code = repairOriginalCode || (editor ? editor.getValue() : "");
-    if (!code) return;
+    if (!code || !code.trim()) {
+        isRepairRunning = false;
+        setAllRunButtonsDisabled(false);
+        setProgress(100, "Empty source file — zero compiler errors.");
+        setStatus("CLEAN");
+        return;
+    }
 
     const thisRepairSeq = ++activeRepairSequence;
     isRepairRunning = true;
