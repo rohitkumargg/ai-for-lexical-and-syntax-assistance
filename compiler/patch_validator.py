@@ -1164,7 +1164,7 @@ class PatchValidator:
 
         # Step 6: Regression / Test Case Verification
         tests_ok = None
-        if test_harness is not None:
+        if test_harness is not None and callable(test_harness):
             telemetry["stages_executed"].append("tests")
             # If a custom test harness callable is supplied
             try:
@@ -1230,8 +1230,18 @@ class PatchValidator:
                 elif cat == "SECURITY":
                     for cv in cand_sec_vulns:
                         cv_rule = str(getattr(cv, "rule_id", "")).upper()
+                        cv_cat = str(getattr(cv, "category", "")).upper()
+                        cv_cwe = str(getattr(cv, "cwe_id", "")).upper()
                         cv_line = getattr(cv, "line", 1)
-                        if (rule and cv_rule == rule) or (cv_line == line):
+                        orig_cwe = str(f_dict.get("cwe_id") or getattr(orig_f, "cwe_id", "") or "").upper()
+                        orig_msg = str(f_dict.get("message") or f_dict.get("explanation") or "").lower()
+                        same_type = (rule and cv_rule == rule) or (orig_cwe and cv_cwe and orig_cwe == cv_cwe)
+                        if not same_type:
+                            if ("command" in orig_msg or "system(" in orig_msg or "cwe-78" in orig_msg) and "COMMAND" in cv_cat:
+                                same_type = True
+                            elif ("scanf" in orig_msg or "buffer" in orig_msg or "overflow" in orig_msg or "cwe-120" in orig_msg) and "BUFFER" in cv_cat:
+                                same_type = True
+                        if same_type and (cv_line == line or (rule and cv_rule == rule)):
                             persists = True
                             break
                     if not security_ok:
