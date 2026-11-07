@@ -1,6 +1,26 @@
 let editor;
 let currentDecorations = [];
 let suppressHighlightClearOnce = false;
+var isRepairRunning = false;
+var activeRepairSequence = 0;
+var activeRepairJobId = null;
+var activeRepairAbortController = null;
+var activeRepairRunId = null;
+var programRunSequence = 0;
+var isProgramRunning = false;
+
+try {
+    Object.defineProperty(window, 'isRepairRunning', {
+        get() { return isRepairRunning; },
+        set(v) { isRepairRunning = Boolean(v); },
+        configurable: true
+    });
+    Object.defineProperty(window, 'activeRepairJobId', {
+        get() { return activeRepairJobId; },
+        set(v) { activeRepairJobId = v; },
+        configurable: true
+    });
+} catch (e) {}
 
 const DEFAULT_LANGUAGES = [
     { id: "c", label: "C", extensions: [".c"], monaco: "c", new_label: "New C Program", default_name: "main.c" },
@@ -2813,26 +2833,6 @@ async function renderRepairResult(data) {
 /* RUN REPAIR & COORDINATED AGENT PLANNING            */
 /* -------------------------------------------------- */
 let currentCoordinatedPlan = null;
-let isRepairRunning = false;
-let activeRepairSequence = 0;
-
-
-let activeRepairAbortController = null;
-let activeRepairRunId = null;
-let activeRepairJobId = null;
-
-try {
-    Object.defineProperty(window, 'isRepairRunning', {
-        get() { return isRepairRunning; },
-        set(v) { isRepairRunning = Boolean(v); },
-        configurable: true
-    });
-    Object.defineProperty(window, 'activeRepairJobId', {
-        get() { return activeRepairJobId; },
-        set(v) { activeRepairJobId = v; },
-        configurable: true
-    });
-} catch (e) {}
 
 async function cancelActiveRepair() {
     const cancelBtn = document.getElementById("btn-cancel-repair");
@@ -4386,8 +4386,8 @@ async function generateAlternativePlan() {
 /* -------------------------------------------------- */
 /* PROGRAM OUTPUT PANEL & RUN PROGRAM                  */
 /* -------------------------------------------------- */
-let isProgramRunning = false;
-let programRunSequence = 0;
+isProgramRunning = false;
+programRunSequence = 0;
 
 function switchDockTab(tabId) {
     const tabBtnOutput = document.getElementById("tab-btn-program-output");
