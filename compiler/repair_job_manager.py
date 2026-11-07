@@ -1403,6 +1403,17 @@ class RepairJobManager:
 
             if job.language == "c":
                 try:
+                    from compiler.security_rules import run_security_rules
+                    sec_src, sec_fnds, sec_stps = run_security_rules(final_adopted_code, max_rounds=5)
+                    if sec_src and sec_src.strip() != final_adopted_code.strip():
+                        s_ok, s_errs, _ = _lightweight_check(sec_src)
+                        if s_ok or len(s_errs) <= len(_lightweight_check(final_adopted_code)[1]):
+                            final_adopted_code = sec_src
+                            job.windows_done += len(sec_stps) or 1
+                            job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(sec_stps) or 1)
+                except Exception:
+                    pass
+                try:
                     from compiler.security_auto_fixer import SecurityAutoFixer
                     sec_fixer = SecurityAutoFixer()
                     sec_res = sec_fixer.apply_fixes(final_adopted_code)
