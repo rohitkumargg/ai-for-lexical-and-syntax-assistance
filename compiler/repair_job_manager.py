@@ -1321,7 +1321,7 @@ class RepairJobManager:
             job.stage = "Performing whole-file lightweight verification (parse + gcc -fsyntax-only)..."
             self._safe_save_job(job)
 
-            whole_candidate = assemble_functions(preamble, repaired_functions)
+            whole_candidate = deterministic_code if deterministic_clean else assemble_functions(preamble, repaired_functions)
             if job.language == "c":
                 whole_candidate = ensure_c_libc_headers(whole_candidate, job.original_code)
 
