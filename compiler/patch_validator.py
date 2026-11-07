@@ -576,8 +576,8 @@ class PatchIntegrityInspector:
                         o_ret = o_ret.strip()
                         if o_ret in ("0", "1", "-1") or len(o_ret) <= 3 or o_ret in cand_returns:
                             continue
-                        norm_o = re.sub(r'[\s,;()]+', '', o_ret)
-                        if any(norm_o == re.sub(r'[\s,;()]+', '', c_ret.strip()) for c_ret in cand_returns):
+                        norm_o = re.sub(r'->', '.', re.sub(r'[\s,;()]+', '', o_ret))
+                        if any(norm_o == re.sub(r'->', '.', re.sub(r'[\s,;()]+', '', c_ret.strip())) for c_ret in cand_returns):
                             continue
                         has_computation = any(k in o_ret for k in (">", "<", "+", "-", "*", "/", "add", "calc"))
                         if not has_computation:

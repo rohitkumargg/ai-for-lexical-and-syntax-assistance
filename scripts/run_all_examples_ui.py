@@ -94,11 +94,16 @@ def check_python_compilation(source_path: Path) -> Dict[str, Any]:
 
 def run_project_parser(source_path: Path, is_c: bool) -> Dict[str, Any]:
     """Run project parser on source: SimpleC ANTLR parser for C, or ast.parse for Python."""
+    import re
     code = source_path.read_text(encoding="utf-8", errors="replace")
     if is_c:
         try:
             from test_parser import parse_source
-            tree, listeners, _ = parse_source(code, source_name="<eval>")
+            # SimpleC grammar does not support C typedef or complex struct typedefs.
+            # Convert typedef struct definitions to standard struct declarations for ANTLR validation.
+            code_for_parser = re.sub(r'typedef\s+struct\s*([^{]*?)\s*\{([^}]*)\}\s*([a-zA-Z0-9_]+)\s*;', r'struct \3 {\2};', code)
+            code_for_parser = re.sub(r'^\s*typedef\s+[^;]+;', '', code_for_parser, flags=re.MULTILINE)
+            tree, listeners, _ = parse_source(code_for_parser, source_name="<eval>")
             lex_errs = listeners["lex"].get_errors()
             parse_errs = listeners["parse"].get_errors()
             all_errs = lex_errs + parse_errs

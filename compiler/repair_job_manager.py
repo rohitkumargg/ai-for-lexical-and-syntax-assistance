@@ -462,6 +462,15 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
             if t2 != t:
                 fixes.append("Closed array dimension with missing ']'")
                 t = t2
+            # Same-line squished statement: declaration/assignment followed by statement keyword
+            t2 = re.sub(
+                r'((?:\b(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*\s+[a-zA-Z_]\w*|[a-zA-Z_]\w*)\s*=[^=;{}]+?)(\s+(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b))',
+                r'\1;\2',
+                t,
+            )
+            if t2 != t:
+                fixes.append("Inserted missing semicolon before control/return statement on same line")
+                t = t2
             # Empty initializer: int value = ; -> int value = 0;
             t2 = re.sub(r'=\s*;', '= 0;', t)
             if t2 != t:
@@ -901,7 +910,7 @@ class RepairJobManager:
                     ) for line in (initial_error_lines or [])
                 ]
                 for _ in range(24):
-                    clean_now, error_lines, _ = _lightweight_check(deterministic_code)
+                    clean_now, error_lines, out = _lightweight_check(deterministic_code)
                     if clean_now:
                         deterministic_clean = True
                         break
@@ -921,6 +930,18 @@ class RepairJobManager:
                     )
                     if delimiter_code != deterministic_code:
                         attempts.append((delimiter_code, delimiter_fixes))
+                    pointer_matches = re.findall(
+                        r':(\d+):(?:\d+:)? error: \'(\w+)\' is a pointer; did you mean to use \'->\'\?', out
+                    )
+                    if pointer_matches:
+                        p_lines = deterministic_code.splitlines(keepends=True)
+                        for l_str, var_name in pointer_matches:
+                            idx = int(l_str) - 1
+                            if 0 <= idx < len(p_lines):
+                                p_lines[idx] = re.sub(rf'\b{re.escape(var_name)}\.', f'{var_name}->', p_lines[idx])
+                        pointer_code = "".join(p_lines)
+                        if pointer_code != deterministic_code:
+                            attempts.append((pointer_code, ["Replaced '.' with '->' on pointer"]))
                     rule_code, rule_fixes = planner._apply_deterministic_rules(
                         deterministic_code, filename=job.filename, language=job.language
                     )
@@ -964,18 +985,19 @@ class RepairJobManager:
 
             # Generate prototypes for context-aware single function testing
             clean_prototypes = []
-            for fn in functions:
-                lines = fn["code"].splitlines()
-                if lines:
-                    first_line = lines[0].strip()
-                    fixed_header, _ = planner._apply_deterministic_rules(first_line, filename=job.filename, language=job.language)
-                    first_line = fixed_header.strip()
-                    if "{" in first_line:
-                        first_line = first_line.split("{")[0].strip()
-                    if not first_line.endswith(";"):
-                        first_line += ";"
-                    if re.match(r'^[ \t]*(?:void|int|char|float|double|long|unsigned|short|bool|struct\s+\w+)\b[a-zA-Z0-9_\s\*]+\([a-zA-Z0-9_,\s\*]*\)\s*;', first_line):
-                        clean_prototypes.append(first_line)
+            if not deterministic_clean:
+                for fn in functions:
+                    lines = fn["code"].splitlines()
+                    if lines:
+                        first_line = lines[0].strip()
+                        fixed_header, _ = planner._apply_deterministic_rules(first_line, filename=job.filename, language=job.language)
+                        first_line = fixed_header.strip()
+                        if "{" in first_line:
+                            first_line = first_line.split("{")[0].strip()
+                        if not first_line.endswith(";"):
+                            first_line += ";"
+                        if re.match(r'^[ \t]*(?:void|int|char|float|double|long|unsigned|short|bool|struct\s+\w+)\b[a-zA-Z0-9_\s\*]+\([a-zA-Z0-9_,\s\*]*\)\s*;', first_line):
+                            clean_prototypes.append(first_line)
             prototypes_str = "\n".join(clean_prototypes)
             fn_context_header = ensure_c_libc_headers(preamble + "\n" + prototypes_str) + "\n"
             if job.language == "c" and c_comp.is_available():

@@ -28318,3 +28318,443 @@ Tracked hardware telemetry: 2835.54 ms, 566.95 MB peak RSS, 68.5095 J estimated 
 5b. Security Remediation Synthesis
 skipped
 Zero security findings detected; security remediation synthesis skipped."
+examples/big.c,991,c,unspecified,False,Parser error (rc=-1): name 're' is not defined,200,0,,-1,name 're' is not defined,87%,90%,13%,0%,55/100 (1791.35 ms | 613.9 MB | 43.5272 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),170.64,"Status:  | Progress: 
+Card: Budget: 163.8s
+Plan Explanation: Autonomous repair applied 12 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (12):
+Syntax error: Syntax error (extraneous_token): extraneous input 'viod' expecting {<EOF>, 'const', 'volatile', 'static', 'extern', 'int', 'float'
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 163177cfb93e4c3faeafc1c1d1e65a33
+18 stages recorded
+21:34:33.102
+✓ PASSED
+0. Security gate
+104.1 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:34:33.102
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'big.c' (991 lines, 17822 bytes, SHA-256: f465b1201cec...).
+21:34:34.433
+✗ FAILED
+2. Lexical Analysis
+12.71 ms
+Details ▼
+4 lexical issue(s) detected.
+21:34:34.433
+✗ FAILED
+3. Syntax Analysis
+534.19 ms
+Details ▼
+9 syntax parser error(s) identified.
+21:34:34.433
+⊘ SKIPPED
+4. Semantic Analysis
+783.18 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:34:34.886
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+453 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:34:34.886
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 13 finding(s) across 2 categories; identified 9 root causes.
+21:34:42.842
+✓ PASSED
+7. Deterministic Rule Engine
+6475.66 ms
+Details ▼
+Deterministic rule engine resolved all findings (8 fixes applied): corrected keyword typo 'viod' -> 'void'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'viod' -> 'void'
+21:34:42.842
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:34:42.842
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:34:50.413
+✓ PASSED
+10. Repair Candidate Generation
+4099.21 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:34:50.413
+✓ PASSED
+11. Patch Validation
+3451.56 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security scoring skipped: [INCONCLUSIVE].
+21:34:50.413
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_b9ea6e68dc66). Original source preserved; awaiting user click on Apply.
+21:34:50.413
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:34:34.894
+✓ PASSED
+14. Code Quality & Optimization Metrics
+4.97 ms
+Details ▼
+Evaluated 5 quality components (71.2%) and 1 optimization opportunity(ies).
+21:34:34.894
+⊘ SKIPPED
+15. Security Risk Scoring
+3.31 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:34:34.895
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.3 ms
+Details ▼
+Tracked hardware telemetry: 1791.35 ms, 613.9 MB peak RSS, 43.5272 J estimated TDP energy.
+21:34:35.869
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/big.c,991,c,unspecified,True,,200,0,,0,,87%,90%,13%,0%,63/100 (1388.19 ms | 445.14 MB | 33.0446 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),40.37,"Status:  | Progress: 
+Card: Budget: 33.3s
+Plan Explanation: Autonomous repair applied 12 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (12):
+Syntax error: Syntax error (extraneous_token): extraneous input 'viod' expecting {<EOF>, 'const', 'volatile', 'static', 'extern', 'int', 'float',
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 1664427fe3384249b220d93382b0f609
+18 stages recorded
+21:36:10.295
+✓ PASSED
+0. Security gate
+764.95 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:36:10.295
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'big.c' (991 lines, 17822 bytes, SHA-256: f465b1201cec...).
+21:36:11.014
+✗ FAILED
+2. Lexical Analysis
+13.22 ms
+Details ▼
+4 lexical issue(s) detected.
+21:36:11.014
+✗ FAILED
+3. Syntax Analysis
+447.63 ms
+Details ▼
+9 syntax parser error(s) identified.
+21:36:11.014
+⊘ SKIPPED
+4. Semantic Analysis
+257.53 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:36:11.676
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+661.93 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:36:11.676
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 13 finding(s) across 2 categories; identified 9 root causes.
+21:36:23.769
+✓ PASSED
+7. Deterministic Rule Engine
+5524.32 ms
+Details ▼
+Deterministic rule engine resolved all findings (8 fixes applied): corrected keyword typo 'viod' -> 'void'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'viod' -> 'void'
+21:36:23.769
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:36:23.769
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:36:30.272
+✓ PASSED
+10. Repair Candidate Generation
+3557.37 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:36:30.272
+✓ PASSED
+11. Patch Validation
+2906.78 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security scoring skipped: [INCONCLUSIVE].
+21:36:30.272
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_c5f9955b3b7a). Original source preserved; awaiting user click on Apply.
+21:36:30.272
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:36:11.684
+✓ PASSED
+14. Code Quality & Optimization Metrics
+4.72 ms
+Details ▼
+Evaluated 5 quality components (71.2%) and 1 optimization opportunity(ies).
+21:36:11.684
+⊘ SKIPPED
+15. Security Risk Scoring
+3.15 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:36:17.229
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+5544.81 ms
+Details ▼
+Tracked hardware telemetry: 1388.19 ms, 445.14 MB peak RSS, 33.0446 J estimated TDP energy.
+21:36:17.842
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/big2.c,2030,c,unspecified,True,,200,0,,0,,96%,100%,4%,0%,33/100 (3580.19 ms | 2876.05 MB | 110.7206 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),351.41,"Status:  | Progress: 
+Card: Budget: 10.0s
+Plan Explanation: Autonomous repair resolving detected root causes.
+Proposed Changes (Unified Diff):
+View Full Code
+--- a/big2.c
++++ b/big2.c
+@@ -31,52 +31,52 @@
+     int a = 1;
+     int b = 2;
+     int res = 0;
+-    if (a === b) {
++    if (a == b) {
+         res = 1;
+     }
+     retur
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: f10645df6b2b4001877e97adcc1b03a7
+11 stages recorded
+21:42:12.693
+✓ PASSED
+0. Security gate
+593.13 ms
+Details ▼
+1. Scan: Precheck completed: 37 pattern(s) identified. Risk: POTENTIALLY_DANGEROUS. Potentially dangerous patterns detected; review recommended.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-07T21:36:59.312387)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:42:12.693
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'big2.c' (2030 lines, 32953 bytes, SHA-256: 63c2fbd5aa8d...).
+21:42:15.521
+✗ FAILED
+2. Lexical Analysis
+268.85 ms
+Details ▼
+38 lexical issue(s) detected.
+21:42:15.521
+✗ FAILED
+3. Syntax Analysis
+2204.06 ms
+Details ▼
+190 syntax parser error(s) identified.
+21:42:15.521
+⊘ SKIPPED
+4. Semantic Analysis
+352.04 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:42:16.000
+✗ FAILED
+5. Security Vulnerability Analysis
+478.08 ms
+Details ▼
+111 pattern-based security finding(s) detected; AST-based security analysis was blocked by syntax errors (partial assessment).
+21:42:16.000
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 339 finding(s) across 3 categories; identified 152 root causes.
+21:42:16.277
+✓ PASSED
+14. Code Quality & Optimization Metrics
+166.29 ms
+Details ▼
+Evaluated 5 quality components (61.0%) and 0 optimization opportunity(ies).
+21:42:16.277
+✓ PASSED
+15. Security Risk Scoring
+110.86 ms
+Details ▼
+Assessed security risk score (100.0% / 100) using severity and exposure weights.
+21:42:16.277
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.44 ms
+Details ▼
+Tracked hardware telemetry: 3580.19 ms, 2876.05 MB peak RSS, 110.7206 J estimated TDP energy.
+21:42:28.398
+✗ FAILED
+Time Budget Exceeded in static_analysis
+16288.05 ms
+Execution halted: time budget slice reached at stage 'static_analysis'."
+examples/generated_1000_lines.c,995,c,unspecified,True,,200,0,,0,,87%,90%,13%,0%,58/100 (1016.06 ms | 2828.16 MB | 31.2801 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),43.37,"Status:  | Progress: 
+Card: Budget: 37.3s
+Plan Explanation: Autonomous repair applied 12 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (12):
+Syntax error: Syntax error (extraneous_token): extraneous input 'viod' expecting {<EOF>, 'const', 'volatile', 'static', 'extern', 'int', 'float',
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 75bafb83931148c7a327355b60249103
+18 stages recorded
+21:43:22.834
+✓ PASSED
+0. Security gate
+397.9 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:43:22.834
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'generated_1000_lines.c' (995 lines, 20294 bytes, SHA-256: 5ec832d3e3bf...).
+21:43:23.603
+✗ FAILED
+2. Lexical Analysis
+13.94 ms
+Details ▼
+4 lexical issue(s) detected.
+21:43:23.603
+✗ FAILED
+3. Syntax Analysis
+530.05 ms
+Details ▼
+9 syntax parser error(s) identified.
+21:43:23.603
+⊘ SKIPPED
+4. Semantic Analysis
+224.38 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+21:43:23.842
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+239.16 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:43:23.842
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 13 finding(s) across 2 categories; identified 9 root causes.
+21:43:29.432
+✓ PASSED
+7. Deterministic Rule Engine
+4484.68 ms
+Details ▼
+Deterministic rule engine resolved all findings (8 fixes applied): corrected keyword typo 'viod' -> 'void'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'viod' -> 'void'
+21:43:29.432
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:43:29.432
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:43:34.482
+✓ PASSED
+10. Repair Candidate Generation
+2623.09 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:43:34.482
+✓ PASSED
+11. Patch Validation
+2401.48 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security scoring skipped: [INCONCLUSIVE].
+21:43:34.482
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_6586936a3660). Original source preserved; awaiting user click on Apply.
+21:43:34.482
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:43:23.851
+✓ PASSED
+14. Code Quality & Optimization Metrics
+5.12 ms
+Details ▼
+Evaluated 5 quality components (71.2%) and 1 optimization opportunity(ies).
+21:43:23.851
+⊘ SKIPPED
+15. Security Risk Scoring
+3.41 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:43:23.851
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.31 ms
+Details ▼
+Tracked hardware telemetry: 1016.06 ms, 2828.16 MB peak RSS, 31.2801 J estimated TDP energy.
+21:43:24.752
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
