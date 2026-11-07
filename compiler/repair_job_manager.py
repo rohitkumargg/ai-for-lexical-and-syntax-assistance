@@ -569,8 +569,10 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
 
 
 def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int]] = None) -> Tuple[str, List[str]]:
-    curr_src = src
-    all_fixes = []
+    from compiler.lexical_corrector import fix_common_lexical_issues
+    lex_src, lex_fixes = fix_common_lexical_issues(src)
+    curr_src = lex_src
+    all_fixes = list(lex_fixes)
     curr_flagged = flagged_lines
     for _ in range(4):
         new_src, fixes = _fix_unambiguous_syntax_delimiters_once(curr_src, curr_flagged)
