@@ -470,15 +470,27 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
                 if fn in {'if', 'while', 'for', 'switch', 'return', 'sizeof'}:
                     return m.group(0)
                 inside = m.group(2)
-                toks = inside.split()
-                if len(toks) >= 2 and ',' not in inside and ';' not in inside:
-                    valid = True
-                    for tok in toks:
-                        if not re.match(r'^(?:[a-zA-Z_]\w*|\d+(?:\.\d+)?|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')(?:\s*\[[^\]]+\])?$', tok):
-                            valid = False
-                            break
-                    if valid:
-                        return f"{fn}(" + ", ".join(toks) + ")"
+                if ';' in inside:
+                    return m.group(0)
+                type_keywords = {'int', 'char', 'void', 'float', 'double', 'long', 'short', 'unsigned', 'signed', 'struct', 'const', 'volatile', 'static'}
+                arg_parts = inside.split(',')
+                new_arg_parts = []
+                modified = False
+                for part in arg_parts:
+                    sub_toks = part.split()
+                    if len(sub_toks) >= 2 and not any(st in type_keywords for st in sub_toks):
+                        valid = True
+                        for tok in sub_toks:
+                            if not re.match(r'^(?:[a-zA-Z_]\w*|\d+(?:\.\d+)?|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')(?:\s*\[[^\]]+\])?$', tok):
+                                valid = False
+                                break
+                        if valid:
+                            new_arg_parts.append(", ".join(sub_toks))
+                            modified = True
+                            continue
+                    new_arg_parts.append(part.strip())
+                if modified:
+                    return f"{fn}(" + ", ".join(new_arg_parts) + ")"
                 return m.group(0)
 
             t2 = re.sub(r'\b([a-zA-Z_]\w*)\s*\(([^()]+)\)', _fix_call_args, t)
@@ -844,7 +856,17 @@ class RepairJobManager:
             deterministic_code = job.original_code
             deterministic_steps = 0
             deterministic_clean = False
+            all_initial_findings: List[Finding] = []
             if job.language == "c":
+                _, initial_error_lines, _ = _lightweight_check(job.original_code)
+                all_initial_findings = [
+                    Finding(
+                        id=f"prescan_syntax_{line}", category=FindingCategory.SYNTAX,
+                        location=SourceLocation(line=line, col=1, file_path=job.filename),
+                        explanation="Compiler syntax diagnostic in source pre-scan", evidence="",
+                        severity=FindingSeverity.HIGH, confidence=1.0, status=FindingStatus.CONFIRMED,
+                    ) for line in (initial_error_lines or [])
+                ]
                 for _ in range(24):
                     clean_now, error_lines, _ = _lightweight_check(deterministic_code)
                     if clean_now:
@@ -852,13 +874,13 @@ class RepairJobManager:
                         break
                     if not error_lines:
                         break
-                    repair_findings = [
+                    repair_findings = list(all_initial_findings) + [
                         Finding(
                             id=f"prescan_syntax_{line}", category=FindingCategory.SYNTAX,
                             location=SourceLocation(line=line, col=1, file_path=job.filename),
                             explanation="Compiler syntax diagnostic in source pre-scan", evidence="",
                             severity=FindingSeverity.HIGH, confidence=1.0, status=FindingStatus.CONFIRMED,
-                        ) for line in error_lines
+                        ) for line in error_lines if line not in (initial_error_lines or [])
                     ]
                     attempts = []
                     delimiter_code, delimiter_fixes = _fix_unambiguous_syntax_delimiters(
@@ -1297,7 +1319,7 @@ class RepairJobManager:
                         deterministic_attempts.append(rule_code)
                     for attempt in deterministic_attempts:
                         safe, _ = PatchIntegrityInspector.inspect(
-                            whole_candidate, attempt, original_findings=repair_findings,
+                            whole_candidate, attempt, original_findings=(list(all_initial_findings) + repair_findings),
                             filename=job.filename,
                         )
                         if not safe:
@@ -1372,7 +1394,7 @@ class RepairJobManager:
                 filename=job.filename,
                 language=job.language,
                 run_id=job.job_id,
-                time_budget_s=max(60.0, float(os.environ.get("SERVER_TIME_BUDGET_SECONDS", 120.0))),
+                time_budget_s=10.0,
                 approval_token=job.approval_token,
                 operation=job.operation,
                 is_job_subtask=True,
@@ -1385,7 +1407,7 @@ class RepairJobManager:
                 # assembles its final multi-function source. Revalidate that exact source
                 # and update the registry entry too; otherwise Apply can approve a different
                 # (usually partial) buffer than the code shown in the review card.
-                original_findings = plan_res.get("findings", []) or []
+                original_findings = plan_res.get("findings", []) or all_initial_findings
                 final_validation = planner.validator.validate_patch(
                     original_code=job.original_code,
                     candidate_code=final_adopted_code,

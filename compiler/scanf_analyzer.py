@@ -134,10 +134,10 @@ def resolve_buffer_capacity(
                 if isinstance(arr_size, str) and arr_size in macros:
                     return macros[arr_size], True
 
-    # Fallback inspection of source text for char array declarations:
-    # e.g. char a[20]; char a[BUF_SIZE];
+    # Fallback inspection of source text for array declarations:
+    # e.g. char a[20]; int arr[5]; char a[BUF_SIZE];
     decl_pattern = re.compile(
-        r"\b(?:char|unsigned\s+char|signed\s+char)\s+"
+        r"\b(?:[A-Za-z_][A-Za-z0-9_]*)\s+"
         + re.escape(var_name)
         + r"\s*\[\s*([A-Za-z_0-9]+)\s*\]"
     )

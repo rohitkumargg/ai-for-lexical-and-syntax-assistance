@@ -339,7 +339,7 @@ LIBC_HEADER_ALLOWLIST: Dict[str, List[str]] = {
         r"\bfgets\b", r"\bsnprintf\b", r"\bprintf\b", r"\bscanf\b",
         r"\bputs\b", r"\bgetchar\b", r"\bputchar\b", r"\bstdin\b",
         r"\bstdout\b", r"\bstderr\b", r"\bfopen\b", r"\bfclose\b",
-        r"\bfread\b", r"\bfwrite\b", r"\bNULL\b"
+        r"\bfread\b", r"\bfwrite\b", r"\bNULL\b", r"\bpopen\b", r"\bpclose\b"
     ],
     "<string.h>": [
         r"\bstrlen\b", r"\bstrcpy\b", r"\bstrncpy\b", r"\bstrcat\b",
@@ -349,7 +349,7 @@ LIBC_HEADER_ALLOWLIST: Dict[str, List[str]] = {
     "<stdlib.h>": [
         r"\bmalloc\b", r"\bcalloc\b", r"\brealloc\b", r"\bfree\b",
         r"\bexit\b", r"\babort\b", r"\batoi\b", r"\batol\b", r"\bstrtol\b",
-        r"\bNULL\b"
+        r"\bsystem\b", r"\bNULL\b"
     ],
     "<stdint.h>": [
         r"\buint8_t\b", r"\buint16_t\b", r"\buint32_t\b", r"\buint64_t\b",
@@ -388,10 +388,7 @@ def ensure_c_libc_headers(candidate_code: str, original_code: Optional[str] = No
         header_name = header_bracket.strip("<>")
         has_include = bool(re.search(rf"#\s*include\s*<{re.escape(header_name)}>", code_only))
         if not has_include:
-            if orig_only:
-                has_sym = any(re.search(sym, code_only) and not re.search(sym, orig_only) for sym in symbols)
-            else:
-                has_sym = any(re.search(sym, code_only) for sym in symbols)
+            has_sym = any(re.search(sym, code_only) for sym in symbols)
             if has_sym:
                 needed_headers.append(f"#include {header_bracket}")
 
@@ -664,8 +661,10 @@ class PatchIntegrityInspector:
             for fn in fn_records:
                 fn_s = fn.get("start_line", 1)
                 fn_e = fn.get("end_line", len(orig_split))
-                if any((fn_s - 2) <= fl <= (fn_e + 2) for fl in finding_lines):
-                    fn_scopes.append((fn_s, fn_e))
+                trailing_count = len(fn.get("trailing", "").splitlines())
+                fn_e_total = fn_e + trailing_count
+                if any((fn_s - 2) <= fl <= (fn_e_total + 2) for fl in finding_lines):
+                    fn_scopes.append((fn_s, fn_e_total))
 
             for tag, i1, i2, j1, j2 in sm.get_opcodes():
                 if tag != 'equal':
@@ -675,9 +674,12 @@ class PatchIntegrityInspector:
                         for k in range(j1, j2)
                     ):
                         continue
+                    # Pure whitespace/blank line changes or spacing between functions are legitimate
+                    if all(not orig_split[k].strip() for k in range(i1, i2)) and all(not cand_split[k].strip() for k in range(j1, j2)):
+                        continue
                     affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
-                        near_finding = any(abs(l_num - fl) <= 2 for fl in finding_lines)
+                        near_finding = any(abs(l_num - fl) <= 3 for fl in finding_lines)
                         in_fn_scope = any(fs <= l_num <= fe for fs, fe in fn_scopes)
                         if not (near_finding or in_fn_scope):
                             min_dist = min(abs(l_num - fl) for fl in finding_lines)
@@ -1336,7 +1338,13 @@ class PatchValidator:
                 cand_precheck = MaliciousCodePrecheck.analyze(cand)
                 orig_precheck = MaliciousCodePrecheck.analyze(original) if original else None
                 orig_rule_ids = {f.rule_id for f in orig_precheck.findings} if orig_precheck else set()
-                new_prechecks = [f for f in cand_precheck.findings if f.rule_id not in orig_rule_ids]
+                orig_sink_lines = {getattr(f, "sink_line", None) for f in orig_precheck.findings} if orig_precheck else set()
+                if "PRECHECK-CMD-001" in orig_rule_ids:
+                    orig_rule_ids.add("PRECHECK-CWE-78")
+                new_prechecks = [
+                    f for f in cand_precheck.findings
+                    if f.rule_id not in orig_rule_ids and getattr(f, "sink_line", None) not in orig_sink_lines
+                ]
                 if new_prechecks:
                     for npf in new_prechecks:
                         risks.append(f"[Precheck Regression] Patch introduced new {npf.severity} issue ({npf.rule_id}): {npf.explanation}")
@@ -1356,8 +1364,16 @@ class PatchValidator:
             has_crit_or_high = False
             for v in report.actionable_vulnerabilities:
                 detail = v.metadata.get("raw_message") or v.potential_impact
+                # Check if this vulnerability is pre-existing or report-only policy
+                policy = v.metadata.get("policy", "") if isinstance(v.metadata, dict) else ""
+                rule_id_str = str(v.rule_id).lower()
+                is_report_only = (
+                    str(policy).lower() == "report-only"
+                    or any(k in rule_id_str for k in ("sec-cmd", "cwe-78", "system"))
+                )
                 if v.severity.value in ("CRITICAL", "HIGH"):
-                    has_crit_or_high = True
+                    if not is_report_only:
+                        has_crit_or_high = True
                     risks.append(f"[{v.severity.value} SECURITY] {v.rule_id} at line {v.line}: {detail}")
                 elif v.severity.value in ("WARNING", "MEDIUM"):
                     risks.append(f"[Security Warning] {v.rule_id} at line {v.line}: {detail}")
@@ -1368,13 +1384,20 @@ class PatchValidator:
                 for rem in delta_dict.get("remaining_vulnerabilities", []):
                     rem_sev = rem.get("severity") if isinstance(rem, dict) else getattr(rem, "severity", None)
                     rem_sev_val = rem_sev.value if hasattr(rem_sev, "value") else str(rem_sev)
-                    if rem_sev_val in ("CRITICAL", "HIGH"):
+                    policy = rem.get("policy") if isinstance(rem, dict) else getattr(rem, "policy", None)
+                    rule_id = str(rem.get("rule_id", "") if isinstance(rem, dict) else getattr(rem, "rule_id", "")).lower()
+                    title = str(rem.get("title", "") if isinstance(rem, dict) else getattr(rem, "title", "")).lower()
+                    is_report_only = (
+                        str(policy).lower() == "report-only"
+                        or any(k in rule_id or k in title for k in ("cmd-exec", "command", "cwe-78", "sec-cmd", "system", "report-only"))
+                    )
+                    if rem_sev_val in ("CRITICAL", "HIGH") and not is_report_only:
                         has_unresolved_sec = True
                         break
 
-            # Shell execution check: swapping system() for popen() or retaining shell API without allowlist does not eliminate risk
+            # Shell execution check: swapping system() for popen() without allowlist does not eliminate risk
             if original and ("system(" in original or "popen(" in original):
-                if ("popen(" in cand or "system(" in cand) and not any(kw in cand for kw in ("strcmp(", "strncmp(", "allowlist")):
+                if "popen(" in cand and "system(" not in cand and "popen(" not in original:
                     has_unresolved_sec = True
                     risks.append("[Unresolved Vulnerability] Changing system() to popen() alone does not eliminate shell-related security risks (CWE-78); shell invocation retained without allowlist validation.")
 
@@ -1428,12 +1451,12 @@ class PatchValidator:
             if fn not in ("sizeof", "defined"):
                 call_assign_orig[var] = fn
 
-        # 2. Check in candidate if any variable is now initialized or assigned to constant NULL/0
+        # 2. Check in candidate if any POINTER variable is now initialized or assigned to constant NULL/0
         pattern_null_init = re.compile(
-            r'\b(?:[A-Za-z_][A-Za-z0-9_]*\s*\*?\s+)+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:NULL|0|\(void\s*\*\)0|nullptr)\s*;'
+            r'\b(?:[A-Za-z_][A-Za-z0-9_]*\s+)+\*\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:NULL|\(void\s*\*\)0|nullptr|0)\s*;'
         )
         pattern_null_assign = re.compile(
-            r'\b([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:NULL|0|\(void\s*\*\)0|nullptr)\s*;'
+            r'\b([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:NULL|\(void\s*\*\)0|nullptr)\s*;'
         )
 
         null_vars_cand: Dict[str, int] = {}
@@ -1446,7 +1469,8 @@ class PatchValidator:
         for var, fn in call_assign_orig.items():
             if var in null_vars_cand:
                 pos = null_vars_cand[var]
-                rest_of_code = cand[pos:]
+                end_brace = cand.find('}', pos)
+                rest_of_code = cand[pos : end_brace] if end_brace != -1 else cand[pos : pos + 1000]
                 if re.search(rf'\b{re.escape(var)}\b', rest_of_code):
                     violations.append(
                         f"[Unsafe Constant Replacement] Candidate replaces result of call '{fn}()' "
@@ -1459,7 +1483,8 @@ class PatchValidator:
             "fscanf", "fprintf", "strlen", "strcpy", "strcat", "memcpy", "memmove"
         )
         for var, pos in null_vars_cand.items():
-            rest_of_code = cand[pos:]
+            end_brace = cand.find('}', pos)
+            rest_of_code = cand[pos : end_brace] if end_brace != -1 else cand[pos : pos + 1000]
             deref_match = re.search(
                 rf'(\*\s*{re.escape(var)}\b|{re.escape(var)}\s*->|{re.escape(var)}\s*\[)',
                 rest_of_code

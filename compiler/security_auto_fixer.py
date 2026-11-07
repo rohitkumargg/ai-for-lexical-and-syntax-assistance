@@ -329,8 +329,6 @@ class SecurityAutoFixer:
             m = decl.search(lines[line_idx])
             if not m or not mask[line_idx][m.start()]:
                 return False, None
-            if "char" not in lines[line_idx][: m.end()]:
-                return True, None
             tok = m.group(1)
             if tok is None or tok == "":
                 return True, None
