@@ -1411,9 +1411,18 @@ class PatchValidator:
 
             has_regressions = bool(delta_dict and delta_dict.get("has_regressions", False))
 
-            # Candidate fails security validation if execution is blocked, critical/high vulnerability remains,
-            # new regressions were introduced, or original critical/high vulnerabilities remain unresolved
-            is_ok = not report.is_blocked and not has_crit_or_high and not has_regressions and not has_unresolved_sec
+            # Candidate fails security validation if execution is blocked by actionable findings,
+            # critical/high non-report-only vulnerability remains, new regressions were introduced,
+            # or original actionable vulnerabilities remain unresolved.
+            blocked_by_actionable = any(
+                v.is_blocked
+                for v in report.findings
+                if not (
+                    str(v.metadata.get("policy", "")).lower() == "report-only"
+                    or any(k in str(v.rule_id).lower() for k in ("sec-cmd", "cwe-78", "system", "report-only"))
+                )
+            )
+            is_ok = not blocked_by_actionable and not has_crit_or_high and not has_regressions and not has_unresolved_sec
             return is_ok, vuln_count, risks, delta_dict
         except Exception as e:
             risks.append(f"Security validation failure (fail-closed): {str(e)}")

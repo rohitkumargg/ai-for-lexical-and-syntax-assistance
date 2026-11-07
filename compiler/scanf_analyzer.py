@@ -106,6 +106,7 @@ def resolve_buffer_capacity(
     local_vars: Optional[Dict[str, Any]] = None,
     global_vars: Optional[Dict[str, Any]] = None,
     source_text: str = "",
+    line: Optional[int] = None,
 ) -> Tuple[Optional[int], bool]:
     """
     Resolves the capacity in bytes for a buffer variable.
@@ -134,13 +135,35 @@ def resolve_buffer_capacity(
                 if isinstance(arr_size, str) and arr_size in macros:
                     return macros[arr_size], True
 
-    # Fallback inspection of source text for array declarations:
-    # e.g. char a[20]; int arr[5]; char a[BUF_SIZE];
     decl_pattern = re.compile(
         r"\b(?:[A-Za-z_][A-Za-z0-9_]*)\s+"
         + re.escape(var_name)
         + r"\s*\[\s*([A-Za-z_0-9]+)\s*\]"
     )
+    ptr_pattern = re.compile(
+        r"\b(?:char|unsigned\s+char|signed\s+char)\s*\*\s*" + re.escape(var_name) + r"\b"
+    )
+
+    # When line number is available, prioritize the enclosing function/scope by searching backwards
+    if line is not None and source_text:
+        lines = source_text.splitlines()
+        for idx in range(min(line - 1, len(lines) - 1), -1, -1):
+            cur_line = lines[idx]
+            if ptr_pattern.search(cur_line):
+                return None, False
+            m = decl_pattern.search(cur_line)
+            if m:
+                dim_str = m.group(1).strip()
+                if dim_str.isdigit():
+                    return int(dim_str), True
+                if dim_str in macros:
+                    return macros[dim_str], True
+            # Stop searching backwards past enclosing function boundary
+            if cur_line.strip().startswith("}"):
+                break
+
+    # Fallback inspection of source text for array declarations:
+    # e.g. char a[20]; int arr[5]; char a[BUF_SIZE];
     m = decl_pattern.search(source_text)
     if m:
         dim_str = m.group(1).strip()
@@ -150,9 +173,6 @@ def resolve_buffer_capacity(
             return macros[dim_str], True
 
     # Check for pointer declaration in source: char *a;
-    ptr_pattern = re.compile(
-        r"\b(?:char|unsigned\s+char|signed\s+char)\s*\*\s*" + re.escape(var_name) + r"\b"
-    )
     if ptr_pattern.search(source_text):
         return None, False
 
@@ -391,6 +411,7 @@ class ScanfSecurityAnalyzer:
                 local_vars=local_vars,
                 global_vars=global_vars,
                 source_text=source_text,
+                line=line,
             )
 
             # Suffix for specifier (e.g., "s" or scanset body "[^\n]")
