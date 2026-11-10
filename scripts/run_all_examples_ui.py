@@ -36,13 +36,13 @@ def find_target_files(root_dir: Path) -> List[Path]:
     """
     files: List[Path] = []
     if root_dir.exists():
-        files.extend([p for p in root_dir.rglob("*.c") if p.is_file()])
-        files.extend([p for p in root_dir.rglob("*.py") if p.is_file()])
+        files.extend([p for p in root_dir.rglob("*.c") if p.is_file() and "_expected" not in p.parts])
+        files.extend([p for p in root_dir.rglob("*.py") if p.is_file() and "_expected" not in p.parts])
 
     held_out = Path("held_out")
     if held_out.exists():
-        files.extend([p for p in held_out.rglob("*.c") if p.is_file()])
-        files.extend([p for p in held_out.rglob("*.py") if p.is_file()])
+        files.extend([p for p in held_out.rglob("*.c") if p.is_file() and "_expected" not in p.parts])
+        files.extend([p for p in held_out.rglob("*.py") if p.is_file() and "_expected" not in p.parts])
 
     # Deduplicate while preserving order
     seen = set()
@@ -185,7 +185,7 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
     modal_approved = False
     has_started = False
     line_count = len(source.splitlines())
-    timeout_s = 600.0 if line_count > 500 else 240.0
+    timeout_s = 600.0 if line_count > 500 else 120.0
     start_wait = time.time()
 
     while (time.time() - start_wait) < timeout_s:
@@ -410,11 +410,24 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
 
     elapsed_total = round(time.time() - t0, 2)
 
+    # Classify expected class
+    p_lower = rel_path.lower()
+    if "/security/" in p_lower:
+        exp_class = "security"
+    elif "/semantic/" in p_lower:
+        exp_class = "warning"
+    elif "/syntax/" in p_lower:
+        exp_class = "broken"
+    elif "clean" in p_lower or rel_path.endswith("main.py") or "clean" in rel_path.lower():
+        exp_class = "clean"
+    else:
+        exp_class = "unspecified"
+
     return {
         "file": rel_path,
         "lines": line_count,
         "language": lang_id,
-        "expected_class": "clean" if "clean" in rel_path.lower() else "unspecified",
+        "expected_class": exp_class,
         "passed": passed,
         "failure_cause": failure_cause or "",
         "apply_http_status": str(apply_http_status),
@@ -433,13 +446,15 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
     }
 
 
-def save_result_row(result: Dict[str, Any], fieldnames: List[str]) -> None:
+def save_result_row(result: Dict[str, Any], fieldnames: List[str], csv_file: Optional[Path] = None, json_file: Optional[Path] = None) -> None:
     """Continuously append single result to CSV and update JSON."""
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    target_csv = csv_file or CSV_PATH
+    target_json = json_file or JSON_PATH
+    target_csv.parent.mkdir(parents=True, exist_ok=True)
 
     # Append to CSV
-    write_header = not CSV_PATH.exists()
-    with open(CSV_PATH, "a", newline="", encoding="utf-8") as f:
+    write_header = not target_csv.exists()
+    with open(target_csv, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         if write_header:
             writer.writeheader()
@@ -447,9 +462,9 @@ def save_result_row(result: Dict[str, Any], fieldnames: List[str]) -> None:
 
     # Update JSON
     all_results = []
-    if JSON_PATH.exists():
+    if target_json.exists():
         try:
-            with open(JSON_PATH, "r", encoding="utf-8") as f:
+            with open(target_json, "r", encoding="utf-8") as f:
                 all_results = json.load(f)
         except Exception:
             all_results = []
@@ -458,7 +473,7 @@ def save_result_row(result: Dict[str, Any], fieldnames: List[str]) -> None:
     all_results = [r for r in all_results if r.get("file") != result["file"]]
     all_results.append(result)
 
-    with open(JSON_PATH, "w", encoding="utf-8") as f:
+    with open(target_json, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)
 
 
@@ -466,22 +481,40 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description="Antigravity UI Batch Runner")
     parser.add_argument("--single-file", type=str, default=None, help="Run on a single file only")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of files to process")
+    parser.add_argument("--lang", type=str, default=None, help="Filter by language (e.g. py, c)")
+    parser.add_argument("--reports-dir", type=str, default=None, help="Directory to save reports")
+    parser.add_argument("--no-resume", action="store_true", help="Do not skip already processed files")
     args = parser.parse_args()
 
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    if args.reports_dir:
+        reports_dir = Path(args.reports_dir)
+    elif args.lang and args.lang.lower() in ("py", "python"):
+        reports_dir = Path("reports/run_all_py")
+    else:
+        reports_dir = REPORTS_DIR
+
+    csv_path = reports_dir / "results.csv"
+    json_path = reports_dir / "results.json"
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
     if args.single_file:
         files = [Path(args.single_file)]
     else:
         root_examples = Path("examples")
         files = find_target_files(root_examples)
+        if args.lang:
+            l = args.lang.lower()
+            if l in ("py", "python"):
+                files = [p for p in files if p.suffix.lower() == ".py"]
+            elif l == "c":
+                files = [p for p in files if p.suffix.lower() == ".c"]
         if args.limit:
             files = files[: args.limit]
 
     # Load already processed files from CSV for resumption
     processed_files = set()
-    if not args.single_file and CSV_PATH.exists():
-        with open(CSV_PATH, "r", encoding="utf-8") as f:
+    if not args.single_file and not args.no_resume and csv_path.exists():
+        with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row.get("file"):
@@ -531,7 +564,7 @@ async def main() -> None:
             print(f"[{i}/{len(files)}] Running {rel} ({file_path.stat().st_size} bytes)...")
             try:
                 res = await process_single_file(page, file_path)
-                save_result_row(res, fieldnames)
+                save_result_row(res, fieldnames, csv_path, json_path)
                 status_str = "PASS" if res["passed"] else f"FAIL ({res['failure_cause']})"
                 print(f"    -> Result: {status_str} in {res['elapsed_s']}s (Apply: {res['apply_http_status']}, GCC: {res['gcc_rc']}, Parser: {res['parser_rc']})")
                 print(f"    -> Metrics: Q={res['metrics_overall_quality']} | Opt={res['metrics_optimal_code']} | Poor={res['metrics_poor_code']} | Vuln={res['metrics_vulnerability_risk']} | Green={res['metrics_green']} | Acc={res['metrics_model_accuracy']}")
@@ -557,7 +590,7 @@ async def main() -> None:
                     "elapsed_s": 0.0,
                     "run_output": str(e),
                 }
-                save_result_row(err_row, fieldnames)
+                save_result_row(err_row, fieldnames, csv_path, json_path)
                 print(f"    -> ERROR running {rel}: {e}")
 
         await browser.close()
