@@ -883,6 +883,14 @@ class RepairJobManager:
                 findings = agent.analyze(code_str, filename=job.filename)
                 ok = len(findings) == 0
                 errs = [f.location.line for f in findings if hasattr(f, "location") and f.location and f.location.line]
+                if ok and job.language == "python":
+                    try:
+                        compile(code_str, job.filename, "exec")
+                    except SyntaxError as se:
+                        ok = False
+                        errs = [se.lineno or 1]
+                    except Exception:
+                        pass
                 return ok, sorted(list(dict.fromkeys(errs))), ""
 
         try:
@@ -978,6 +986,31 @@ class RepairJobManager:
                     job.function_index = job.function_total
                     job.stage = (
                         f"Deterministic repair cleared compiler errors in {deterministic_steps} repair step(s); validating full program..."
+                        if deterministic_steps > 0 else
+                        "Source program is clean with zero compiler errors; validating full program..."
+                    )
+                    self._safe_save_job(job)
+            elif job.language == "python":
+                det_code, det_steps = planner._apply_deterministic_rules(
+                    deterministic_code, filename=job.filename, language=job.language
+                )
+                if det_code and det_code.strip() != deterministic_code.strip():
+                    deterministic_code = det_code
+                    deterministic_steps = len(det_steps)
+                deterministic_clean, _, _ = _lightweight_check(deterministic_code)
+                try:
+                    compile(deterministic_code, job.filename, "exec")
+                except Exception:
+                    deterministic_clean = False
+
+                if deterministic_clean:
+                    preamble, functions = split_top_level_functions(deterministic_code, language=job.language)
+                    job.current_code = deterministic_code
+                    job.windows_done = deterministic_steps
+                    job.windows_by_tier["rules"] = deterministic_steps
+                    job.function_index = job.function_total
+                    job.stage = (
+                        f"Deterministic repair cleared issues in {deterministic_steps} repair step(s); validating full program..."
                         if deterministic_steps > 0 else
                         "Source program is clean with zero compiler errors; validating full program..."
                     )
@@ -1451,6 +1484,16 @@ class RepairJobManager:
                             job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(sec_res.applied_steps) or 1)
                 except Exception:
                     pass
+            elif job.language == "python":
+                py_clean, _, _ = _lightweight_check(final_adopted_code)
+                if not py_clean or final_adopted_code == job.original_code:
+                    py_rule_code, py_rule_steps = planner._apply_deterministic_rules(
+                        final_adopted_code, filename=job.filename, language=job.language
+                    )
+                    if py_rule_code and py_rule_code.strip() != final_adopted_code.strip():
+                        final_adopted_code = py_rule_code
+                        job.windows_done += len(py_rule_steps) or 1
+                        job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(py_rule_steps) or 1)
 
             # ---------------------------------------------------------------
             # Final Analysis & Plan Packaging

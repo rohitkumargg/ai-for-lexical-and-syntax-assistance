@@ -2122,6 +2122,130 @@ class RepairPlanner:
                     applied_steps.append("Added required C standard library headers")
             except Exception:
                 pass
+        elif language == "python":
+            try:
+                from compiler.languages.python_lang import err, candidates
+                from compiler.languages import python_semantic, python_security
+
+                # 1. Syntax corrections
+                for _ in range(24):
+                    e_curr = err(current_code)
+                    if not e_curr:
+                        break
+                    applied = False
+                    for d, c in candidates(current_code):
+                        e_next = err(c)
+                        if e_next is None or ((e_next[0], e_next[1]) > (e_curr[0], e_curr[1]) and e_next[0] >= e_curr[0]):
+                            current_code = c
+                            applied_steps.append(f"Fixed Python syntax: {d}")
+                            applied = True
+                            break
+                    if not applied:
+                        break
+
+                # 1b. Module-level return outside function
+                try:
+                    compile(current_code, filename, "exec")
+                except SyntaxError as se:
+                    if "return" in str(se).lower() and "outside" in str(se).lower():
+                        lines = current_code.splitlines()
+                        indented = ["    " + l if l.strip() else l for l in lines]
+                        wrapped = "def main():\n" + "\n".join(indented) + "\n\nif __name__ == '__main__':\n    main()\n"
+                        try:
+                            compile(wrapped, filename, "exec")
+                            current_code = wrapped
+                            applied_steps.append("Wrapped top-level return in main() function")
+                        except Exception:
+                            pass
+
+                # 2. Semantic corrections
+                try:
+                    for _ in range(12):
+                        sem_issues = python_semantic.analyze(current_code)
+                        if not sem_issues:
+                            break
+                        cand = python_semantic.get_fix_candidate(current_code, sem_issues)
+                        if cand:
+                            cand_src, step_msg, targeted = cand
+                            if cand_src != current_code:
+                                current_code = cand_src
+                                applied_steps.append(step_msg)
+                                continue
+                        arity_issues = [i for i in sem_issues if i.get("kind") == "call_arity_mismatch"]
+                        if arity_issues:
+                            iss = arity_issues[0]
+                            fn_name = iss.get("name")
+                            m_def = re.search(r'def\s+' + re.escape(fn_name) + r'\s*\(([^)]*)\):', current_code) if fn_name else None
+                            if m_def:
+                                params = [p.strip() for p in m_def.group(1).split(",") if p.strip()]
+                                if params and "=" not in params[-1]:
+                                    new_params = list(params)
+                                    new_params[-1] = f"{new_params[-1]}=0"
+                                    new_def = f"def {fn_name}({', '.join(new_params)}):"
+                                    fixed_src = current_code.replace(m_def.group(0), new_def, 1)
+                                    if fixed_src != current_code:
+                                        current_code = fixed_src
+                                        applied_steps.append(f"Added default parameter to '{fn_name}' to resolve call arity mismatch")
+                                        continue
+                        break
+                except Exception:
+                    pass
+
+                # 3. Security corrections
+                try:
+                    for _ in range(12):
+                        sec_issues = python_security.analyze(current_code)
+                        if not sec_issues:
+                            break
+                        cand = python_security.get_fix_candidate(current_code, sec_issues)
+                        if cand:
+                            cand_src, step_msg, warn_msg, chg_line, targeted = cand
+                            if cand_src != current_code:
+                                current_code = cand_src
+                                applied_steps.append(step_msg)
+                                continue
+                        sec_07 = [f for f in sec_issues if f.get("rule") == "PY-SEC-07"]
+                        if sec_07:
+                            f = sec_07[0]
+                            line_idx = f["line"] - 1
+                            lines = current_code.splitlines()
+                            if 0 <= line_idx < len(lines):
+                                l_text = lines[line_idx]
+                                m_cred = re.match(r'^(\s*)(\w+)\s*=\s*["\']([^"\']+)["\']\s*$', l_text)
+                                if m_cred:
+                                    indent, var_name, default_val = m_cred.group(1), m_cred.group(2), m_cred.group(3)
+                                    env_key = var_name.upper()
+                                    new_line = f'{indent}{var_name} = os.environ.get("{env_key}", "{default_val}")'
+                                    lines[line_idx] = new_line
+                                    has_os = ("import os" in current_code)
+                                    fixed_sec07 = "\n".join(lines) + "\n"
+                                    if not has_os:
+                                        fixed_sec07 = "import os\n" + fixed_sec07
+                                    current_code = fixed_sec07
+                                    applied_steps.append(f"SEC: read credential '{var_name}' from environment via os.environ.get")
+                                    continue
+                        sec_08 = [f for f in sec_issues if f.get("rule") == "PY-SEC-08"]
+                        if sec_08:
+                            f = sec_08[0]
+                            line_idx = f["line"] - 1
+                            lines = current_code.splitlines()
+                            if 0 <= line_idx < len(lines):
+                                l_text = lines[line_idx]
+                                m_sql = re.search(r'(\w+\.execute\s*\(\s*)(["\'].*?["\'])\s*\+\s*([a-zA-Z_]\w*)(\s*\))', l_text)
+                                if m_sql:
+                                    prefix, sql_str, arg_var, suffix = m_sql.group(1), m_sql.group(2), m_sql.group(3), m_sql.group(4)
+                                    sql_clean = sql_str[1:-1]
+                                    param_sql = f'"{sql_clean}%s", ({arg_var},)'
+                                    new_line = l_text[:m_sql.start()] + prefix + param_sql + suffix + l_text[m_sql.end():]
+                                    lines[line_idx] = new_line
+                                    current_code = "\n".join(lines) + "\n"
+                                    applied_steps.append("SEC: parameterized SQL query to prevent injection")
+                                    continue
+                        break
+                except Exception:
+                    pass
+            except Exception:
+                pass
         return current_code, applied_steps
 
     def _log_stage_timings(
