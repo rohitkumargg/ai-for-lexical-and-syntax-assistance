@@ -1,0 +1,321 @@
+id,language,category,subcat,lines,mutation,expected_class,oracle_path,split
+c_syn_001,c,syntax,missing_semicolon_assign,6,missing ';' on assign,broken,tests/corpus/oracles/c_syn_001_oracle.c,dev
+c_syn_002,c,syntax,missing_semicolon_decl,5,missing ';' on decl,broken,tests/corpus/oracles/c_syn_002_oracle.c,held_out
+c_syn_003,c,syntax,missing_semicolon_return,6,missing ';' on return,broken,tests/corpus/oracles/c_syn_003_oracle.c,dev
+c_syn_004,c,syntax,missing_semicolon_call,5,missing ';' on function call,broken,tests/corpus/oracles/c_syn_004_oracle.c,dev
+c_syn_005,c,syntax,missing_semicolon_multi,6,multiple missing ';' in single function,broken,tests/corpus/oracles/c_syn_005_oracle.c,dev
+c_syn_006,c,syntax,missing_right_paren_if,7,missing ')' in if statement,broken,tests/corpus/oracles/c_syn_006_oracle.c,dev
+c_syn_007,c,syntax,missing_right_paren_while,7,missing ')' in while loop,broken,tests/corpus/oracles/c_syn_007_oracle.c,dev
+c_syn_008,c,syntax,missing_right_paren_for,7,missing ')' in for loop,broken,tests/corpus/oracles/c_syn_008_oracle.c,dev
+c_syn_009,c,syntax,missing_right_paren_call,6,missing ')' in call args,broken,tests/corpus/oracles/c_syn_009_oracle.c,dev
+c_syn_010,c,syntax,missing_right_bracket_decl,5,missing ']' in array declaration,broken,tests/corpus/oracles/c_syn_010_oracle.c,held_out
+c_syn_011,c,syntax,missing_right_bracket_idx,4,missing ']' in array subscript,broken,tests/corpus/oracles/c_syn_011_oracle.c,dev
+c_syn_012,c,syntax,missing_right_brace_func,6,unbalanced missing '}' in function body,broken,tests/corpus/oracles/c_syn_012_oracle.c,dev
+c_syn_013,c,syntax,missing_right_brace_if,7,unclosed block missing '}' in if,broken,tests/corpus/oracles/c_syn_013_oracle.c,dev
+c_syn_014,c,syntax,missing_comma_args,6,"missing ',' between call arguments",broken,tests/corpus/oracles/c_syn_014_oracle.c,dev
+c_syn_015,c,syntax,missing_comma_params,6,"missing ',' in parameter declaration",broken,tests/corpus/oracles/c_syn_015_oracle.c,dev
+c_syn_016,c,syntax,missing_comma_array,4,"missing ',' in array initializer",broken,tests/corpus/oracles/c_syn_016_oracle.c,held_out
+c_syn_017,c,syntax,extra_token_stray_semis,4,extra stray token '%%',broken,tests/corpus/oracles/c_syn_017_oracle.c,held_out
+c_syn_018,c,syntax,extra_token_stray_char,5,stray '@' token,broken,tests/corpus/oracles/c_syn_018_oracle.c,dev
+c_syn_019,c,syntax,typo_keyword_viod,8,keyword typo 'viod',broken,tests/corpus/oracles/c_syn_019_oracle.c,dev
+c_syn_020,c,syntax,typo_keyword_cahr,4,keyword typo 'cahr',broken,tests/corpus/oracles/c_syn_020_oracle.c,held_out
+c_syn_021,c,syntax,typo_keyword_retrun,6,keyword typo 'retrun',broken,tests/corpus/oracles/c_syn_021_oracle.c,dev
+c_syn_022,c,syntax,typo_keyword_whiel,7,keyword typo 'whiel',broken,tests/corpus/oracles/c_syn_022_oracle.c,dev
+c_syn_023,c,syntax,typo_keyword_itn,4,keyword typo 'itn',broken,tests/corpus/oracles/c_syn_023_oracle.c,dev
+c_syn_024,c,syntax,typo_keyword_doubel,4,keyword typo 'doubel',broken,tests/corpus/oracles/c_syn_024_oracle.c,dev
+c_syn_025,c,syntax,typo_keyword_flota,4,keyword typo 'flota',broken,tests/corpus/oracles/c_syn_025_oracle.c,dev
+c_syn_026,c,syntax,missing_paren_if_cond,7,missing enclosing '(' and ')' in if statement,broken,tests/corpus/oracles/c_syn_026_oracle.c,dev
+c_syn_027,c,syntax,missing_paren_while_cond,7,missing enclosing '(' and ')' in while statement,broken,tests/corpus/oracles/c_syn_027_oracle.c,held_out
+c_syn_028,c,syntax,missing_paren_for_cond,7,missing enclosing '(' and ')' in for loop,broken,tests/corpus/oracles/c_syn_028_oracle.c,held_out
+c_syn_029,c,syntax,bad_decl_missing_type,4,variable assigned without type declaration,broken,tests/corpus/oracles/c_syn_029_oracle.c,held_out
+c_syn_030,c,syntax,bad_decl_inverted_order,4,inverted type declaration (identifier before type),broken,tests/corpus/oracles/c_syn_030_oracle.c,held_out
+c_syn_031,c,syntax,unterminated_string,5,unterminated string literal,broken,tests/corpus/oracles/c_syn_031_oracle.c,dev
+c_syn_032,c,syntax,unterminated_comment,4,unterminated /* comment,broken,tests/corpus/oracles/c_syn_032_oracle.c,dev
+c_syn_033,c,syntax,missing_binary_operator,6,missing operator between operands 'a b',broken,tests/corpus/oracles/c_syn_033_oracle.c,dev
+c_syn_034,c,syntax,missing_colon_switch_case,9,missing ':' after case label,broken,tests/corpus/oracles/c_syn_034_oracle.c,held_out
+c_syn_035,c,syntax,missing_semicolon_struct_def,8,missing ';' after struct closing brace,broken,tests/corpus/oracles/c_syn_035_oracle.c,dev
+c_syn_036,c,syntax,missing_semicolon_enum_def,8,missing ';' after enum definition,broken,tests/corpus/oracles/c_syn_036_oracle.c,dev
+c_syn_037,c,syntax,missing_semicolon_do_while,7,missing ';' after do-while condition,broken,tests/corpus/oracles/c_syn_037_oracle.c,held_out
+c_syn_038,c,syntax,missing_left_brace_func,6,missing opening '{' for function body,broken,tests/corpus/oracles/c_syn_038_oracle.c,dev
+c_syn_039,c,syntax,missing_right_paren_switch,7,missing ')' in switch condition,broken,tests/corpus/oracles/c_syn_039_oracle.c,dev
+c_syn_040,c,syntax,stray_hash_token,5,stray '#' preprocessor token in function,broken,tests/corpus/oracles/c_syn_040_oracle.c,held_out
+c_syn_041,c,syntax,multiple_errors_3funcs,12,errors spread across 3 functions (missing ;),broken,tests/corpus/oracles/c_syn_041_oracle.c,dev
+c_syn_042,c,syntax,multiple_errors_5funcs,6,errors spread across 5 functions,broken,tests/corpus/oracles/c_syn_042_oracle.c,dev
+c_syn_043,c,syntax,semicolon_and_paren_mix,9,mixed missing ')' and missing ';' in same function,broken,tests/corpus/oracles/c_syn_043_oracle.c,held_out
+c_syn_044,c,syntax,missing_type_in_param,6,missing type in parameter 'y',broken,tests/corpus/oracles/c_syn_044_oracle.c,dev
+c_syn_045,c,syntax,bad_struct_field_decl,8,missing ';' on struct field declaration,broken,tests/corpus/oracles/c_syn_045_oracle.c,dev
+c_syn_046,c,syntax,missing_return_semicolon_nested,8,missing ';' in deeply nested return,broken,tests/corpus/oracles/c_syn_046_oracle.c,held_out
+c_syn_047,c,syntax,broken_for_loop_semicolons,7,commas instead of semicolons in for header,broken,tests/corpus/oracles/c_syn_047_oracle.c,dev
+c_syn_048,c,syntax,missing_right_bracket_matrix,4,missing ']' in 2D array declaration,broken,tests/corpus/oracles/c_syn_048_oracle.c,dev
+c_syn_049,c,syntax,double_type_specifier,4,conflicting double type specifier 'int float',broken,tests/corpus/oracles/c_syn_049_oracle.c,held_out
+c_syn_050,c,syntax,unterminated_char_literal,4,unterminated character literal,broken,tests/corpus/oracles/c_syn_050_oracle.c,dev
+c_sem_001,c,semantic,undeclared_var,3,undeclared variable 'val',broken,tests/corpus/oracles/c_sem_001_oracle.c,held_out
+c_sem_002,c,semantic,undeclared_func,5,calling undeclared function returning struct (hard error),broken,tests/corpus/oracles/c_sem_002_oracle.c,dev
+c_sem_003,c,semantic,wrong_arg_count_few,6,too few arguments to function 'calc',broken,tests/corpus/oracles/c_sem_003_oracle.c,dev
+c_sem_004,c,semantic,wrong_arg_count_many,6,too many arguments to function 'inc',broken,tests/corpus/oracles/c_sem_004_oracle.c,held_out
+c_sem_005,c,semantic,type_mismatch_ptr_to_int,6,incompatible struct to pointer assignment,broken,tests/corpus/oracles/c_sem_005_oracle.c,dev
+c_sem_006,c,semantic,type_mismatch_int_to_ptr,6,incompatible struct to int initialization,broken,tests/corpus/oracles/c_sem_006_oracle.c,dev
+c_sem_007,c,semantic,missing_return_nonvoid,4,missing return statement in non-void function,compiles-with-warnings,tests/corpus/oracles/c_sem_007_oracle.c,dev
+c_sem_008,c,semantic,missing_include_stdio,4,missing #include <stdio.h> (implicit declaration warning),compiles-with-warnings,tests/corpus/oracles/c_sem_008_oracle.c,dev
+c_sem_009,c,semantic,missing_include_stdlib,5,missing #include <stdlib.h> for malloc/free,compiles-with-warnings,tests/corpus/oracles/c_sem_009_oracle.c,held_out
+c_sem_010,c,semantic,redefinition_var,5,redefinition of variable 'total',broken,tests/corpus/oracles/c_sem_010_oracle.c,held_out
+c_sem_011,c,semantic,redefinition_func,9,redefinition of function 'get_val',broken,tests/corpus/oracles/c_sem_011_oracle.c,dev
+c_sem_013,c,semantic,access_nonexistent_struct_member,8,access member 'score' not in struct User,broken,tests/corpus/oracles/c_sem_013_oracle.c,dev
+c_sem_014,c,semantic,dereference_non_pointer,5,invalid indirection / dereferencing non-pointer,broken,tests/corpus/oracles/c_sem_014_oracle.c,held_out
+c_sem_015,c,semantic,subscript_non_array,4,subscripted value is neither array nor pointer,broken,tests/corpus/oracles/c_sem_015_oracle.c,dev
+c_sem_016,c,semantic,call_non_function,4,called object 'x' is not a function,broken,tests/corpus/oracles/c_sem_016_oracle.c,dev
+c_sem_017,c,semantic,case_label_not_in_switch,5,case label not within a switch statement,broken,tests/corpus/oracles/c_sem_017_oracle.c,dev
+c_sem_018,c,semantic,break_not_in_loop,5,break statement not within loop or switch,broken,tests/corpus/oracles/c_sem_018_oracle.c,held_out
+c_sem_019,c,semantic,continue_not_in_loop,5,continue statement not within a loop,broken,tests/corpus/oracles/c_sem_019_oracle.c,held_out
+c_sem_020,c,semantic,uninitialized_var_warning,4,uninitialized variable use (warning with -Wall),compiles-with-warnings,tests/corpus/oracles/c_sem_020_oracle.c,dev
+c_sem_021,c,semantic,format_specifier_mismatch,6,format specifier '%s' expects char* but arg has type int,compiles-with-warnings,tests/corpus/oracles/c_sem_021_oracle.c,dev
+c_sem_022,c,semantic,unused_variable_warning,5,unused variable 'b' warning with -Wall,compiles-with-warnings,tests/corpus/oracles/c_sem_022_oracle.c,dev
+c_sem_023,c,semantic,comparison_pointer_integer,6,comparison between pointer and struct (hard error),broken,tests/corpus/oracles/c_sem_023_oracle.c,dev
+c_sem_024,c,semantic,array_size_negative,5,size of array is negative,broken,tests/corpus/oracles/c_sem_024_oracle.c,dev
+c_sem_025,c,semantic,invalid_operands_binary_modulo,5,invalid operands to binary % (have double and double),broken,tests/corpus/oracles/c_sem_025_oracle.c,held_out
+c_sem_026,c,semantic,lvalue_required_assign,5,lvalue required as left operand of assignment,broken,tests/corpus/oracles/c_sem_026_oracle.c,dev
+c_sem_027,c,semantic,void_variable_declaration,4,variable 'val' declared void,broken,tests/corpus/oracles/c_sem_027_oracle.c,held_out
+c_sem_028,c,semantic,duplicate_case_value,8,duplicate case value '1' in switch,broken,tests/corpus/oracles/c_sem_028_oracle.c,dev
+c_sem_029,c,semantic,conflicting_types_for_func,8,conflicting return types for 'test',broken,tests/corpus/oracles/c_sem_029_oracle.c,dev
+c_sem_030,c,semantic,missing_include_string,4,implicit declaration of strlen without <string.h>,compiles-with-warnings,tests/corpus/oracles/c_sem_030_oracle.c,held_out
+c_sec_001,c,security,unsafe_gets,6,CWE-242: gets() function is obsolete and inherently unsafe,security-issue,tests/corpus/oracles/c_sec_001_oracle.c,held_out
+c_sec_002,c,security,unsafe_strcpy,7,CWE-120: strcpy() without bounds check,security-issue,tests/corpus/oracles/c_sec_002_oracle.c,dev
+c_sec_003,c,security,unsafe_strcat,6,CWE-120: strcat() buffer overflow risk,security-issue,tests/corpus/oracles/c_sec_003_oracle.c,dev
+c_sec_004,c,security,unsafe_sprintf,6,CWE-134/120: sprintf() unbounded write into buffer,security-issue,tests/corpus/oracles/c_sec_004_oracle.c,dev
+c_sec_005,c,security,unsafe_scanf_unbounded,6,CWE-120: scanf without maximum field width,security-issue,tests/corpus/oracles/c_sec_005_oracle.c,dev
+c_sec_006,c,security,format_string_misuse,6,CWE-134: uncontrolled format string in printf,security-issue,tests/corpus/oracles/c_sec_006_oracle.c,dev
+c_sec_007,c,security,unchecked_malloc,7,CWE-252: unchecked malloc return value before dereference,security-issue,tests/corpus/oracles/c_sec_007_oracle.c,dev
+c_sec_008,c,security,use_after_free,9,CWE-416: use-after-free pointer dereference,security-issue,tests/corpus/oracles/c_sec_008_oracle.c,dev
+c_sec_009,c,security,double_free,8,CWE-415: double free on dynamic memory buffer,security-issue,tests/corpus/oracles/c_sec_009_oracle.c,held_out
+c_sec_010,c,security,buffer_index_overflow,5,CWE-119: out of bounds array access arr[10],security-issue,tests/corpus/oracles/c_sec_010_oracle.c,held_out
+c_sec_011,c,security,integer_overflow_alloc,7,CWE-190: unchecked integer multiplication in size calculation,security-issue,tests/corpus/oracles/c_sec_011_oracle.c,dev
+c_sec_012,c,security,command_injection_system,8,CWE-78: command injection via constructed shell string,security-issue,tests/corpus/oracles/c_sec_012_oracle.c,dev
+c_sec_013,c,security,hardcoded_credential_password,6,CWE-798: hardcoded secret key credential,security-issue,tests/corpus/oracles/c_sec_013_oracle.c,held_out
+c_sec_014,c,security,sql_injection_sprintf,7,CWE-89: SQL query constructed via raw string formatting,security-issue,tests/corpus/oracles/c_sec_014_oracle.c,dev
+c_sec_015,c,security,weak_random_number,5,CWE-338: use of cryptographically weak PRNG rand() for token,security-issue,tests/corpus/oracles/c_sec_015_oracle.c,dev
+c_sec_016,c,security,temp_file_race_tmpnam,6,CWE-377: insecure temporary file creation using tmpnam(),security-issue,tests/corpus/oracles/c_sec_016_oracle.c,dev
+c_sec_017,c,security,unchecked_fopen_return,6,CWE-252: unchecked return value from fopen before fclose,security-issue,tests/corpus/oracles/c_sec_017_oracle.c,dev
+c_sec_018,c,security,off_by_one_null_term,5,CWE-193: off-by-one error assigning null terminator at buf[10],security-issue,tests/corpus/oracles/c_sec_018_oracle.c,dev
+c_sec_019,c,security,unbounded_sscanf,8,CWE-120: unbounded %s in sscanf call,security-issue,tests/corpus/oracles/c_sec_019_oracle.c,held_out
+c_sec_020,c,security,hardcoded_api_token,6,CWE-798: hardcoded API token credential,security-issue,tests/corpus/oracles/c_sec_020_oracle.c,dev
+c_sec_021,c,security,hardcoded_db_conn,6,CWE-798: hardcoded connection string with password,security-issue,tests/corpus/oracles/c_sec_021_oracle.c,dev
+c_sec_022,c,security,unchecked_write_return,8,CWE-252: unchecked return value on fputs,security-issue,tests/corpus/oracles/c_sec_022_oracle.c,held_out
+c_sec_023,c,security,unsafe_temp_mktemp,7,CWE-377: use of obsolete and insecure mktemp function,security-issue,tests/corpus/oracles/c_sec_023_oracle.c,held_out
+c_sec_024,c,security,unvalidated_loop_bound_copy,7,CWE-120: loop copy without destination length bound check,security-issue,tests/corpus/oracles/c_sec_024_oracle.c,dev
+c_sec_025,c,security,stack_buffer_overread,8,CWE-125: out-of-bounds read past end of stack buffer,security-issue,tests/corpus/oracles/c_sec_025_oracle.c,held_out
+c_sec_026,c,security,unchecked_realloc,8,CWE-401: memory leak on realloc failure if ptr overwritten,security-issue,tests/corpus/oracles/c_sec_026_oracle.c,dev
+c_sec_027,c,security,signed_int_overflow_calc,5,CWE-190: intentional signed integer overflow at compile time,security-issue,tests/corpus/oracles/c_sec_027_oracle.c,dev
+c_sec_028,c,security,pointer_arithmetic_overflow,6,CWE-119: pointer arithmetic way beyond array allocation,security-issue,tests/corpus/oracles/c_sec_028_oracle.c,dev
+c_sec_029,c,security,hardcoded_private_key,6,CWE-798: embedded private key block,security-issue,tests/corpus/oracles/c_sec_029_oracle.c,held_out
+c_sec_030,c,security,unbounded_vsnprintf,14,CWE-120: unsafe vsprintf with unbounded destination,security-issue,tests/corpus/oracles/c_sec_030_oracle.c,dev
+c_sec_031,c,security,unrestricted_file_permission,7,CWE-732: file created with 0777 overly permissive permissions,security-issue,tests/corpus/oracles/c_sec_031_oracle.c,dev
+c_sec_032,c,security,free_non_heap_pointer,7,CWE-590: free of pointer not pointing to heap memory,security-issue,tests/corpus/oracles/c_sec_032_oracle.c,held_out
+c_sec_033,c,security,missing_boundary_check_strncat,7,CWE-120: strncat with n=sizeof(dest) exceeding remaining buffer,security-issue,tests/corpus/oracles/c_sec_033_oracle.c,dev
+c_sec_034,c,security,scanf_missing_ampersand,6,CWE-119: scanf passing integer directly instead of pointer &val,security-issue,tests/corpus/oracles/c_sec_034_oracle.c,held_out
+c_sec_035,c,security,unsafe_memcpy_unbounded,7,CWE-120: memcpy copying 20 bytes into 10-byte destination buffer,security-issue,tests/corpus/oracles/c_sec_035_oracle.c,dev
+c_str_001,c,structure,struct_nested,6,nested structs missing semicolon,broken,tests/corpus/oracles/c_str_001_oracle.c,dev
+c_str_002,c,structure,union_demo,6,union access missing semicolon,broken,tests/corpus/oracles/c_str_002_oracle.c,dev
+c_str_003,c,structure,enum_typedef,5,typedef enum missing semicolon,broken,tests/corpus/oracles/c_str_003_oracle.c,dev
+c_str_004,c,structure,function_pointer,5,function pointer assignment missing semicolon,broken,tests/corpus/oracles/c_str_004_oracle.c,dev
+c_str_005,c,structure,const_volatile_qualifiers,5,const volatile variable missing semicolon,broken,tests/corpus/oracles/c_str_005_oracle.c,held_out
+c_str_006,c,structure,static_func_and_var,7,static local var missing semicolon,broken,tests/corpus/oracles/c_str_006_oracle.c,dev
+c_str_007,c,structure,preprocessor_macros,6,macro expansion expression missing semicolon,broken,tests/corpus/oracles/c_str_007_oracle.c,dev
+c_str_008,c,structure,nested_loops_switch,13,nested loops & switch case break missing semicolon,broken,tests/corpus/oracles/c_str_008_oracle.c,dev
+c_str_009,c,structure,recursion_fibonacci,7,recursive function return missing semicolon,broken,tests/corpus/oracles/c_str_009_oracle.c,dev
+c_str_010,c,structure,crlf_line_endings,4,CRLF line endings with missing semicolon,broken,tests/corpus/oracles/c_str_010_oracle.c,held_out
+c_str_011,c,structure,tab_indentation,5,tab-indented code missing semicolon,broken,tests/corpus/oracles/c_str_011_oracle.c,dev
+c_str_012,c,structure,no_trailing_newline,4,no trailing newline missing semicolon,broken,tests/corpus/oracles/c_str_012_oracle.c,held_out
+c_str_013,c,structure,very_long_line,4,line > 200 chars missing semicolon,broken,tests/corpus/oracles/c_str_013_oracle.c,dev
+c_str_014,c,structure,unicode_in_comments,5,unicode characters in header comment with syntax defect,broken,tests/corpus/oracles/c_str_014_oracle.c,dev
+c_str_015,c,structure,empty_file,0,completely empty C source file,clean,tests/corpus/oracles/c_str_015_oracle.c,dev
+c_str_016,c,structure,only_comments,3,source file containing only comments,clean,tests/corpus/oracles/c_str_016_oracle.c,dev
+c_str_017,c,structure,size_5_lines,13,5-line C program (broken),broken,tests/corpus/oracles/c_str_017_oracle.c,dev
+c_str_018,c,structure,size_5_lines_clean,13,5-line C program (clean),clean,tests/corpus/oracles/c_str_018_oracle.c,dev
+c_str_019,c,structure,size_50_lines,34,50-line C program (broken),broken,tests/corpus/oracles/c_str_019_oracle.c,held_out
+c_str_020,c,structure,size_50_lines_clean,34,50-line C program (clean),clean,tests/corpus/oracles/c_str_020_oracle.c,dev
+c_str_021,c,structure,size_200_lines,125,200-line C program (broken),broken,tests/corpus/oracles/c_str_021_oracle.c,dev
+c_str_022,c,structure,size_200_lines_clean,125,200-line C program (clean),clean,tests/corpus/oracles/c_str_022_oracle.c,dev
+c_str_023,c,structure,size_500_lines,305,500-line C program (broken),broken,tests/corpus/oracles/c_str_023_oracle.c,dev
+c_str_024,c,structure,size_500_lines_clean,305,500-line C program (clean),clean,tests/corpus/oracles/c_str_024_oracle.c,dev
+c_str_025,c,structure,size_1000_lines,605,1000-line C program (broken),broken,tests/corpus/oracles/c_str_025_oracle.c,held_out
+c_str_026,c,structure,size_1000_lines_clean,605,1000-line C program (clean),clean,tests/corpus/oracles/c_str_026_oracle.c,held_out
+c_str_027,c,structure,typedef_func_pointer,4,typedef func pointer return missing semicolon,broken,tests/corpus/oracles/c_str_027_oracle.c,dev
+c_str_028,c,structure,macro_multiline,10,multi-line macro call missing semicolon,broken,tests/corpus/oracles/c_str_028_oracle.c,held_out
+c_str_029,c,structure,deep_nested_ifs,5,5-level nested if statement missing semicolon,broken,tests/corpus/oracles/c_str_029_oracle.c,dev
+c_str_030,c,structure,goto_label_statement,7,goto statement missing semicolon,broken,tests/corpus/oracles/c_str_030_oracle.c,dev
+c_str_031,c,structure,ternary_operator_assign,5,ternary operator assign missing semicolon,broken,tests/corpus/oracles/c_str_031_oracle.c,dev
+c_str_032,c,structure,multiple_declarations_comma,4,multi-variable single declaration missing semicolon,broken,tests/corpus/oracles/c_str_032_oracle.c,dev
+c_str_033,c,structure,anonymous_struct,4,anonymous struct instance missing semicolon,broken,tests/corpus/oracles/c_str_033_oracle.c,dev
+c_str_034,c,structure,complex_initializers,5,2D matrix calculation missing semicolon,broken,tests/corpus/oracles/c_str_034_oracle.c,dev
+c_str_035,c,structure,enum_bitmasks,5,enum bitmask expression missing semicolon,broken,tests/corpus/oracles/c_str_035_oracle.c,dev
+py_syn_001,python,syntax,missing_colon_def,4,missing colon after def,broken,tests/corpus/oracles/py_syn_001_oracle.py,dev
+py_syn_002,python,syntax,missing_colon_if,3,missing colon after if,broken,tests/corpus/oracles/py_syn_002_oracle.py,dev
+py_syn_003,python,syntax,missing_colon_else,5,missing colon after else,broken,tests/corpus/oracles/py_syn_003_oracle.py,dev
+py_syn_004,python,syntax,missing_colon_elif,5,missing colon after elif,broken,tests/corpus/oracles/py_syn_004_oracle.py,held_out
+py_syn_005,python,syntax,missing_colon_for,3,missing colon after for,broken,tests/corpus/oracles/py_syn_005_oracle.py,dev
+py_syn_006,python,syntax,missing_colon_while,3,missing colon after while,broken,tests/corpus/oracles/py_syn_006_oracle.py,dev
+py_syn_007,python,syntax,missing_colon_class,3,missing colon after class,broken,tests/corpus/oracles/py_syn_007_oracle.py,held_out
+py_syn_008,python,syntax,missing_colon_with,3,missing colon after with,broken,tests/corpus/oracles/py_syn_008_oracle.py,dev
+py_syn_009,python,syntax,missing_colon_try,4,missing colon after try,broken,tests/corpus/oracles/py_syn_009_oracle.py,held_out
+py_syn_010,python,syntax,missing_colon_except,4,missing colon after except,broken,tests/corpus/oracles/py_syn_010_oracle.py,dev
+py_syn_011,python,syntax,missing_colon_finally,4,missing colon after finally,broken,tests/corpus/oracles/py_syn_011_oracle.py,dev
+py_syn_012,python,syntax,indent_unexpected,4,unexpected indentation increase,broken,tests/corpus/oracles/py_syn_012_oracle.py,held_out
+py_syn_013,python,syntax,indent_unindent_mismatch,6,unindent does not match any outer indentation level,broken,tests/corpus/oracles/py_syn_013_oracle.py,held_out
+py_syn_014,python,syntax,indent_mixed_tabs_spaces,4,inconsistent use of tabs and spaces in indentation,broken,tests/corpus/oracles/py_syn_014_oracle.py,dev
+py_syn_015,python,syntax,missing_indent_def_body,1,expected an indented block after function def,broken,tests/corpus/oracles/py_syn_015_oracle.py,dev
+py_syn_016,python,syntax,missing_indent_if_body,2,expected an indented block after if,broken,tests/corpus/oracles/py_syn_016_oracle.py,dev
+py_syn_017,python,syntax,unclosed_bracket_call,4,unclosed '(' in function call,broken,tests/corpus/oracles/py_syn_017_oracle.py,dev
+py_syn_018,python,syntax,unclosed_bracket_list,1,unclosed '[' in list literal,broken,tests/corpus/oracles/py_syn_018_oracle.py,dev
+py_syn_019,python,syntax,unclosed_bracket_dict,1,unclosed '{' in dict literal,broken,tests/corpus/oracles/py_syn_019_oracle.py,dev
+py_syn_020,python,syntax,unclosed_bracket_tuple,1,unclosed '(' in tuple literal,broken,tests/corpus/oracles/py_syn_020_oracle.py,dev
+py_syn_021,python,syntax,unclosed_quote_single,1,unterminated string literal (single quote),broken,tests/corpus/oracles/py_syn_021_oracle.py,dev
+py_syn_022,python,syntax,unclosed_quote_double,1,unterminated string literal (double quote),broken,tests/corpus/oracles/py_syn_022_oracle.py,dev
+py_syn_023,python,syntax,unclosed_triple_quote,3,unterminated triple-quoted string,broken,tests/corpus/oracles/py_syn_023_oracle.py,held_out
+py_syn_024,python,syntax,unclosed_fstring_brace,2,f-string: expecting '}' in expression,broken,tests/corpus/oracles/py_syn_024_oracle.py,dev
+py_syn_025,python,syntax,break_outside_loop,2,'break' outside loop,broken,tests/corpus/oracles/py_syn_025_oracle.py,dev
+py_syn_026,python,syntax,continue_outside_loop,2,'continue' not properly in loop,broken,tests/corpus/oracles/py_syn_026_oracle.py,dev
+py_syn_027,python,syntax,return_outside_func,2,'return' outside function,broken,tests/corpus/oracles/py_syn_027_oracle.py,dev
+py_syn_028,python,syntax,stray_character_dollar,1,invalid syntax: stray '$' character,broken,tests/corpus/oracles/py_syn_028_oracle.py,dev
+py_syn_029,python,syntax,missing_comma_in_list,1,missing comma in list literal,broken,tests/corpus/oracles/py_syn_029_oracle.py,held_out
+py_syn_030,python,syntax,missing_comma_in_dict,1,missing comma in dict literal,broken,tests/corpus/oracles/py_syn_030_oracle.py,dev
+py_syn_031,python,syntax,missing_comma_in_args,4,missing comma in call arguments,broken,tests/corpus/oracles/py_syn_031_oracle.py,dev
+py_syn_032,python,syntax,bad_assignment_operator,1,cannot assign to literal (SyntaxError),broken,tests/corpus/oracles/py_syn_032_oracle.py,dev
+py_syn_033,python,syntax,keyword_used_as_ident,3,cannot assign to keyword 'pass',broken,tests/corpus/oracles/py_syn_033_oracle.py,dev
+py_syn_034,python,syntax,missing_operator_expr,1,invalid syntax missing operator between literals,broken,tests/corpus/oracles/py_syn_034_oracle.py,held_out
+py_syn_035,python,syntax,multi_funcs_missing_colons,5,missing colons across multiple functions,broken,tests/corpus/oracles/py_syn_035_oracle.py,dev
+py_syn_036,python,syntax,multi_errors_same_func,4,multiple missing colons in single function,broken,tests/corpus/oracles/py_syn_036_oracle.py,dev
+py_syn_037,python,syntax,missing_colon_lambda,1,missing colon in lambda expression,broken,tests/corpus/oracles/py_syn_037_oracle.py,held_out
+py_syn_038,python,syntax,extra_closing_paren,1,unmatched ')' closing parenthesis,broken,tests/corpus/oracles/py_syn_038_oracle.py,dev
+py_syn_039,python,syntax,extra_closing_bracket,1,unmatched ']' closing bracket,broken,tests/corpus/oracles/py_syn_039_oracle.py,held_out
+py_syn_040,python,syntax,extra_closing_brace,1,unmatched '}' closing brace,broken,tests/corpus/oracles/py_syn_040_oracle.py,held_out
+py_sem_001,python,semantic,undefined_name_var,2,name 'total_missing' is not defined,compiles-with-warnings,tests/corpus/oracles/py_sem_001_oracle.py,dev
+py_sem_002,python,semantic,undefined_name_call,2,calling undefined function,compiles-with-warnings,tests/corpus/oracles/py_sem_002_oracle.py,held_out
+py_sem_003,python,semantic,shadowed_builtin_list,3,shadowing built-in 'list' causing callable type error,compiles-with-warnings,tests/corpus/oracles/py_sem_003_oracle.py,dev
+py_sem_004,python,semantic,unreachable_code_after_return,3,unreachable statement after return,compiles-with-warnings,tests/corpus/oracles/py_sem_004_oracle.py,dev
+py_sem_005,python,semantic,unused_import_module,5,unused import 'os',compiles-with-warnings,tests/corpus/oracles/py_sem_005_oracle.py,dev
+py_sem_006,python,semantic,wrong_args_too_many,4,greet() takes 1 positional argument but 2 were given,compiles-with-warnings,tests/corpus/oracles/py_sem_006_oracle.py,held_out
+py_sem_007,python,semantic,wrong_args_too_few,4,multiply() missing 1 required positional argument: 'b',compiles-with-warnings,tests/corpus/oracles/py_sem_007_oracle.py,dev
+py_sem_008,python,semantic,unbound_local_var,4,local variable 'c' referenced before assignment,compiles-with-warnings,tests/corpus/oracles/py_sem_008_oracle.py,held_out
+py_sem_009,python,semantic,none_comparison_equality,2,comparison to None should be 'if cond is None:',compiles-with-warnings,tests/corpus/oracles/py_sem_009_oracle.py,held_out
+py_sem_010,python,semantic,type_error_concat_str_int,2,can only concatenate str (not 'int') to str,compiles-with-warnings,tests/corpus/oracles/py_sem_010_oracle.py,held_out
+py_sem_011,python,semantic,duplicate_dict_key,1,duplicate dictionary key 'key',compiles-with-warnings,tests/corpus/oracles/py_sem_011_oracle.py,held_out
+py_sem_012,python,semantic,attribute_error_call,2,'str' object has no attribute 'to_lower',compiles-with-warnings,tests/corpus/oracles/py_sem_012_oracle.py,held_out
+py_sem_013,python,semantic,import_nonexistent_attr,1,cannot import name 'nonexistent_method' from 'math',compiles-with-warnings,tests/corpus/oracles/py_sem_013_oracle.py,held_out
+py_sem_014,python,semantic,zero_division_literal,2,division by zero literal,compiles-with-warnings,tests/corpus/oracles/py_sem_014_oracle.py,dev
+py_sem_015,python,semantic,assert_always_true_tuple,2,asserting non-empty tuple is always True,compiles-with-warnings,tests/corpus/oracles/py_sem_015_oracle.py,held_out
+py_sem_016,python,semantic,mutable_default_arg,3,default argument value is mutable (list),compiles-with-warnings,tests/corpus/oracles/py_sem_016_oracle.py,dev
+py_sem_017,python,semantic,unused_variable_func,4,local variable 'unused_var' is assigned to but never used,compiles-with-warnings,tests/corpus/oracles/py_sem_017_oracle.py,held_out
+py_sem_018,python,semantic,pointless_statement_expr,4,statement has no effect (x + 1),compiles-with-warnings,tests/corpus/oracles/py_sem_018_oracle.py,held_out
+py_sem_019,python,semantic,is_literal_comparison,2,'is' with a literal (did you mean '=='?),compiles-with-warnings,tests/corpus/oracles/py_sem_019_oracle.py,held_out
+py_sem_020,python,semantic,bare_except_clause,4,bare 'except:' catches all exceptions including KeyboardInterrupt,compiles-with-warnings,tests/corpus/oracles/py_sem_020_oracle.py,dev
+py_sec_001,python,security,unsafe_eval_call,2,CWE-95: eval() on arbitrary input,security-issue,tests/corpus/oracles/py_sec_001_oracle.py,held_out
+py_sec_002,python,security,unsafe_exec_call,2,CWE-95: exec() on untrusted code string,security-issue,tests/corpus/oracles/py_sec_002_oracle.py,dev
+py_sec_003,python,security,shell_true_subprocess,3,CWE-78: subprocess with shell=True command injection,security-issue,tests/corpus/oracles/py_sec_003_oracle.py,dev
+py_sec_004,python,security,insecure_pickle_load,3,CWE-502: deserialization of untrusted data via pickle.loads,security-issue,tests/corpus/oracles/py_sec_004_oracle.py,dev
+py_sec_005,python,security,unsafe_yaml_load,3,CWE-502: unsafe yaml.load without SafeLoader,security-issue,tests/corpus/oracles/py_sec_005_oracle.py,held_out
+py_sec_006,python,security,weak_hash_md5_pwd,3,CWE-328: use of weak cryptographic hash MD5 for password,security-issue,tests/corpus/oracles/py_sec_006_oracle.py,held_out
+py_sec_007,python,security,weak_hash_sha1,3,CWE-328: use of deprecated hash SHA1,security-issue,tests/corpus/oracles/py_sec_007_oracle.py,dev
+py_sec_008,python,security,sql_injection_fstring,2,CWE-89: SQL query constructed via f-string formatting,security-issue,tests/corpus/oracles/py_sec_008_oracle.py,dev
+py_sec_009,python,security,insecure_temp_mktemp,3,CWE-377: insecure temp file creation with tempfile.mktemp(),security-issue,tests/corpus/oracles/py_sec_009_oracle.py,held_out
+py_sec_010,python,security,disabled_cert_verify_requests,3,CWE-295: disabled SSL certificate verification in requests,security-issue,tests/corpus/oracles/py_sec_010_oracle.py,dev
+py_sec_011,python,security,hardcoded_secret_token,2,CWE-798: hardcoded API token secret,security-issue,tests/corpus/oracles/py_sec_011_oracle.py,dev
+py_sec_012,python,security,hardcoded_db_password,2,CWE-798: hardcoded database password,security-issue,tests/corpus/oracles/py_sec_012_oracle.py,dev
+py_sec_013,python,security,assert_used_for_auth,3,CWE-617: assert statement used for security/authorization check,security-issue,tests/corpus/oracles/py_sec_013_oracle.py,dev
+py_sec_014,python,security,unverified_ssl_context,3,CWE-295: unverified SSL context bypassing certificate checks,security-issue,tests/corpus/oracles/py_sec_014_oracle.py,held_out
+py_sec_015,python,security,weak_random_secrets,3,CWE-338: use of random module instead of secrets for token generation,security-issue,tests/corpus/oracles/py_sec_015_oracle.py,held_out
+py_sec_016,python,security,shell_true_popen,3,CWE-78: subprocess.Popen with shell=True command injection,security-issue,tests/corpus/oracles/py_sec_016_oracle.py,held_out
+py_sec_017,python,security,hardcoded_jwt_secret,2,CWE-798: hardcoded JWT signing secret,security-issue,tests/corpus/oracles/py_sec_017_oracle.py,dev
+py_sec_018,python,security,tarfile_unsafe_extract,3,CWE-22: tarfile.extractall without path traversal prevention,security-issue,tests/corpus/oracles/py_sec_018_oracle.py,dev
+py_sec_019,python,security,xml_entity_expansion,3,CWE-611: standard xml.etree is vulnerable to XML entity expansion,security-issue,tests/corpus/oracles/py_sec_019_oracle.py,dev
+py_sec_020,python,security,insecure_deserialization_shelve,3,CWE-502: shelve module uses pickle under the hood,security-issue,tests/corpus/oracles/py_sec_020_oracle.py,dev
+py_sec_021,python,security,hardcoded_aws_secret,2,CWE-798: hardcoded AWS credentials,security-issue,tests/corpus/oracles/py_sec_021_oracle.py,dev
+py_sec_022,python,security,flask_debug_true_production,4,CWE-489: Flask running with debug=True in production code,security-issue,tests/corpus/oracles/py_sec_022_oracle.py,held_out
+py_sec_023,python,security,insecure_cipher_des,3,CWE-327: use of weak/broken encryption algorithm (TripleDES),security-issue,tests/corpus/oracles/py_sec_023_oracle.py,dev
+py_sec_024,python,security,open_redirect_url,2,CWE-601: URL redirection to untrusted site without validation,security-issue,tests/corpus/oracles/py_sec_024_oracle.py,dev
+py_sec_025,python,security,regex_dos_catastrophic,4,CWE-1333: exponential ReDoS pattern (a+)+,security-issue,tests/corpus/oracles/py_sec_025_oracle.py,dev
+py_sec_026,python,security,sql_format_concatenation,2,CWE-89: raw string concatenation in SQL execution,security-issue,tests/corpus/oracles/py_sec_026_oracle.py,dev
+py_sec_027,python,security,hardcoded_private_rsa_key,2,CWE-798: hardcoded RSA private key,security-issue,tests/corpus/oracles/py_sec_027_oracle.py,dev
+py_sec_028,python,security,unsafe_chmod_world_writable,4,CWE-732: file created with 0o777 world-writable permissions,security-issue,tests/corpus/oracles/py_sec_028_oracle.py,dev
+py_sec_029,python,security,logging_sensitive_credential,4,CWE-532: logging sensitive authentication credentials in plain text,security-issue,tests/corpus/oracles/py_sec_029_oracle.py,held_out
+py_sec_030,python,security,insecure_ssl_protocol,5,CWE-326: permitting obsolete SSLv3 protocol,security-issue,tests/corpus/oracles/py_sec_030_oracle.py,held_out
+py_str_001,python,structure,class_and_methods,5,method declaration missing colon,broken,tests/corpus/oracles/py_str_001_oracle.py,dev
+py_str_002,python,structure,decorator_usage,8,decorated function missing colon,broken,tests/corpus/oracles/py_str_002_oracle.py,held_out
+py_str_003,python,structure,list_comprehensions,1,unclosed parenthesis in comprehension,broken,tests/corpus/oracles/py_str_003_oracle.py,held_out
+py_str_004,python,structure,generator_expression,3,generator function missing colon,broken,tests/corpus/oracles/py_str_004_oracle.py,dev
+py_str_005,python,structure,async_await_funcs,4,async def missing colon,broken,tests/corpus/oracles/py_str_005_oracle.py,dev
+py_str_006,python,structure,dataclass_definition,5,dataclass declaration missing colon,broken,tests/corpus/oracles/py_str_006_oracle.py,dev
+py_str_007,python,structure,type_hints_annotations,4,annotated function def missing colon,broken,tests/corpus/oracles/py_str_007_oracle.py,dev
+py_str_008,python,structure,match_case_statements,6,match statement missing colon,broken,tests/corpus/oracles/py_str_008_oracle.py,dev
+py_str_009,python,structure,walrus_operator,3,unclosed parenthesis around walrus assignment,broken,tests/corpus/oracles/py_str_009_oracle.py,held_out
+py_str_010,python,structure,crlf_endings_py,2,Python with CRLF line endings missing colon,broken,tests/corpus/oracles/py_str_010_oracle.py,held_out
+py_str_011,python,structure,tabs_indentation_py,3,Python tab indented missing colon,broken,tests/corpus/oracles/py_str_011_oracle.py,held_out
+py_str_012,python,structure,unicode_identifiers_comments,3,Python with unicode comment missing colon,broken,tests/corpus/oracles/py_str_012_oracle.py,held_out
+py_str_013,python,structure,empty_file_py,0,completely empty Python file,clean,tests/corpus/oracles/py_str_013_oracle.py,dev
+py_str_014,python,structure,size_5_lines_py,14,5-line Python program (broken),broken,tests/corpus/oracles/py_str_014_oracle.py,dev
+py_str_015,python,structure,size_5_lines_clean_py,14,5-line Python program (clean),clean,tests/corpus/oracles/py_str_015_oracle.py,dev
+py_str_016,python,structure,size_50_lines_py,38,50-line Python program (broken),broken,tests/corpus/oracles/py_str_016_oracle.py,held_out
+py_str_017,python,structure,size_50_lines_clean_py,38,50-line Python program (clean),clean,tests/corpus/oracles/py_str_017_oracle.py,dev
+py_str_018,python,structure,size_200_lines_py,128,200-line Python program (broken),broken,tests/corpus/oracles/py_str_018_oracle.py,dev
+py_str_019,python,structure,size_200_lines_clean_py,128,200-line Python program (clean),clean,tests/corpus/oracles/py_str_019_oracle.py,held_out
+py_str_020,python,structure,size_500_lines_py,318,500-line Python program (broken),broken,tests/corpus/oracles/py_str_020_oracle.py,dev
+py_str_021,python,structure,size_500_lines_clean_py,318,500-line Python program (clean),clean,tests/corpus/oracles/py_str_021_oracle.py,dev
+cross_001,c,cross_cutting,reg_rename_variable_guard,8,rule must not rename threshold_limit variable while fixing ;,broken,tests/corpus/oracles/cross_001_oracle.c,held_out
+cross_002,c,cross_cutting,reg_comma_after_if_keyword,7,rule must never insert comma after if/for/while/return,broken,tests/corpus/oracles/cross_002_oracle.c,dev
+cross_003,c,cross_cutting,reg_semicolon_at_end_of_line,5,"; must be placed at end of line 2, not beginning of line 3",broken,tests/corpus/oracles/cross_003_oracle.c,dev
+cross_004,c,cross_cutting,reg_same_error_10_funcs,11,same missing ';' error repeated across 10 functions,broken,tests/corpus/oracles/cross_004_oracle.c,held_out
+cross_005,c,cross_cutting,reg_high_error_count_dense,28,dense 25-line missing semicolon block,broken,tests/corpus/oracles/cross_005_oracle.c,dev
+cross_006,python,cross_cutting,reg_py_indent_normalize,5,indentation error: unindented block after def,broken,tests/corpus/oracles/cross_006_oracle.py,dev
+cross_007,python,cross_cutting,reg_py_no_delete_statements,4,clean python must never delete statements,clean,tests/corpus/oracles/cross_007_oracle.py,dev
+cross_008,c,cross_cutting,reg_c_clean_preserves_macros,5,clean C with macros must be 100% byte-identical,clean,tests/corpus/oracles/cross_008_oracle.c,dev
+cross_009,c,cross_cutting,reg_c_for_comma_no_insert,7,missing semicolon inside loop body without touching for(),broken,tests/corpus/oracles/cross_009_oracle.c,dev
+cross_010,python,cross_cutting,reg_py_def_colon_at_end,2,colon must go strictly at the end of def line,broken,tests/corpus/oracles/cross_010_oracle.py,held_out
+cross_011,c,cross_cutting,reg_c_switch_case_break,8,missing semicolon on return inside switch case,broken,tests/corpus/oracles/cross_011_oracle.c,dev
+cross_012,python,cross_cutting,reg_py_elif_colon_at_end,7,colon must go strictly at end of elif line,broken,tests/corpus/oracles/cross_012_oracle.py,dev
+cross_013,c,cross_cutting,reg_c_return_expression_paren,5,missing semicolon after parenthesized return expression,broken,tests/corpus/oracles/cross_013_oracle.c,dev
+cross_014,c,cross_cutting,reg_c_struct_ptr_deref,6,missing semicolon after arrow operator expression,broken,tests/corpus/oracles/cross_014_oracle.c,dev
+cross_015,python,cross_cutting,reg_py_try_except_clause,5,missing colon after try statement,broken,tests/corpus/oracles/cross_015_oracle.py,held_out
+cross_016,c,cross_cutting,agent_sec_c_api_key,8,C API key redaction,security-issue,tests/corpus/oracles/cross_016_oracle.c,dev
+cross_017,c,cross_cutting,agent_sec_c_comment_secret,8,C secret in benign comment,clean,tests/corpus/oracles/cross_017_oracle.c,held_out
+cross_018,c,cross_cutting,agent_sec_c_conn_str,8,C DB connection string,security-issue,tests/corpus/oracles/cross_018_oracle.c,dev
+cross_019,c,cross_cutting,agent_sec_c_neg_ctrl_var,17,C negative control variable,clean,tests/corpus/oracles/cross_019_oracle.c,held_out
+cross_020,c,cross_cutting,agent_sec_c_password,8,C hardcoded password,security-issue,tests/corpus/oracles/cross_020_oracle.c,held_out
+cross_021,c,cross_cutting,agent_sec_c_private_key,8,C private key PEM,security-issue,tests/corpus/oracles/cross_021_oracle.c,dev
+cross_022,c,cross_cutting,agent_sec_c_prompt_injection,8,C prompt injection in comment benign,clean,tests/corpus/oracles/cross_022_oracle.c,dev
+cross_024,python,cross_cutting,agent_sec_py_api_key,7,Py API key secret,security-issue,tests/corpus/oracles/cross_024_oracle.py,dev
+cross_025,python,cross_cutting,agent_sec_py_comment_secret,7,Py comment secret benign,clean,tests/corpus/oracles/cross_025_oracle.py,held_out
+cross_026,python,cross_cutting,agent_sec_py_conn_str,7,Py connection string,security-issue,tests/corpus/oracles/cross_026_oracle.py,dev
+cross_027,python,cross_cutting,agent_sec_py_neg_ctrl_var,8,Py negative control variable,clean,tests/corpus/oracles/cross_027_oracle.py,dev
+cross_028,python,cross_cutting,agent_sec_py_password,7,Py hardcoded password,security-issue,tests/corpus/oracles/cross_028_oracle.py,dev
+cross_029,python,cross_cutting,agent_sec_py_prompt_injection,7,Py prompt injection in comment,clean,tests/corpus/oracles/cross_029_oracle.py,dev
+cross_031,c,cross_cutting,clean_c_tiny,1,Already-clean c program,clean,tests/corpus/oracles/cross_031_oracle.c,held_out
+cross_032,python,cross_cutting,clean_py_tiny,1,Already-clean python program,clean,tests/corpus/oracles/cross_032_oracle.py,dev
+cross_033,c,cross_cutting,clean_c_medium,7,Already-clean c program,clean,tests/corpus/oracles/cross_033_oracle.c,held_out
+cross_034,python,cross_cutting,clean_py_medium,5,Already-clean python program,clean,tests/corpus/oracles/cross_034_oracle.py,held_out
+cross_035,c,cross_cutting,clean_c_large,65,Already-clean c program,clean,tests/corpus/oracles/cross_035_oracle.c,dev
+cross_036,python,cross_cutting,clean_py_large,68,Already-clean python program,clean,tests/corpus/oracles/cross_036_oracle.py,dev
+cross_037,c,cross_cutting,clean_c_xlarge,155,Already-clean c program,clean,tests/corpus/oracles/cross_037_oracle.c,dev
+cross_038,python,cross_cutting,clean_py_xlarge,163,Already-clean python program,clean,tests/corpus/oracles/cross_038_oracle.py,dev
+cross_039,c,cross_cutting,clean_c_xxlarge,245,Already-clean c program,clean,tests/corpus/oracles/cross_039_oracle.c,dev
+cross_040,python,cross_cutting,clean_py_xxlarge,253,Already-clean python program,clean,tests/corpus/oracles/cross_040_oracle.py,held_out
+cross_041,c,cross_cutting,warn_c_missing_include,1,missing #include <stdio.h> warning,compiles-with-warnings,tests/corpus/oracles/cross_041_oracle.c,dev
+cross_042,c,cross_cutting,warn_c_unused_var,1,unused variable 'b' warning,compiles-with-warnings,tests/corpus/oracles/cross_042_oracle.c,dev
+cross_043,c,cross_cutting,warn_c_format_specifier,2,format specifier mismatch warning,compiles-with-warnings,tests/corpus/oracles/cross_043_oracle.c,dev
+cross_044,python,cross_cutting,warn_py_unused_import,3,unused import sys warning,compiles-with-warnings,tests/corpus/oracles/cross_044_oracle.py,dev
+cross_045,python,cross_cutting,warn_py_none_equality,1,comparison to None warning,compiles-with-warnings,tests/corpus/oracles/cross_045_oracle.py,dev
+cross_046,python,cross_cutting,warn_py_unreachable,2,unreachable code after return warning,compiles-with-warnings,tests/corpus/oracles/cross_046_oracle.py,dev
+cross_047,c,cross_cutting,metric_c_1line,1,1-line tiny C program,clean,tests/corpus/oracles/cross_047_oracle.c,held_out
+cross_048,python,cross_cutting,metric_py_1line,1,1-line tiny Python program,clean,tests/corpus/oracles/cross_048_oracle.py,held_out
+cross_049,c,cross_cutting,metric_c_deeply_nested,5,deeply nested if structures,clean,tests/corpus/oracles/cross_049_oracle.c,dev
+cross_050,c,cross_cutting,metric_c_no_functions,2,file with globals/macros and no functions,clean,tests/corpus/oracles/cross_050_oracle.c,dev
+cross_051,python,cross_cutting,metric_py_only_comments,3,Python file with only comments,clean,tests/corpus/oracles/cross_051_oracle.py,dev
+cross_052,c,cross_cutting,metric_c_uncompilable,4,uncompilable code showing estimated metrics,broken,tests/corpus/oracles/cross_052_oracle.c,held_out
+cross_053,c,cross_cutting,api_neg_malformed_json,1,API negative: test with malformed payload,clean,tests/corpus/oracles/cross_053_oracle.c,dev
+cross_054,c,cross_cutting,api_neg_empty_body,1,API negative: test with empty request body,clean,tests/corpus/oracles/cross_054_oracle.c,held_out
+cross_055,c,cross_cutting,api_neg_oversize_body,1,API negative: test with oversized body,clean,tests/corpus/oracles/cross_055_oracle.c,held_out
+cross_056,c,cross_cutting,api_neg_wrong_language,1,API negative: mismatched language parameter,clean,tests/corpus/oracles/cross_056_oracle.c,dev
+cross_057,c,cross_cutting,api_neg_cancelled_job,1,API negative: job cancellation workflow,clean,tests/corpus/oracles/cross_057_oracle.c,held_out
+cross_058,c,cross_cutting,ui_flow_approval_accept,2,UI flow: security gate modal approved,security-issue,tests/corpus/oracles/cross_058_oracle.c,dev
+cross_059,c,cross_cutting,ui_flow_approval_decline,2,UI flow: security gate modal cancelled,security-issue,tests/corpus/oracles/cross_059_oracle.c,dev
+cross_060,c,cross_cutting,ui_flow_apply_patch,2,UI flow: apply patch verification,broken,tests/corpus/oracles/cross_060_oracle.c,dev
+cross_061,c,cross_cutting,ui_flow_reject_patch,2,UI flow: reject patch verification,broken,tests/corpus/oracles/cross_061_oracle.c,dev
+cross_062,c,cross_cutting,ui_flow_results_close_reopen,1,UI flow: results screen close with Esc and reopen,clean,tests/corpus/oracles/cross_062_oracle.c,held_out

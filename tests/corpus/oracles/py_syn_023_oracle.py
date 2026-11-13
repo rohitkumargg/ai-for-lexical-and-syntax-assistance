@@ -1,0 +1,3 @@
+doc = '''multi
+line
+string'''

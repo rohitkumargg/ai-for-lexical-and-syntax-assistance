@@ -1,0 +1,11 @@
+int fn_0(void) { return 0; }
+int fn_1(void) { return 1; }
+int fn_2(void) { return 2; }
+int fn_3(void) { return 3; }
+int fn_4(void) { return 4; }
+int fn_5(void) { return 5; }
+int fn_6(void) { return 6; }
+int fn_7(void) { return 7; }
+int fn_8(void) { return 8; }
+int fn_9(void) { return 9; }
+int main(void) { return 0; }

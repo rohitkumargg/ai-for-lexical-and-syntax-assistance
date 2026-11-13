@@ -1,0 +1,4 @@
+int main(void) {
+    int very_long_variable_name_for_testing_length_limits_and_diagnostics_buffer_allocation_alpha = 10, very_long_variable_name_for_testing_length_limits_and_diagnostics_buffer_allocation_beta = 20
+    return very_long_variable_name_for_testing_length_limits_and_diagnostics_buffer_allocation_alpha + very_long_variable_name_for_testing_length_limits_and_diagnostics_buffer_allocation_beta;
+}
