@@ -289,8 +289,8 @@ class RepairJob:
             "windows_done": self.windows_done,
             "windows_by_tier": self.windows_by_tier,
             "skipped_windows": self.skipped_windows,
-            "current_code": self.current_code,
-            "original_code": self.original_code,
+            "current_code": redact_sensitive_text(self.current_code),
+            "original_code": redact_sensitive_text(self.original_code),
             "filename": self.filename,
             "language": self.language,
             "operation": self.operation,
@@ -437,18 +437,19 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
         # line, and preserve its newline so `;` cannot leak onto a new source line.
         if i > 1 and new_lines:
             prev = new_lines[-1]
-            prev_code = _split_line_tokens(prev)[0][1] if _split_line_tokens(prev) else prev
-            prev_stripped = prev_code.strip()
+            prev_no_comment = prev.split("//", 1)[0].rstrip("\r\n")
+            prev_comment = (" //" + prev.split("//", 1)[1].rstrip("\r\n")) if "//" in prev else ""
+            prev_stripped = prev_no_comment.strip()
             curr_stripped = line.strip()
             if (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
                     and ((curr_stripped.startswith("}") and not prev_stripped.startswith("#") and not prev_stripped.endswith("{"))
                          or (re.match(r"^(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b|[a-zA-Z_]\w*)", curr_stripped)
-                             and (re.match(r"^(?:(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*\s+\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
-                                  or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
-                                  or re.match(r"^(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+)\s+[A-Za-z_]\w*$", prev_stripped))))
+                             and (re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*?\b\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
+                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
+                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*$", prev_stripped))))
                     and not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped)):
                 ending = "\r\n" if prev.endswith("\r\n") else ("\n" if prev.endswith("\n") else "")
-                new_lines[-1] = prev_code.rstrip() + ";" + (" " + prev.split("//", 1)[1].rstrip("\r\n") if "//" in prev else "") + ending
+                new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending
                 fixes.append("Inserted missing semicolon")
 
         segments = _split_line_tokens(line)
@@ -1483,6 +1484,16 @@ class RepairJobManager:
                             final_adopted_code = sec_res.source
                             job.windows_done += len(sec_res.applied_steps) or 1
                             job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(sec_res.applied_steps) or 1)
+                except Exception:
+                    pass
+                try:
+                    c_det, c_steps = planner._apply_deterministic_rules(final_adopted_code, filename=job.filename, language=job.language)
+                    if c_det and c_det.strip() != final_adopted_code.strip():
+                        c_ok, c_errs, _ = _lightweight_check(c_det)
+                        if c_ok or len(c_errs) <= len(_lightweight_check(final_adopted_code)[1]):
+                            final_adopted_code = c_det
+                            job.windows_done += len(c_steps) or 1
+                            job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(c_steps) or 1)
                 except Exception:
                     pass
             elif job.language == "python":

@@ -92,6 +92,7 @@ _REDACT_PATTERNS: List[Tuple[re.Pattern, str]] = [
     # Explicit dummy testing secrets
     (re.compile(r'EXAMPLE_NOT_A_REAL_KEY_[A-Za-z0-9_]+'), '[REDACTED:API_KEY]'),
     (re.compile(r'\bdummykey[A-Za-z0-9_]+\b'), '[REDACTED:PRIVATE_KEY]'),
+    (re.compile(r'\b(?:my_|py_)?dummy_secret_[A-Za-z0-9_]+\b'), '[REDACTED:PASSWORD]'),
     # Private Key blocks
     (re.compile(r'-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----[\s\S]*?-----END (?:[A-Z ]+)?PRIVATE KEY-----'), '[REDACTED:PRIVATE_KEY]'),
     # Connection URIs with embedded credentials (e.g. mongodb://user:pass@host:port/db)
@@ -169,14 +170,14 @@ def redact_data_structure(data: Any) -> Any:
 # 2. Inter-Agent Security (Authority, Bounds, Provenance HMAC)
 # -----------------------------------------------------------------------------
 AUTHORITY_MATRIX: Dict[str, Set[str]] = {
-    "LexicalAgent": {"LEXICAL", "SYNTAX"},
-    "SyntaxAgent": {"SYNTAX"},
-    "PythonSyntaxAgent": {"SYNTAX"},
-    "SemanticAgent": {"SEMANTIC"},
-    "PythonSemanticAgent": {"SEMANTIC"},
-    "SecurityAgent": {"SECURITY"},
-    "PythonSecurityAgent": {"SECURITY"},
-    "MaliciousCodePrecheck": {"SECURITY"},
+    "LexicalAgent": {"LEXICAL", "SYNTAX", "SYSTEM"},
+    "SyntaxAgent": {"SYNTAX", "SYSTEM"},
+    "PythonSyntaxAgent": {"SYNTAX", "SYSTEM"},
+    "SemanticAgent": {"SEMANTIC", "SYSTEM"},
+    "PythonSemanticAgent": {"SEMANTIC", "SYSTEM"},
+    "SecurityAgent": {"SECURITY", "SYSTEM"},
+    "PythonSecurityAgent": {"SECURITY", "SYSTEM"},
+    "MaliciousCodePrecheck": {"SECURITY", "SYSTEM"},
 }
 
 _ALLOWED_LOCAL_HOSTS: Set[str] = {"127.0.0.1", "localhost", "::1", "[::1]"}

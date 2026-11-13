@@ -1753,9 +1753,13 @@ class RepairPlanner:
                     }
                 else:
                     is_clean, err_lines = check_c_syntax_errors(source_code)
-                    if is_clean or not err_lines:
+                    from compiler.security_checker import SecurityChecker
+                    sec_checker = SecurityChecker()
+                    sec_iss = sec_checker.check(source_code)
+                    sec_lines = [getattr(iss, "line", None) for iss in sec_iss if getattr(iss, "line", None)]
+                    if (is_clean or not err_lines) and not sec_lines:
                         return source_code, []
-                    flagged_lines = set(err_lines)
+                    flagged_lines = set(err_lines) | set(sec_lines)
 
             if not flagged_lines:
                 return source_code, []
@@ -2089,6 +2093,23 @@ class RepairPlanner:
                     if sec_src and sec_src.strip() != current_code.strip():
                         current_code = sec_src
                         applied_steps.extend(sec_stps)
+            except Exception:
+                pass
+
+            # 4b. Hardcoded credential remediation (C equivalent of PY-SEC-07)
+            try:
+                sec_creds = re.findall(
+                    r'(\b(?:const\s+char\s*\*|char\s*\*)\s*(\w+)\s*=\s*["\']([^"\']+)["\'];)',
+                    current_code,
+                )
+                for full_stmt, var_name, default_val in sec_creds:
+                    if re.match(r'^(api[_-]?key|password|passwd|pwd|token|secret)$', var_name, re.IGNORECASE):
+                        env_key = var_name.upper()
+                        replacement = f'const char *{var_name} = getenv("{env_key}") ? getenv("{env_key}") : "{default_val}";'
+                        current_code = current_code.replace(full_stmt, replacement, 1)
+                        if "#include <stdlib.h>" not in current_code:
+                            current_code = "#include <stdlib.h>\n" + current_code
+                        applied_steps.append(f"SEC: read credential '{var_name}' from environment via getenv")
             except Exception:
                 pass
 
@@ -2991,14 +3012,17 @@ class RepairPlanner:
                     description=desc,
                 )
         elif not actionable:
+            status_val, label_val, msg_val = _classify_program_status(
+                source_code, findings, lang_id=lang_id, default_status="SYNTAX_ERRORS", default_reason=f"Program has {len(findings)} syntax error(s)"
+            )
             cand = source_code
             desc = "Verified program: all statements valid and clean of compiler errors."
             prov = "deterministic_rules"
             strat = "verified_clean"
             cand_title = "Verified Program: Clean & Ready"
             workflow_state = "PROPOSAL_READY"
-            terminal_status = "PROPOSAL_READY"
-            stopping_reason = "Program is verified valid and ready to execute."
+            terminal_status = status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY"
+            stopping_reason = msg_val or "Program is verified valid and ready to execute."
             logger.record_stage(
                 stage_id="deterministic_rules",
                 stage_name="7. Deterministic Rule Engine",
@@ -3101,13 +3125,13 @@ class RepairPlanner:
             }
 
             return {
-                "status": "PROPOSAL_READY",
+                "status": status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY",
                 "workflow_state": "PROPOSAL_READY",
-                "terminal_status": "PROPOSAL_READY",
-                "label": "Proposal Ready",
+                "terminal_status": status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY",
+                "label": label_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "Proposal Ready",
                 "run_id": logger.run_id,
-                "message": "Program verified valid and ready to execute.",
-                "stopping_reason": "Program verified valid and ready to execute.",
+                "message": msg_val or "Program verified valid and ready to execute.",
+                "stopping_reason": msg_val or "Program verified valid and ready to execute.",
                 "findings": [f.to_dict() if hasattr(f, "to_dict") else vars(f) for f in findings],
                 "unified_findings": [f.to_dict() if hasattr(f, "to_dict") else vars(f) for f in findings],
                 "classified_findings": classified_findings,
