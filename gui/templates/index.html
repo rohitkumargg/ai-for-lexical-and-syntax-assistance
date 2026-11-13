@@ -169,9 +169,14 @@
                         <section class="panelcard status-card">
                             <div class="card-header">
                                 <h3>Compiler Status</h3>
-                                <div id="status-pill" class="status-pill status-idle">
-                                    <span class="status-dot"></span>
-                                    <span id="status">Idle</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div id="status-pill" class="status-pill status-idle" onclick="openFullscreenResults()" style="cursor: pointer;" title="Click to view fullscreen results screen">
+                                        <span class="status-dot"></span>
+                                        <span id="status">Idle</span>
+                                    </div>
+                                    <button class="btn btn-xs btn-outline" id="btn-open-results-screen" onclick="openFullscreenResults()" title="Open Fullscreen Results Screen" style="display:none; font-size:11px; padding:2px 8px; border-radius:4px;">
+                                        Results
+                                    </button>
                                 </div>
                             </div>
                             <div class="status-progress-wrap" style="padding: 0 14px 12px 14px;">
@@ -883,6 +888,123 @@
                     <button class="btn btn-danger" id="sec-btn-approve" onclick="handleSecurityGateAction('approve')">
                         Approve Once &amp; Continue
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Results Screen Modal (matches design/results_screen/ 01.png & 02.png) -->
+    <div id="fullscreen-results-modal" class="fs-results-backdrop" style="display:none;" onclick="handleFullscreenResultsBackdropClick(event)">
+        <div class="fs-results-container" onclick="event.stopPropagation()">
+            <button class="fs-results-close-btn" onclick="closeFullscreenResults()" title="Close Results Screen (Esc)">×</button>
+
+            <!-- Top Section Header -->
+            <div class="fs-section-header">
+                <div class="fs-section-title-wrap">
+                    <div class="fs-warn-icon-box">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="fs-section-titles">
+                        <h2>Active Vulnerability Audits &amp; Threat Reports</h2>
+                        <p>Static binary &amp; AST diagnostic notices requiring developer action</p>
+                    </div>
+                </div>
+                <div id="fs-defects-count-chip" class="fs-defects-count-chip">
+                    <span id="fs-defects-count-text">0 Active Defects Found</span>
+                </div>
+            </div>
+
+            <!-- Top Section: 2-Column Finding Cards Grid -->
+            <div id="fs-findings-grid" class="fs-findings-grid">
+                <!-- Finding cards injected dynamically here -->
+            </div>
+
+            <!-- Bottom Section: Left Telemetry Gauges + Right Code Comparison -->
+            <div class="fs-bottom-layout">
+                <!-- Left Column: Telemetry Gauges -->
+                <div class="fs-gauges-col">
+                    <div class="fs-gauges-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <span>Telemetry Gauges</span>
+                    </div>
+
+                    <!-- Gauges Container -->
+                    <div id="fs-gauges-container" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- Gauge cards injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Code Comparison -->
+                <div class="fs-comparison-col results-pop-card" id="fs-comparison-card">
+                    <div class="fs-comp-header">
+                        <div class="fs-comp-title">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18" cy="18" r="3"></circle>
+                                <circle cx="6" cy="6" r="3"></circle>
+                                <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
+                                <line x1="6" y1="9" x2="6" y2="21"></line>
+                            </svg>
+                            <span id="fs-comp-candidate-id">CODE COMPARISON | Patch Candidate</span>
+                        </div>
+                        <div class="fs-comp-tabs">
+                            <button id="fs-tab-btn-sbs" class="fs-comp-tab-btn active" onclick="switchFsDiffTab('sbs')">Side-by-Side Diff</button>
+                            <button id="fs-tab-btn-unified" class="fs-comp-tab-btn" onclick="switchFsDiffTab('unified')">Unified Inline</button>
+                            <button id="fs-tab-btn-vulns" class="fs-comp-tab-btn" onclick="switchFsDiffTab('vulns')">Vulnerabilities <span id="fs-tab-vulns-dot" style="color:#ef4444;">•</span></button>
+                        </div>
+                    </div>
+
+                    <div class="fs-comp-subheader">
+                        <div>
+                            <span>View Mode: </span>
+                            <span id="fs-view-mode-pill" class="fs-view-mode-pill">C11 Standard</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-muted); cursor:pointer;" onclick="renderFsDiffViewer()" title="Reload diff view">⟳</div>
+                    </div>
+
+                    <!-- Diff content viewer -->
+                    <div id="fs-diff-content-area" class="fs-diff-content-area">
+                        <!-- Dynamic diff injected here -->
+                    </div>
+
+                    <!-- Exploit Danger & Auto-Remediation Banners -->
+                    <div id="fs-comp-banners" class="fs-comp-banners">
+                        <div id="fs-banner-danger" class="fs-banner-box danger" style="display:none;">
+                            <span style="font-size:14px; flex-shrink:0;">⚡</span>
+                            <div>
+                                <strong>Exploit Danger: </strong><span id="fs-banner-danger-text"></span>
+                            </div>
+                        </div>
+                        <div id="fs-banner-remediation" class="fs-banner-box remediation" style="display:none;">
+                            <span style="font-size:14px; flex-shrink:0;">🛡️</span>
+                            <div>
+                                <strong>Auto-Remediation Active: </strong><span id="fs-banner-remediation-text"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action Bar -->
+                    <div class="fs-comp-footer">
+                        <div class="fs-comp-footer-left" id="fs-comp-footer-status">
+                            <!-- Clean text or summary -->
+                        </div>
+                        <div class="fs-comp-footer-right">
+                            <button id="fs-btn-reject-patch" class="fs-btn-reject" onclick="handleFsRejectPatch()">Reject Patch</button>
+                            <button id="fs-btn-apply-fix" class="fs-btn-apply" onclick="handleFsApplyFix()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span id="fs-btn-apply-label">Apply Fix</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
