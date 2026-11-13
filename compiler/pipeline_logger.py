@@ -8,6 +8,8 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from compiler.agent_security import redact_sensitive_text, redact_data_structure
+
 
 class StageStatus(str, Enum):
     PENDING = "PENDING"
@@ -70,6 +72,7 @@ STAGE_EXECUTION_ORDER: Dict[str, int] = {
     "semantic_analysis": 4,
     "security_analysis": 5,
     "finding_consolidation": 6,
+    "agent_security": 6,
     "security_remediation_planning": 6,
     "deterministic_rules": 7,
     "codet5_model": 8,
@@ -118,6 +121,12 @@ class PipelineRunLogger:
         iso, disp = _now_timestamps()
         st_val = status.value if isinstance(status, StageStatus) else str(status).upper()
         
+        # Redact any sensitive information crossing into the pipeline logs
+        clean_description = redact_sensitive_text(description)
+        clean_failure = redact_sensitive_text(failure_reason) if failure_reason else None
+        clean_summary = [redact_sensitive_text(s) for s in (findings_summary or [])]
+        clean_diagnostics = redact_data_structure(diagnostics or {})
+
         # Update in-place if stage already exists (e.g. user approval PENDING -> PASSED)
         for ev in self.events:
             if ev.stage_id == stage_id:
@@ -126,11 +135,11 @@ class PipelineRunLogger:
                 ev.timestamp_iso = iso
                 ev.timestamp_display = disp
                 ev.duration_ms = round(duration_ms, 2)
-                ev.description = description
+                ev.description = clean_description
                 ev.findings_count = findings_count
-                ev.findings_summary = findings_summary or []
-                ev.failure_reason = failure_reason
-                ev.diagnostics = diagnostics or {}
+                ev.findings_summary = clean_summary
+                ev.failure_reason = clean_failure
+                ev.diagnostics = clean_diagnostics
                 return ev
 
         event = PipelineEvent(
@@ -142,11 +151,11 @@ class PipelineRunLogger:
             timestamp_iso=iso,
             timestamp_display=disp,
             duration_ms=round(duration_ms, 2),
-            description=description,
+            description=clean_description,
             findings_count=findings_count,
-            findings_summary=findings_summary or [],
-            failure_reason=failure_reason,
-            diagnostics=diagnostics or {},
+            findings_summary=clean_summary,
+            failure_reason=clean_failure,
+            diagnostics=clean_diagnostics,
         )
         self.events.append(event)
         return event

@@ -448,6 +448,9 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
 
 def save_result_row(result: Dict[str, Any], fieldnames: List[str], csv_file: Optional[Path] = None, json_file: Optional[Path] = None) -> None:
     """Continuously append single result to CSV and update JSON."""
+    from compiler.agent_security import redact_data_structure
+    clean_res = redact_data_structure(result)
+
     target_csv = csv_file or CSV_PATH
     target_json = json_file or JSON_PATH
     target_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -458,7 +461,7 @@ def save_result_row(result: Dict[str, Any], fieldnames: List[str], csv_file: Opt
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         if write_header:
             writer.writeheader()
-        writer.writerow(result)
+        writer.writerow(clean_res)
 
     # Update JSON
     all_results = []
@@ -470,8 +473,8 @@ def save_result_row(result: Dict[str, Any], fieldnames: List[str], csv_file: Opt
             all_results = []
 
     # Update or append
-    all_results = [r for r in all_results if r.get("file") != result["file"]]
-    all_results.append(result)
+    all_results = [r for r in all_results if r.get("file") != clean_res["file"]]
+    all_results.append(clean_res)
 
     with open(target_json, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)

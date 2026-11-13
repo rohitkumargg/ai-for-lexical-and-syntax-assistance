@@ -277,6 +277,7 @@ class RepairJob:
         }
 
     def to_persist_dict(self) -> Dict[str, Any]:
+        from compiler.agent_security import redact_sensitive_text, redact_data_structure
         return {
             "job_id": self.job_id,
             "state": self.state,
@@ -296,8 +297,8 @@ class RepairJob:
             # Requirement 2: Do NOT persist approval tokens in job files on disk
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "error_message": self.error_message,
-            "result": self.result,
+            "error_message": redact_sensitive_text(self.error_message),
+            "result": redact_data_structure(self.result),
             "speedup": self.speedup,
         }
 

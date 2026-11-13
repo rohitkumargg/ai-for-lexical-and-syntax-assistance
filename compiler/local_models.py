@@ -128,7 +128,7 @@ class FullSourceRepairContract:
 # -------------------------------------------------------------------------
 # Security Guard: Enforce Strictly Local Endpoints
 # -------------------------------------------------------------------------
-_ALLOWED_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1", "0.0.0.0"}
+_ALLOWED_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1", "[::1]"}
 
 def _assert_local_url(url: str) -> None:
     """Ensure no prompts or source code are transmitted to external cloud APIs."""
@@ -347,7 +347,9 @@ class OllamaClient:
         by sending keep_alive: 0.
         """
         target = model_name or self.default_model
-        url = f"{self.base_url}/api/generate"
+        from compiler.agent_security import ensure_loopback_endpoint
+        safe_base = ensure_loopback_endpoint(self.base_url)
+        url = f"{safe_base}/api/generate"
         payload = {
             "model": target,
             "keep_alive": 0,
@@ -416,7 +418,9 @@ class OllamaClient:
         if system_prompt:
             payload["system"] = system_prompt
 
-        url = f"{self.base_url}/api/generate"
+        from compiler.agent_security import ensure_loopback_endpoint
+        safe_base = ensure_loopback_endpoint(self.base_url)
+        url = f"{safe_base}/api/generate"
         to = timeout or self.timeout
         try:
             req = urllib.request.Request(
@@ -521,7 +525,9 @@ class OllamaClient:
                     f"3. Do not include markdown conversational commentary or explanations.\n"
                 )
 
-        url = f"{self.base_url}/api/generate"
+        from compiler.agent_security import ensure_loopback_endpoint
+        safe_base = ensure_loopback_endpoint(self.base_url)
+        url = f"{safe_base}/api/generate"
         payload = {
             "model": target_model,
             "prompt": prompt,
@@ -714,7 +720,9 @@ class OllamaClient:
             f"}}\n"
         )
 
-        url = f"{self.base_url}/api/generate"
+        from compiler.agent_security import ensure_loopback_endpoint
+        safe_base = ensure_loopback_endpoint(self.base_url)
+        url = f"{safe_base}/api/generate"
         payload = {
             "model": target_model,
             "prompt": prompt,

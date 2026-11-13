@@ -98,3 +98,30 @@ The system displays 6 primary indicators reflecting code health, green energy fo
 5. **Green Metrics** (`[ESTIMATED TDP]`): Energy consumption model computing total execution runtime (ms), memory footprint (MB), and estimated energy (Joules).
 6. **Model Accuracy & Repair** (`[BENCHMARKED]`): Empirical benchmark score of the active multi-tier repair pipeline (Rules -> CodeT5 -> Qwen).
 
+---
+
+## 6. Agent Pipeline Security & Data Protection (`compiler/agent_security.py`)
+
+The pipeline incorporates two foundational security protections with zero modification to core program compilation, parsing, or repair scoring:
+
+### 1. Agent Data Protection (Boundary Redaction)
+- **Sensitive Pattern Masking**: Automatically redacts credentials, bearer tokens, dummy/real API keys, private key blocks, and connection strings (`[REDACTED:<KIND>]`).
+- **Strict Boundary Scoping**:
+  - Masking is strictly applied at boundary persistence and logging points: structured pipeline logs (`PipelineEvent`), job persistence JSONs under `data/repair_jobs/`, runtime cache (`_GLOBAL_WINDOW_CACHE`), user-facing diagnostics, and test reports (`results.csv`, `results.json`).
+  - Active executable source code in the Monaco editor, patch diffs, and code passed to `gcc`, `ast.parse`, and local models remain 100% verbatim to preserve exact compiler semantics.
+- **Negative Control Safeguards**: Common variable names (e.g. `password_len`, `passwd_buf`), format specifiers (`printf("password: %s", buf)`), and standard 32-character hex run IDs/UUIDs are strictly protected from accidental masking.
+- **Fail-Open Invariant**: Internal redaction errors log warnings and leave data unmodified, preventing security filters from ever halting compiler operations.
+
+### 2. Inter-Agent Security (Validation Choke Point)
+- **Authority Matrix Enforcement**: All agent findings pass through an orchestrator-level choke point (`validate_agent_finding`) enforcing strict category permissions:
+  - `LexicalAgent`: `LEXICAL`, `SYNTAX`
+  - `SyntaxAgent`, `PythonSyntaxAgent`: `SYNTAX`
+  - `SemanticAgent`, `PythonSemanticAgent`: `SEMANTIC`
+  - `SecurityAgent`, `PythonSecurityAgent`, `MaliciousCodePrecheck`: `SECURITY`
+- **Schema & Bounds Validation**: Findings with negative or out-of-bounds line numbers (exceeding file line bounds), negative columns, or oversized explanation payloads are rejected before entering consolidation.
+- **Provenance Integrity (HMAC-SHA256)**: Each analysis run generates an ephemeral 256-bit cryptographically secure run secret (`secrets.token_hex(32)`). Approved findings are signed with an HMAC-SHA256 digest over their invariant fields, enabling downstream tiers to detect tampering or unauthorized finding injection.
+- **Untrusted Prompt Sandboxing**: Source code injected into local model prompts is encapsulated in explicit boundary delimiters declaring that enclosed code is untrusted data and cannot alter model instructions.
+- **Loopback-Only Model Enforcement**: Local model inference endpoints (CodeT5 / Ollama) strictly enforce loopback addresses (`127.0.0.1`, `localhost`, `::1`), automatically redirecting any non-loopback configuration to prevent accidental data exfiltration.
+- **Telemetry Transparency**: Security operations are recorded in the pipeline log and telemetry summary: `"agent security: N messages checked, M rejected, K values redacted"`.
+
+

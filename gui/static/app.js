@@ -3197,6 +3197,7 @@ function renderPipelineLogs(events, runId) {
         "semantic_analysis": 4,
         "security_analysis": 5,
         "finding_consolidation": 6,
+        "agent_security": 6,
         "deterministic_rules": 7,
         "codet5_model": 8,
         "codet5_patch": 8,

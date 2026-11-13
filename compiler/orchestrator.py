@@ -25,6 +25,11 @@ from compiler.agents import (
     PythonSecurityAgent,
 )
 from compiler.languages import detect_language
+from compiler.agent_security import (
+    create_run_secret,
+    validate_agent_finding,
+    get_security_counts,
+)
 
 
 def _utc_now_iso() -> str:
@@ -139,6 +144,8 @@ class AgentOrchestrator:
         working_source = source_text
         raw_findings: List[Finding] = []
         telemetry: Dict[str, Any] = {"phase_durations_ms": {}, "agent_status": {}}
+        run_secret = create_run_secret()
+        source_line_count = len(working_source.splitlines()) if working_source else 1
 
         lang_id = detect_language(filename, language or (context.get("language") if context else None))
         if lang_id == "python":
@@ -165,28 +172,29 @@ class AgentOrchestrator:
                 "CRITICAL": FindingSeverity.CRITICAL,
             }
             for pf in precheck_rep.findings:
-                raw_findings.append(
-                    Finding.create(
-                        category=FindingCategory.SECURITY,
-                        line=pf.line,
-                        col=pf.column,
-                        explanation=pf.explanation,
-                        severity=sev_map.get(pf.severity, FindingSeverity.HIGH),
-                        confidence=pf.confidence,
-                        status=FindingStatus.CONFIRMED if pf.is_malicious_intent else FindingStatus.POSSIBLE,
-                        file_path=filename,
-                        evidence=pf.evidence or pf.snippet,
-                        metadata={
-                            "precheck": True,
-                            "rule_id": pf.rule_id,
-                            "risk_level": pf.risk_level.value,
-                            "blocks_execution": pf.blocks_execution,
-                            "recommended_mitigation": pf.recommended_mitigation,
-                            "snippet": pf.snippet,
-                            "is_malicious_intent": pf.is_malicious_intent,
-                        },
-                    )
+                f_candidate = Finding.create(
+                    category=FindingCategory.SECURITY,
+                    line=pf.line,
+                    col=pf.column,
+                    explanation=pf.explanation,
+                    severity=sev_map.get(pf.severity, FindingSeverity.HIGH),
+                    confidence=pf.confidence,
+                    status=FindingStatus.CONFIRMED if pf.is_malicious_intent else FindingStatus.POSSIBLE,
+                    file_path=filename,
+                    evidence=pf.evidence or pf.snippet,
+                    metadata={
+                        "precheck": True,
+                        "rule_id": pf.rule_id,
+                        "risk_level": pf.risk_level.value,
+                        "blocks_execution": pf.blocks_execution,
+                        "recommended_mitigation": pf.recommended_mitigation,
+                        "snippet": pf.snippet,
+                        "is_malicious_intent": pf.is_malicious_intent,
+                    },
                 )
+                valid, _ = validate_agent_finding("MaliciousCodePrecheck", f_candidate, source_line_count, run_secret)
+                if valid:
+                    raw_findings.append(f_candidate)
         except Exception as e:
             telemetry["agent_status"]["MaliciousCodePrecheck"] = f"FAILED: {str(e)}"
         finally:
@@ -197,7 +205,10 @@ class AgentOrchestrator:
             t0 = time.perf_counter()
             try:
                 findings = agent.analyze(working_source, filename=filename, context=context)
-                raw_findings.extend(findings)
+                for f in findings:
+                    valid, _ = validate_agent_finding(agent.name, f, source_line_count, run_secret)
+                    if valid:
+                        raw_findings.append(f)
                 telemetry["agent_status"][agent.name] = "SUCCESS"
             except Exception as e:
                 # Catch analyzer crash gracefully, create a diagnostic finding, and proceed
@@ -241,6 +252,10 @@ class AgentOrchestrator:
             f for f in consolidated
             if f.status not in (FindingStatus.RESOLVED, FindingStatus.SUPPRESSED_CASCADING)
         ]
+
+        chk, rej, red = get_security_counts()
+        telemetry["agent_security"] = {"checked": chk, "rejected": rej, "redacted": red}
+        telemetry["agent_security_run_secret"] = run_secret
 
         return OrchestratorResult(
             original_source=original_source,

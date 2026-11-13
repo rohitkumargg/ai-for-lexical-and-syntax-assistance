@@ -49,6 +49,7 @@ from compiler.security_approval_gate import (
     remove_manipulation_comments_from_source,
     is_manipulation_line,
 )
+from compiler.agent_security import get_security_counts, get_security_summary, redact_sensitive_text
 
 import os
 import re
@@ -881,6 +882,26 @@ class RepairPlanner:
                 findings_count=len(coordinated_findings),
                 diagnostics={"categories": list(cats_found), "root_causes": root_count, "total": len(coordinated_findings)},
             )
+            sec_c, sec_r, sec_k = get_security_counts()
+            sec_summary = get_security_summary(sec_c, sec_r, sec_k)
+            logger.record_stage(
+                stage_id="agent_security",
+                stage_name="Agent Pipeline Security",
+                status=StageStatus.PASSED,
+                description=sec_summary,
+                duration_ms=0.5,
+                findings_count=sec_r,
+                diagnostics={"checked": sec_c, "rejected": sec_r, "redacted": sec_k},
+            )
+
+        sec_c, sec_r, sec_k = get_security_counts()
+        pipeline_stages.append({
+            "stage": "agent_security",
+            "label": "Agent Pipeline Security",
+            "status": "passed",
+            "duration_ms": 0.5,
+            "explanation": get_security_summary(sec_c, sec_r, sec_k),
+        })
 
         # Stage 14: Quality & Optimization Analysis
         green_engine.start_stage("optimization_and_quality")
