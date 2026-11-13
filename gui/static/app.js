@@ -3047,14 +3047,26 @@ async function _runRepairAfterPrescan() {
                         const result = job.result || {};
                         const remainingCount = typeof result.fixes_remaining_count === 'number'
                             ? result.fixes_remaining_count
-                            : (result.findings_after ?? (result.unresolved_findings || result.remaining_findings || result.findings || []).length);
-                        const repairSucceeded = result.status === "FULLY_REPAIRED"
+                            : (typeof result.candidate?.fixes_remaining_count === 'number'
+                                ? result.candidate.fixes_remaining_count
+                                : (result.findings_after ?? (result.unresolved_findings || result.remaining_findings || result.findings || []).length));
+                        const isClean = result.status === "CLEAN" || result.terminal_status === "CLEAN";
+                        const repairSucceeded = isClean
+                            || result.status === "FULLY_REPAIRED"
+                            || remainingCount === 0
                             || ((result.validation_passed === true || result.validation_report?.is_valid === true) && remainingCount === 0);
                         const appliedCount = result.fixes_applied_count || (job.windows_done || 0);
                         const finalPct = repairSucceeded ? 100 : Math.min(90, Math.max(10, Math.round((appliedCount / Math.max(1, appliedCount + remainingCount)) * 100)));
-                        setProgress(finalPct, repairSucceeded
-                            ? "Full repair validated — no actionable issues remain"
-                            : `Repair attempt finished — ${remainingCount} issue(s) still need repair`);
+                        
+                        let finalProgMsg = "";
+                        if (isClean) {
+                            finalProgMsg = result.message || result.summary || "Source code is clean — zero compiler errors or security issues";
+                        } else if (repairSucceeded) {
+                            finalProgMsg = "Full repair validated — no actionable issues remain";
+                        } else {
+                            finalProgMsg = `Repair attempt finished — ${remainingCount} issue${remainingCount === 1 ? '' : 's'} still need${remainingCount === 1 ? 's' : ''} repair`;
+                        }
+                        setProgress(finalPct, finalProgMsg);
                         renderCoordinatedPlan(result);
                         isRepairRunning = false;
                         activeRepairJobId = null;
