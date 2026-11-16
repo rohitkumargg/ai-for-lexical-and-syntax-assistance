@@ -216,7 +216,7 @@ class SecurityVisitor(ast.NodeVisitor):
                 if is_sql_injection:
                     self.findings.append({
                         "rule": "PY-SEC-08",
-                        "action": "reported",
+                        "action": "auto_fixed",
                         "line": node.lineno,
                         "col": node.col_offset,
                         "message": "Possible SQL injection detected. Use parameterized queries instead of string concatenation/formatting.",
@@ -383,6 +383,29 @@ def get_fix_candidate(source: str, findings: List[Dict[str, Any]]) -> Optional[T
                 new_lines[line_idx] = new_line
                 warn = f"PY-SEC-06 [auto-fixed] line {line_num}: disabled Flask debug mode in production"
                 step = "SEC: disable Flask debug mode"
+                return "\n".join(new_lines), step, warn, line_num, f
+
+        elif rule == "PY-SEC-08":
+            m_fsql = re.search(r'(\w+\.execute\s*\(\s*)f([\'"])(.*?)\{([a-zA-Z_]\w*)\}(.*?)\2(\s*\))', line_text)
+            if m_fsql:
+                prefix, q, s1, vname, s2, suffix = m_fsql.group(1), m_fsql.group(2), m_fsql.group(3), m_fsql.group(4), m_fsql.group(5), m_fsql.group(6)
+                s1_clean = re.sub(r'["\']$', '', s1.rstrip())
+                s2_clean = re.sub(r'^["\']', '', s2.lstrip())
+                new_line = line_text[:m_fsql.start()] + f"{prefix}'{s1_clean}%s{s2_clean}', ({vname},){suffix}" + line_text[m_fsql.end():]
+                new_lines = lines[:]
+                new_lines[line_idx] = new_line
+                warn = f"PY-SEC-08 [auto-fixed] line {line_num}: parameterized SQL query to prevent injection"
+                step = "SEC: parameterized SQL query to prevent injection"
+                return "\n".join(new_lines), step, warn, line_num, f
+            m_csql = re.search(r'(\w+\.execute\s*\(\s*)(["\'].*?["\'])\s*\+\s*([a-zA-Z_]\w*)(\s*\))', line_text)
+            if m_csql:
+                prefix, sql_str, vname, suffix = m_csql.group(1), m_csql.group(2), m_csql.group(3), m_csql.group(4)
+                sql_clean = sql_str[1:-1]
+                new_line = line_text[:m_csql.start()] + f"{prefix}\"{sql_clean}%s\", ({vname},){suffix}" + line_text[m_csql.end():]
+                new_lines = lines[:]
+                new_lines[line_idx] = new_line
+                warn = f"PY-SEC-08 [auto-fixed] line {line_num}: parameterized SQL query to prevent injection"
+                step = "SEC: parameterized SQL query to prevent injection"
                 return "\n".join(new_lines), step, warn, line_num, f
 
     return None

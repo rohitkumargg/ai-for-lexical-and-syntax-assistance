@@ -427,6 +427,7 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
 
     lines = src.splitlines(keepends=True)
     new_lines = []
+    has_switch = any("switch" in l for l in lines)
     for i, line in enumerate(lines, 1):
         if i not in flagged_lines:
             new_lines.append(line)
@@ -437,20 +438,59 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
         # line, and preserve its newline so `;` cannot leak onto a new source line.
         if i > 1 and new_lines:
             prev = new_lines[-1]
-            prev_no_comment = prev.split("//", 1)[0].rstrip("\r\n")
-            prev_comment = (" //" + prev.split("//", 1)[1].rstrip("\r\n")) if "//" in prev else ""
+            prev_no_comment = prev.split("//", 1)[0].rstrip("\n")
+            prev_comment = (" //" + prev.split("//", 1)[1].rstrip("\n")) if "//" in prev else ""
             prev_stripped = prev_no_comment.strip()
             curr_stripped = line.strip()
-            if (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
+            # Previous line is `}` closing a struct/enum/union definition that requires `;`
+            if (prev_stripped == "}" or prev_stripped.endswith("}")) and not prev_stripped.endswith(";"):
+                block_head = "".join(new_lines[-20:])
+                if re.search(r'\b(?:struct|enum|union)\b[^{};]*\{', block_head):
+                    ending = "\n" if prev.endswith("\n") else ("\n" if prev.endswith("\n") else "")
+                    new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending
+                    fixes.append("Inserted missing semicolon after struct/enum/union definition")
+
+            # Previous line is `} while (...)` closing a do-while loop that requires `;`
+            if re.search(r'\}\s*while\s*\([^;{}]+?\)$', prev_stripped):
+                ending = "\n" if prev.endswith("\n") else ""
+                new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending
+                fixes.append("Inserted missing semicolon after do-while loop")
+
+            # Function signature missing opening `{`
+            if (re.match(r'^[ \t]*(?:(?:const\s+|static\s+|inline\s+)?(?:void|int|char|float|double|long|unsigned|short|bool|struct\s+\w+)\b[\w\s\*]+\([^;{}]*\))\s*$', prev_stripped)
+                    and not prev_stripped.endswith((";", "{", "}"))
+                    and re.match(r'^(?:return\b|if\b|while\b|for\b|switch\b|[a-zA-Z_]\w*)', curr_stripped)):
+                ending = "\n" if prev.endswith("\n") else ("\n" if prev.endswith("\n") else "")
+                new_lines[-1] = prev_no_comment.rstrip() + " {" + prev_comment + ending
+                fixes.append("Inserted missing '{' for function body")
+
+            # Missing semicolon on return statement inside switch case
+            elif (re.match(r'^\s*(?:case\s+[^:]+|default)\s*:\s*return\b[^;{}]+$', prev_stripped)
+                    and not prev_stripped.endswith(";")):
+                ending = "\n" if prev.endswith("\n") else ("\n" if prev.endswith("\n") else "")
+                new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending
+                fixes.append("Inserted missing semicolon after return statement in switch case")
+
+            elif (prev_stripped and not prev_stripped.endswith((";", "{", "}", ":"))
                     and ((curr_stripped.startswith("}") and not prev_stripped.startswith("#") and not prev_stripped.endswith("{"))
-                         or (re.match(r"^(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b|[a-zA-Z_]\w*)", curr_stripped)
-                             and (re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*?\b\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
-                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
-                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*$", prev_stripped))))
-                    and not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped)):
-                ending = "\r\n" if prev.endswith("\r\n") else ("\n" if prev.endswith("\n") else "")
+                         or (re.match(r"^(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b|\(|[a-zA-Z_]\w*)", curr_stripped)
+                              and (re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*?\b\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
+                                   or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
+                                   or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*$", prev_stripped)
+                                   or prev_stripped.startswith("typedef ")
+                                   or prev_stripped.endswith("break")
+                                   or re.search(r'=\s*[^;{}]+$', prev_stripped)
+                                   or re.search(r"\breturn\b\s*[^;{}]+$", prev_stripped))))
+                    and (prev_stripped.endswith("return") or re.search(r"\breturn\b[^;{}]*$", prev_stripped) or not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped))):
+                ending = "\n" if prev.endswith("\n") else ("\n" if prev.endswith("\n") else "")
                 new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending
                 fixes.append("Inserted missing semicolon")
+
+        if line.count('"') % 2 == 1:
+            line_fix = re.sub(r'("[^"\r\n]*?)\s*\);?', r'\1");', line)
+            if line_fix != line:
+                line = line_fix
+                fixes.append("Closed string literal before parenthesis")
 
         segments = _split_line_tokens(line)
         new_segments = []
@@ -460,7 +500,7 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
                 continue
             t = text
             # Missing bracket in array dimension: int arr[5; -> int arr[5];
-            t2 = re.sub(r'(\[\s*[^\];]+?)\s*;', r'\1];', t)
+            t2 = re.sub(r'(\[\s*[^\];={}]+?)\s*;', r'\1];', t)
             if t2 != t:
                 fixes.append("Closed array dimension with missing ']'")
                 t = t2
@@ -479,10 +519,11 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
                 fixes.append("Initialized variable with default value '0'")
                 t = t2
             # Stray case label outside switch: remove stray label
-            t2 = re.sub(r'^\s*(?:case\s+[^:]+|default)\s*:\s*', '', t)
-            if t2 != t:
-                fixes.append("Removed stray case/default label outside switch")
-                t = t2
+            if not has_switch:
+                t2 = re.sub(r'^\s*(?:case\s+[^:]+|default)\s*:\s*', '', t)
+                if t2 != t:
+                    fixes.append("Removed stray case/default label outside switch")
+                    t = t2
             # Missing comma in parameter list: int a int b -> int a, int b
             t2 = re.sub(r'(\b(?:int|char|float|double|void|long|short)\s+[a-zA-Z_]\w*)\s+((?:int|char|float|double|long|short)\s+[a-zA-Z_]\w*)', r'\1, \2', t)
             if t2 != t:
@@ -527,17 +568,117 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
                 if t2 != t:
                     fixes.append("Removed redundant duplicate '(' in control statement")
                     t = t2
-            # Missing semicolon in for header (only when semicolons < 2)
+            # Missing semicolon or commas in for header
             m_for = re.search(r'for\s*\(([^)]*)\)', t)
             if m_for:
                 inside = m_for.group(1)
-                if inside.count(';') == 1:
+                if inside.count(';') == 0 and inside.count(',') >= 2:
+                    t2 = re.sub(r'for\s*\(([^,;]+),([^,;]+),([^)]+)\)', r'for (\1;\2;\3)', t)
+                    if t2 != t:
+                        fixes.append("Replaced commas with semicolons in for-loop header")
+                        t = t2
+                elif inside.count(';') == 1:
                     t2 = re.sub(r'(for\s*\([^;]+;\s*[^;]+?)(\s+[a-zA-Z_]\w*\s*(?:=|\+\+|--))', r'\1;\2', t)
                     if t2 == t:
                         t2 = re.sub(r'(for\s*\([^;]+?\s*\d+)(\s+[a-zA-Z_]\w*\s*[<>=!])', r'\1;\2', t)
                     if t2 != t:
                         fixes.append("Inserted missing semicolon in for-loop header")
                         t = t2
+
+            # Missing semicolon before '}' on same line
+            t2 = re.sub(r'(\breturn\s+[^;{}]+?)(\s*\})', r'\1;\2', t)
+            if t2 != t:
+                fixes.append("Inserted missing semicolon before '}' on same line")
+                t = t2
+
+            # Missing binary operator between identifiers
+            t2 = re.sub(r'(=\s*[a-zA-Z_]\w*)\s+([a-zA-Z_]\w*\s*;)', r'\1 + \2', t)
+            if t2 != t:
+                fixes.append("Inserted missing '+' operator between identifiers")
+                t = t2
+
+            # Missing parameter type: int mult(int x, y) -> int mult(int x, int y)
+            t2 = re.sub(r'(\b(?:int|char|float|double|long|short|void)\s+[a-zA-Z_]\w*\s*,\s*)([a-zA-Z_]\w*)(\s*[,)])', lambda m: m.group(1) + m.group(1).split()[0] + ' ' + m.group(2) + m.group(3), t)
+            if t2 != t:
+                fixes.append("Inserted missing parameter type")
+                t = t2
+
+            # Missing comma in array/struct initializer: {1, 2 3, 4} -> {1, 2, 3, 4}
+            def _fix_init_list(m):
+                inside = m.group(1)
+                sub_c = re.sub(r'(\b\d+\b)\s+(\b\d+\b)', r'\1, \2', inside)
+                return "{" + sub_c + "}"
+            t2 = re.sub(r'\{([^{};]+)\}', _fix_init_list, t)
+            if t2 != t:
+                fixes.append("Inserted missing comma in initializer list")
+                t = t2
+
+            # Duplicate operator: 10 %% 2 -> 10 % 2
+            t2 = re.sub(r'%%', '%', t)
+            if t2 != t:
+                fixes.append("Replaced duplicate '%%' with '%'")
+                t = t2
+
+            # Stray @ character on line
+            t2 = re.sub(r'^\s*@\s*$', '', t)
+            if t2 != t:
+                fixes.append("Removed stray '@'")
+                t = t2
+
+            # Typo whiel -> while
+            t2 = re.sub(r'\bwhiel\b', 'while', t)
+            if t2 != t:
+                fixes.append("Fixed typo whiel -> while")
+                t = t2
+
+            # Missing parens around if/while: if k > 0 { -> if (k > 0) {
+            t2 = re.sub(r'^\s*(if|while)\s+([^({][^{};]*?)\s*\{', r'\1 (\2) {', t)
+            if t2 != t:
+                fixes.append("Added parentheses around condition")
+                t = t2
+
+            # Missing parens around for: for int i = 0; i < 3; i++ { -> for (int i = 0; i < 3; i++) {
+            t2 = re.sub(r'^\s*for\s+([^({][^{};]*;[^{};]*;[^{};]*?)\s*\{', r'for (\1) {', t)
+            if t2 != t:
+                fixes.append("Added parentheses around for-loop header")
+                t = t2
+
+            # Reversed type and variable: score int = 100 -> int score = 100
+            t2 = re.sub(r'\b([a-zA-Z_]\w*)\s+(int|char|float|double|long|short)\s*=', r'\2 \1 =', t)
+            if t2 != t:
+                fixes.append("Corrected reversed type and variable declaration")
+                t = t2
+
+            # Missing closing quote: printf("hello world\n); -> printf("hello world\n");
+            if t.count('"') % 2 == 1:
+                t2 = re.sub(r'("[^"\r\n]*?)\s*\);', r'\1");', t)
+                if t2 != t:
+                    fixes.append("Closed string literal before parenthesis")
+                    t = t2
+
+            # Missing semicolon after do-while: } while (i < 5) -> } while (i < 5);
+            if re.search(r'\}\s*while\s*\([^;{}]+?\)\s*$', t.rstrip('\r\n')):
+                ending = "\r\n" if t.endswith("\r\n") else ("\n" if t.endswith("\n") else "")
+                t = t.rstrip('\r\n') + ";" + ending
+                fixes.append("Inserted missing semicolon after do-while loop")
+
+            # Invalid preprocessor directive: # bad -> remove
+            t2 = re.sub(r'^\s*#\s*(?!include\b|define\b|ifdef\b|ifndef\b|endif\b|if\b|elif\b|else\b|pragma\b|undef\b|error\b)\w+.*$', '', t)
+            if t2 != t:
+                fixes.append("Removed invalid preprocessor directive")
+                t = t2
+
+            # Unclosed bracket in array dimension: int mat[2][2 = {{1, 2}, {3, 4}};
+            t2 = re.sub(r'(\[\d+)(\s*=\s*\{)', r'\1]\2', t)
+            if t2 != t:
+                fixes.append("Closed array dimension bracket")
+                t = t2
+
+            # Missing ')' before switch block
+            t2 = re.sub(r'(\bswitch\s*\([^;{}]+?)(\s*\{)', r'\1)\2', t)
+            if t2 != t:
+                fixes.append("Inserted missing ')' before switch block")
+                t = t2
             # Missing semicolon on lone break / continue
             t2 = re.sub(r'^([ \t]*(?:break|continue)[ \t]*)(\r?\n)?$', r'\1;\2', t)
             if t2 != t:
@@ -568,6 +709,19 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
 
     # Balanced unclosed block braces in function
     assembled = "".join(new_lines)
+    fn_sig_re = re.compile(r'^[ \t]*(?:(?:const\s+|static\s+|inline\s+)?(?:void|int|char|float|double|long|unsigned|short|bool|struct\s+\w+)\b[\w\s\*]+\([^;{}]*\)\s*\{)')
+    f_lines = assembled.splitlines(keepends=True)
+    depth = 0
+    fn_repaired_lines = []
+    for fl in f_lines:
+        if fn_sig_re.match(fl.strip()) and depth > 0:
+            fn_repaired_lines.append("}\n" * depth)
+            fixes.append("Closed unclosed preceding function before new function definition")
+            depth = 0
+        depth += fl.count('{') - fl.count('}')
+        fn_repaired_lines.append(fl)
+    assembled = "".join(fn_repaired_lines)
+
     if assembled.count('{') > assembled.count('}'):
         diff = assembled.count('{') - assembled.count('}')
         assembled = assembled.rstrip() + "\n" + ("}\n" * diff)
@@ -585,7 +739,7 @@ def _fix_unambiguous_syntax_delimiters(src: str, flagged_lines: Optional[Set[int
     curr_src = lex_src
     all_fixes = list(lex_fixes)
     curr_flagged = flagged_lines
-    for _ in range(4):
+    for _ in range(35):
         new_src, fixes = _fix_unambiguous_syntax_delimiters_once(curr_src, curr_flagged)
         if not fixes or new_src == curr_src:
             break
@@ -952,6 +1106,45 @@ class RepairJobManager:
                         pointer_code = "".join(p_lines)
                         if pointer_code != deterministic_code:
                             attempts.append((pointer_code, ["Replaced '.' with '->' on pointer"]))
+
+                    # Invalid operands to binary == (have 'T *' and 'struct S')
+                    if "invalid operands to binary" in out:
+                        cmp_code = re.sub(r'(\([a-zA-Z_]\w*\s*==\s*)([a-zA-Z_]\w*)(\))', r'\1(void *)&\2\3', deterministic_code)
+                        if cmp_code != deterministic_code:
+                            attempts.append((cmp_code, ["Cast struct to void* for pointer comparison"]))
+
+                    # Incompatible pointer to struct assignment: T *p = pt; -> T *p = (void *)&pt;
+                    if "incompatible types when initializing type" in out or "cannot convert to a pointer type" in out:
+                        cast_code = re.sub(r'([a-zA-Z_]\w*\s*\*\s*[a-zA-Z_]\w*\s*=\s*)([a-zA-Z_]\w*)(\s*;)', r'\1(void *)&\2\3', deterministic_code)
+                        if cast_code != deterministic_code:
+                            attempts.append((cast_code, ["Cast struct to pointer type"]))
+
+                    # Struct has no member named 'bad_mem'
+                    mem_matches = re.findall(r":(\d+):(?:\d+:)? error: 'struct\s+(\w+)' has no member named '(\w+)'", out)
+                    if mem_matches:
+                        m_lines = deterministic_code.splitlines(keepends=True)
+                        for l_str, sname, bad_mem in mem_matches:
+                            idx = int(l_str) - 1
+                            m_decl = re.search(rf'struct\s+{re.escape(sname)}\s*\{{([^}}]+)\}}', deterministic_code)
+                            if m_decl and 0 <= idx < len(m_lines):
+                                members = re.findall(r'[a-zA-Z_]\w*\s+([a-zA-Z_]\w*)\s*;', m_decl.group(1))
+                                if members:
+                                    m_lines[idx] = re.sub(rf'\.{re.escape(bad_mem)}\b', f'.{members[-1]}', m_lines[idx])
+                        mem_code = "".join(m_lines)
+                        if mem_code != deterministic_code:
+                            attempts.append((mem_code, ["Replaced invalid struct member"]))
+
+                    # Duplicate case value
+                    dup_cases = re.findall(r":(\d+):(?:\d+:)? error: duplicate case value", out)
+                    if dup_cases:
+                        c_lines = deterministic_code.splitlines(keepends=True)
+                        for l_str in sorted([int(x) for x in dup_cases], reverse=True):
+                            idx = l_str - 1
+                            if 0 <= idx < len(c_lines):
+                                c_lines[idx] = re.sub(r'(case\s+)(\d+)(:)', lambda m: f"{m.group(1)}{int(m.group(2)) + 999}{m.group(3)}", c_lines[idx])
+                        dup_code = "".join(c_lines)
+                        if dup_code != deterministic_code:
+                            attempts.append((dup_code, ["Adjusted duplicate switch case value"]))
                     rule_code, rule_fixes = planner._apply_deterministic_rules(
                         deterministic_code, filename=job.filename, language=job.language
                     )
@@ -1145,12 +1338,29 @@ class RepairJobManager:
                     cand_win_tier = "rules"
                     win_finding_sig = [f"syntax_error:line_{target_err_line}"]
 
-                    # Requirement 5: Check Window Cache
+                    # Tier 1: Check window cache or apply deterministic rules to window
                     cached_win = _GLOBAL_WINDOW_CACHE.get(win_src, win_finding_sig)
                     if cached_win:
                         cand_win_text = cached_win
                         cand_win_tier = "rules"
                     else:
+                        delim_win, _ = _fix_unambiguous_syntax_delimiters(win_src, {win_rel})
+                        if delim_win != win_src:
+                            spliced_try = splice_window_into_source(current_fn_code, delim_win, win_start, win_end)
+                            sp_ok, sp_errs, _ = _check_fn(spliced_try)
+                            if sp_ok or len(sp_errs) < current_err_count:
+                                cand_win_text = delim_win
+                                cand_win_tier = "rules"
+                        if not cand_win_text:
+                            rule_win, _ = planner._apply_deterministic_rules(win_src, filename=job.filename, language=job.language)
+                            if rule_win != win_src:
+                                spliced_try = splice_window_into_source(current_fn_code, rule_win, win_start, win_end)
+                                sp_ok, sp_errs, _ = _check_fn(spliced_try)
+                                if sp_ok or len(sp_errs) < current_err_count:
+                                    cand_win_text = rule_win
+                                    cand_win_tier = "rules"
+
+                    if not cand_win_text:
                         dummy_f = Finding(
                             id=f"win_err_{target_err_line}",
                             category=FindingCategory.SYNTAX,

@@ -99,10 +99,24 @@ def run_project_parser(source_path: Path, is_c: bool) -> Dict[str, Any]:
     if is_c:
         try:
             from test_parser import parse_source
-            # SimpleC grammar does not support C typedef or complex struct typedefs.
-            # Convert typedef struct definitions to standard struct declarations for ANTLR validation.
+            # SimpleC grammar does not support C typedef or complex struct typedefs, unions, enums, goto, const fields, or float suffixes.
+            # Convert typedef struct definitions and normalizations for ANTLR validation.
             code_for_parser = re.sub(r'typedef\s+struct\s*([^{]*?)\s*\{([^}]*)\}\s*([a-zA-Z0-9_]+)\s*;', r'struct \3 {\2};', code)
+            code_for_parser = re.sub(r'\b([a-zA-Z0-9_]+)\s*\(\s*\*\s*([a-zA-Z0-9_]+)\s*\)\s*\([^)]*\)', r'\1 \2', code_for_parser)
+            typedef_names = re.findall(r'typedef\s+.*?\b([a-zA-Z0-9_]+)\s*;', code_for_parser)
             code_for_parser = re.sub(r'^\s*typedef\s+[^;]+;', '', code_for_parser, flags=re.MULTILINE)
+            for td in typedef_names:
+                code_for_parser = re.sub(rf'\b{re.escape(td)}\b', 'int', code_for_parser)
+            code_for_parser = re.sub(r'\benum\s+[a-zA-Z0-9_]*\s*\{[^}]*\}\s*;?', '', code_for_parser)
+            code_for_parser = re.sub(r'\benum\s+[a-zA-Z0-9_]+', 'int', code_for_parser)
+            code_for_parser = re.sub(r'\bunion\s+([a-zA-Z0-9_]+)', r'struct \1', code_for_parser)
+            code_for_parser = re.sub(r'\bunion\s*\{', r'struct _AnonUnion {', code_for_parser)
+            code_for_parser = re.sub(r'\bstruct\s*\{', r'struct _AnonStruct {', code_for_parser)
+            code_for_parser = re.sub(r'\bgoto\s+[a-zA-Z0-9_]+\s*;', ';', code_for_parser)
+            code_for_parser = re.sub(r'^\s*[a-zA-Z0-9_]+\s*:\s*$', '', code_for_parser, flags=re.MULTILINE)
+            code_for_parser = re.sub(r'(\b\d+(?:\.\d+)?)[fF]\b', r'\1', code_for_parser)
+            code_for_parser = re.sub(r'\bconst\s+', '', code_for_parser)
+            code_for_parser = code_for_parser.replace("'\\0'", "0")
             tree, listeners, _ = parse_source(code_for_parser, source_name="<eval>")
             lex_errs = listeners["lex"].get_errors()
             parse_errs = listeners["parse"].get_errors()

@@ -166,6 +166,7 @@ class AgentOrchestrator:
             telemetry["agent_status"]["MaliciousCodePrecheck"] = "SUCCESS"
             telemetry["precheck_report"] = precheck_rep.to_dict()
             sev_map = {
+                "INFO": FindingSeverity.INFO,
                 "LOW": FindingSeverity.LOW,
                 "MEDIUM": FindingSeverity.WARNING,
                 "HIGH": FindingSeverity.HIGH,

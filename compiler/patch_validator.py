@@ -601,7 +601,7 @@ class PatchIntegrityInspector:
             w_body = m.group(3).strip()
             orig_wrapper_pat = re.compile(rf'\b{w_type}\s*\({re.escape(w_cond)}\)\s*\{{', re.DOTALL)
             if not orig_wrapper_pat.search(original_code):
-                if ("case" in w_body or "default" in w_body) and ("case" in original_code or "default" in original_code):
+                if not re.search(rf'\b{w_type}\b', original_code) and ("case" in w_body or "default" in w_body) and ("case" in original_code or "default" in original_code):
                     reasons.append(
                         f"Integrity rejection: Control-flow wrapper '{w_type}({w_cond})' introduced around statements outside finding scope."
                     )
@@ -634,17 +634,25 @@ class PatchIntegrityInspector:
                                 break
 
         # Scope guard (deterministic, generic)
-        # 1. Function list check: Reject if function list (names and count) differs
+        # 1. Function list check: Reject if function list differs
         def _extract_fn_list(src: str) -> List[str]:
             ctrl = {'if', 'while', 'for', 'switch', 'return', 'sizeof'}
             fn_matches = re.findall(r'^[ \t]*(?:[a-zA-Z_]\w*[\s*]+)+([a-zA-Z_]\w*)\s*\([^;)]*\)\s*\{', src, re.MULTILINE)
             return [m for m in fn_matches if m not in ctrl]
 
+        def _extract_fn_headers(src: str) -> Set[str]:
+            ctrl = {'if', 'while', 'for', 'switch', 'return', 'sizeof'}
+            fn_matches = re.findall(r'^[ \t]*(?:[a-zA-Z_]\w*[\s*]+)+([a-zA-Z_]\w*)\s*\([^;)]*\)', src, re.MULTILINE)
+            return {m for m in fn_matches if m not in ctrl}
+
         orig_fns = _extract_fn_list(original_code)
         cand_fns = _extract_fn_list(candidate_code)
-        if orig_fns and orig_fns != cand_fns:
+        orig_headers = _extract_fn_headers(original_code)
+        missing_fns = [fn for fn in orig_fns if fn not in cand_fns]
+        unexpected_fns = [fn for fn in cand_fns if fn not in orig_headers]
+        if missing_fns or unexpected_fns:
             reasons.append(
-                f"Scope guard rejection: Function list (names and count) differs. Original: {orig_fns}, Candidate: {cand_fns}"
+                f"Scope guard rejection: Function list differs. Missing: {missing_fns}, Unexpected: {unexpected_fns}"
             )
 
         # 2. Line distance check: Reject if any line not within 2 lines of a finding changed
@@ -1366,7 +1374,13 @@ class PatchValidator:
                 return False, 1, "Semantic validation blocked: syntax errors present in candidate"
 
             issues = collect_semantic_issues(tree, source_text=cand)
-            fatal_issues = [i for i in issues if i.get("kind") in ("undeclared", "redeclared")]
+            macros = set(re.findall(r'#define\s+([a-zA-Z_]\w*)', cand))
+            fatal_issues = [
+                i for i in issues
+                if i.get("kind") in ("undeclared", "redeclared")
+                and i.get("name") not in macros
+                and not any(m in str(i.get("msg", "")) for m in macros)
+            ]
 
             if fatal_issues:
                 msg = fatal_issues[0].get("msg", "Semantic symbol error")

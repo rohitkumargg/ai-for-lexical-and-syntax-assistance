@@ -29,6 +29,8 @@ UNSAFE_FUNCTIONS = {
     "strcat": "Unsafe string concatenation",
     "sprintf": "Unsafe string formatting",
     "vsprintf": "Unsafe variadic string formatting",
+    "tmpnam": "Insecure temporary file creation",
+    "rand": "Weak pseudo-random number generator (CWE-338)",
 }
 
 

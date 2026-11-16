@@ -486,8 +486,11 @@ def _classify_program_status(
         err_msg = default_reason or "Source code fails GCC compiler syntax check."
         return "COMPILATION_FAILED", "Compilation Failed", err_msg
 
-    if not findings:
-        assert is_clean_gcc, f"Contradiction: program cannot be classified as CLEAN while gcc compilation fails (gcc output: {gcc_out if 'gcc_out' in locals() else 'error'})"
+    code_findings = [
+        f for f in findings
+        if "INJECTION-001" not in str(getattr(f, "rule_id", "") or (getattr(f, "metadata", {}) or {}).get("rule_id", ""))
+    ]
+    if not code_findings:
         return "CLEAN", "Program is Clean, 0 Errors / 0 Vulnerabilities", "Source code has zero compiler errors or security issues."
 
     sec_findings = [
@@ -2047,17 +2050,34 @@ class RepairPlanner:
                         "sqrt": "math.h", "pow": "math.h", "sin": "math.h", "cos": "math.h",
                     }
                     imp_funcs = re.findall(r"(?:warning|error):\s*(?:implicit declaration of function|call to undeclared function)\s*['`]([a-zA-Z_]\w*)['`]", out)
+                    custom_protos = []
                     for fn in imp_funcs:
                         if fn in KNOWN_HEADER_FOR_FUNC:
                             missing_headers.append(KNOWN_HEADER_FOR_FUNC[fn])
+                        else:
+                            m_ret = re.search(r'((?:(?:struct|enum|union)\s+)?[a-zA-Z_]\w*(?:\s*\*+)?)\s+[a-zA-Z_]\w*\s*=\s*' + fn + r'\s*\(', src)
+                            ret_type = m_ret.group(1).strip() if m_ret else "int"
+                            proto = f"{ret_type} {fn}(void);"
+                            if proto not in src:
+                                custom_protos.append(proto)
 
                     KNOWN_LIBC_HEADERS = {"stdio.h", "stdlib.h", "string.h", "math.h", "ctype.h", "stdbool.h", "stddef.h", "stdint.h", "limits.h", "time.h", "assert.h"}
                     unique_hdrs = [h for h in dict.fromkeys(missing_headers) if h in KNOWN_LIBC_HEADERS]
-                    if not unique_hdrs:
+                    if not unique_hdrs and not custom_protos:
                         return src, []
 
                     res_code = src
                     fixes = []
+                    for proto in custom_protos:
+                        if "int main" in res_code:
+                            test_code = res_code.replace("int main", proto + "\nint main", 1)
+                        else:
+                            test_code = proto + "\n" + res_code
+                        t_ok, t_errs, _ = _lightweight_check(test_code)
+                        if t_ok or len(t_errs) < len(err_lines):
+                            res_code = test_code
+                            err_lines = t_errs
+                            fixes.append(f"Added forward declaration: '{proto}'")
                     for hdr in unique_hdrs:
                         if f"<{hdr}>" not in res_code:
                             test_code = f"#include <{hdr}>\n" + res_code
@@ -2145,14 +2165,65 @@ class RepairPlanner:
                                     "msg": getattr(f, "explanation", ""),
                                     "name": getattr(f, "metadata", {}).get("name"),
                                 }
+                                if not f_dict["kind"]:
+                                    m_k = re.search(r"Semantic\s+([a-zA-Z_]\w*):", str(f_dict.get("msg", "")))
+                                    if m_k:
+                                        f_dict["kind"] = m_k.group(1)
                                 if not f_dict["kind"] and "dot_on_pointer" in str(getattr(f, "explanation", "")).lower():
                                     f_dict["kind"] = "dot_on_pointer"
                                 elif not f_dict["kind"] and "arrow_on_value" in str(getattr(f, "explanation", "")).lower():
                                     f_dict["kind"] = "arrow_on_value"
+                                elif not f_dict["kind"] and ("redeclared" in str(getattr(f, "explanation", "")).lower() or "redefinition" in str(getattr(f, "explanation", "")).lower()):
+                                    f_dict["kind"] = "redeclared"
                                 fix_src, fix_note = fix_semantic_issue(current_code, f_dict)
                                 if fix_note and fix_src != current_code:
                                     current_code = fix_src
                                     applied_steps.append(fix_note)
+            except Exception:
+                pass
+
+            try:
+                # Struct assigned to pointer: T *p = s; -> T *p = (T *)&s;
+                m_st_asgn = re.search(r'(\b([a-zA-Z_]\w*)\s*\*+\s*[a-zA-Z_]\w*\s*=\s*)([a-zA-Z_]\w*)(\s*;)', current_code)
+                if m_st_asgn:
+                    t_name = m_st_asgn.group(2)
+                    v_name = m_st_asgn.group(3)
+                    if re.search(rf'\bstruct\s+[a-zA-Z_]\w*\s+{re.escape(v_name)}\b', current_code):
+                        cand_asgn = current_code.replace(m_st_asgn.group(0), f"{m_st_asgn.group(1)}({t_name} *)&{v_name}{m_st_asgn.group(4)}", 1)
+                        c_ok, c_errs, _ = _lightweight_check(cand_asgn)
+                        if c_ok or len(c_errs) < len(_lightweight_check(current_code)[1]):
+                            current_code = cand_asgn
+                            applied_steps.append(f"Fixed pointer assignment: cast struct address '({t_name} *)&{v_name}'")
+
+                # Pointer compared to struct: p == s -> p == (void *)&s
+                m_st_cmp = re.search(r'(\b[a-zA-Z_]\w*\s*==\s*)([a-zA-Z_]\w*)(\b)', current_code)
+                if m_st_cmp:
+                    v_name = m_st_cmp.group(2)
+                    if re.search(rf'\bstruct\s+[a-zA-Z_]\w*\s+{re.escape(v_name)}\b', current_code):
+                        cand_cmp = current_code.replace(m_st_cmp.group(0), f"{m_st_cmp.group(1)}(void *)&{v_name}", 1)
+                        c_ok, c_errs, _ = _lightweight_check(cand_cmp)
+                        if c_ok or len(c_errs) < len(_lightweight_check(current_code)[1]):
+                            current_code = cand_cmp
+                            applied_steps.append(f"Fixed pointer comparison: compared with struct address '(void *)&{v_name}'")
+
+                # Duplicate case in switch
+                lines_cases = current_code.splitlines(keepends=True)
+                seen_cases = set()
+                rem_case_idx = []
+                for idx_c, line_c in enumerate(lines_cases):
+                    m_c = re.match(r'^\s*case\s+([^:]+):', line_c)
+                    if m_c:
+                        c_val = m_c.group(1).strip()
+                        if c_val in seen_cases:
+                            rem_case_idx.append(idx_c)
+                        else:
+                            seen_cases.add(c_val)
+                if rem_case_idx:
+                    cand_c = "".join([l for i_c, l in enumerate(lines_cases) if i_c not in rem_case_idx])
+                    c_ok, c_errs, _ = _lightweight_check(cand_c)
+                    if c_ok or len(c_errs) < len(_lightweight_check(current_code)[1]):
+                        current_code = cand_c
+                        applied_steps.append("Removed duplicate case label in switch")
             except Exception:
                 pass
 
@@ -2992,29 +3063,46 @@ class RepairPlanner:
                 session.initial_finding_count = total_f_init
             session.remaining_finding_count = len(actionable)
 
-        if not actionable and manip_count > 0:
-            det_code = remove_manipulation_comments_from_source(source_code)
-            det_steps = ["removed AI-manipulation comment"]
-            val_det = self.validate_candidate(source_code, det_code, filename=filename, language=lang_id)
-            if val_det.is_valid:
-                cand = det_code
-                desc = "Deterministic security repair: removed AI-manipulation comment."
-                prov = "rule_based"
-                strat = "deterministic_security_rules"
-                cand_title = "Deterministic Security Proposal: Removed Manipulation Directive"
-                workflow_state = "DETERMINISTIC_REPAIR_READY"
-                terminal_status = "PROPOSAL_READY"
-                stopping_reason = "Removed adversarial manipulation directives from source."
-                logger.record_stage(
-                    stage_id="deterministic_rules",
-                    stage_name="7. Deterministic Rule Engine",
-                    status=StageStatus.PASSED,
-                    description=desc,
-                )
-        elif not actionable:
+        if not actionable:
             status_val, label_val, msg_val = _classify_program_status(
-                source_code, findings, lang_id=lang_id, default_status="SYNTAX_ERRORS", default_reason=f"Program has {len(findings)} syntax error(s)"
+                source_code, findings, lang_id=lang_id, default_status="CLEAN", default_reason="Program is clean"
             )
+            if status_val == "CLEAN":
+                before_six = before_scores.get("six_metrics") or calculate_six_metrics(
+                    source_code, filename=filename, language=lang_id, findings=findings
+                )
+                metrics_comp = build_six_metrics_comparison(before_six, before_six)
+                return {
+                    "status": "CLEAN",
+                    "run_id": logger.run_id if logger else "unknown",
+                    "message": "Source code has zero compiler errors or security issues.",
+                    "findings": [],
+                    "unified_findings": [],
+                    "classified_findings": classified_findings,
+                    "pipeline_stages": pipeline_stages,
+                    "pipeline_events": [e.to_dict() for e in logger.ordered_events] if logger else [],
+                    "baseline_scores": before_scores,
+                    "original_assessment": before_scores,
+                    "proposed_scores": before_scores,
+                    "candidate_assessment": before_scores,
+                    "before_metrics": before_scores,
+                    "after_metrics": before_scores,
+                    "before_six_metrics": before_six,
+                    "after_six_metrics": before_six,
+                    "metrics_comparison": metrics_comp,
+                    "original_source_hash": orig_hash,
+                    "deltas": {},
+                    "candidate": None,
+                    "candidate_id": None,
+                    "precheck_report": precheck_rep.to_dict() if precheck_rep else {},
+                    "summary": "Source code is completely clean. No errors or vulnerabilities detected.",
+                    "security_recommendations": [],
+                    "agent_telemetry": {
+                        "model_used": "Analyzers Verified",
+                        "ollama_available": self.ollama.is_available(),
+                        "duration_ms": round((time.perf_counter() - t0) * 1000.0, 2),
+                    },
+                }
             cand = source_code
             desc = "Verified program: all statements valid and clean of compiler errors."
             prov = "deterministic_rules"

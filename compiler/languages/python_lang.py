@@ -3,22 +3,15 @@ import re
 import keyword
 from typing import Dict, Any, List, Optional, Tuple, Generator
 
-from compiler.gui_bridge import (
-    GreenMetrics,
-    GreenEnergyTracker,
-    GreenSystemTracker,
-    _finalize_green_report,
-    _emit_progress,
-    _compute_changed_lines,
-)
 from compiler.languages import python_semantic, python_security
 
-HEAD = re.compile(r'^\s*(if|elif|else|for|while|def|class|try|except|finally|with)\b')
+HEAD = re.compile(r'^\s*(if|elif|else|for|while|(?:async\s+)?def|class|try|except|finally|with|match|case)\b')
 KW = [k for k in keyword.kwlist if k not in ('True', 'False', 'None')]
 
 def err(src: str) -> Optional[Tuple[int, int, str]]:
     try:
         ast.parse(src)
+        compile(src, "<string>", "exec")
         return None
     except SyntaxError as e:
         return (e.lineno or 1, e.offset or 0, e.msg or "syntax error")
@@ -59,6 +52,13 @@ def is_token_level(desc: str) -> bool:
     ])
 
 def candidates(src: str) -> Generator[Tuple[str, str], None, None]:
+    if '\t' in src:
+        yield "convert tabs to spaces in source", src.expandtabs(4)
+    if src.count("'''") % 2 == 1:
+        yield "close triple single quote", src.rstrip() + "'''\n"
+    if src.count('"""') % 2 == 1:
+        yield "close triple double quote", src.rstrip() + '"""\n'
+
     lines = src.split('\n')
     e = err(src)
     if not e:
@@ -73,13 +73,73 @@ def candidates(src: str) -> Generator[Tuple[str, str], None, None]:
             n[L - 1] = txt
             return '\n'.join(n)
 
+        m_f = re.search(r'(f[\'"][^\'"]*\{[^\'\"}]*)([\'"])', t)
+        if m_f:
+            yield "close brace in f-string", put(t[:m_f.start()] + m_f.group(1) + '}' + m_f.group(2) + t[m_f.end():])
+
+        m_comp = re.search(r'(\b\w+\([^()]*?)(\s+(?:if|for)\b)', t)
+        if m_comp:
+            yield "close paren before comprehension clause", put(t[:m_comp.start()] + m_comp.group(1) + ')' + m_comp.group(2) + t[m_comp.end():])
+
+        m_wal = re.search(r'(\(\s*[a-zA-Z_]\w*\s*:=\s*[^)]+\))(\s*[<>=!])', t)
+        if m_wal:
+            yield "close walrus paren", put(t[:m_wal.start()] + m_wal.group(1) + ')' + m_wal.group(2) + t[m_wal.end():])
+
         if re.match(r'^\s*else\s+if\b', t):
             yield "else if -> elif", put(re.sub(r'else\s+if', 'elif', t, count=1))
         if HEAD.match(t) and not core.endswith(':'):
             yield "added ':'", put(core + ':')
+        if HEAD.match(t) and core.endswith(':'):
+            indent = len(t) - len(t.lstrip(' '))
+            block_lines = lines[:]
+            block_lines.insert(L, ' ' * (indent + 4) + 'pass')
+            yield "insert 'pass' for empty block", '\n'.join(block_lines)
         for ch, op in ((')', '('), (']', '['), ('}', '{')):
             if core.count(op) > core.count(ch):
                 yield f"closed '{ch}'", put(core + ch)
+            elif core.count(ch) > core.count(op):
+                yield f"removed extra '{ch}'", put(re.sub(re.escape(ch) + r'(?=[^' + re.escape(ch) + r']*$)', '', t))
+
+        if '$' in t:
+            yield "strip '$'", put(t.replace('$', ''))
+
+        m = re.match(r'^(\s*)(\d+|["\'][^"\']*["\'])\s*=\s*([a-zA-Z_]\w*)(\s*)$', t)
+        if m:
+            yield "swap assignment", put(f"{m.group(1)}{m.group(3)} = {m.group(2)}{m.group(4)}")
+
+        if re.search(r'\blambda\b', t) and ':' not in t:
+            m_lam = re.match(r'^(.*?\blambda\s+[a-zA-Z0-9_,\s]+?)(\s+[a-zA-Z0-9_\'\"].*)$', t)
+            if m_lam:
+                yield "add ':' to lambda", put(f"{m_lam.group(1)}:{m_lam.group(2)}")
+
+        if not re.search(r'\b(?:for|if|while|switch|return)\b', t):
+            m_c = re.sub(r'(\b\d+\b)\s+(\b\d+\b)', r'\1, \2', t)
+            if m_c != t:
+                yield "insert missing comma between numbers", put(m_c)
+            m_c2 = re.sub(r'([\'\"][^\'\"]*[\'\"])\s+([\'\"][^\'\"]*[\'\"])', r'\1, \2', t)
+            if m_c2 != t:
+                yield "insert missing comma between strings", put(m_c2)
+            m_c3 = re.sub(r'(\d+)\s+([\'\"])', r'\1, \2', t)
+            if m_c3 != t:
+                yield "insert missing comma between number and string", put(m_c3)
+            m_c4 = re.sub(r'([\'\"])\s+(\d+)', r'\1, \2', t)
+            if m_c4 != t:
+                yield "insert missing comma between string and number", put(m_c4)
+
+        m_lit_bin = re.search(r'(=\s*\d+)\s+(\d+)\s*$', t)
+        if m_lit_bin:
+            yield "insert '+' between numbers", put(re.sub(r'(=\s*\d+)\s+(\d+)', r'\1 + \2', t))
+
+        if t.strip() in ('break', 'continue'):
+            yield "stray break/continue -> pass", put(re.sub(r'\b(break|continue)\b', 'pass', t))
+
+        if re.search(r'\bpass\s*=', t):
+            yield "pass variable -> my_pass", put(re.sub(r'\bpass\b', 'my_pass', t))
+        if re.search(r'\breturn\s+pass\b', t):
+            yield "return pass -> return my_pass", put(re.sub(r'\breturn\s+pass\b', 'return my_pass', t))
+        if re.match(r'^\s*return\b', t) and 'outside' in (e[2] if e else ''):
+            indented = ["    " + l if l.strip() else l for l in lines]
+            yield "wrap in main()", "def main():\n" + "\n".join(indented) + "\n\nif __name__ == '__main__':\n    main()\n"
         if core.count('"') % 2 == 1:
             yield 'closed string', put(core + '"')
         if core.count("'") % 2 == 1:
@@ -132,6 +192,15 @@ def repair_python_stream(source: str, filename: str = "main.py") -> Generator[Di
         "sec_det_fixes": 0,
         "iterations": 0,
     }
+
+    from compiler.gui_bridge import (
+        GreenMetrics,
+        GreenEnergyTracker,
+        GreenSystemTracker,
+        _finalize_green_report,
+        _emit_progress,
+        _compute_changed_lines,
+    )
 
     green = GreenMetrics()
     energy = GreenEnergyTracker()

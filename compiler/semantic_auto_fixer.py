@@ -415,7 +415,33 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                         new_inside = ", ".join(a_txt.strip() for _, _, a_txt in kept_args)
                         updated = text[:call_m.start(1)] + new_inside + text[call_m.end(1):]
                         return _replace_line(source, line, text, updated, f"removed {got_m - expected_n} unused side-effect free argument(s)")
-        return source, None  # too few args -> SUGGESTED
+            elif got_m < expected_n:
+                call_m = re.search(r"\((.*)\)", text)
+                if call_m:
+                    inside = call_m.group(1).strip()
+                    diff = expected_n - got_m
+                    defaults = ", ".join(["0"] * diff)
+                    new_inside = f"{inside}, {defaults}" if inside else defaults
+                    updated = text[:call_m.start(1)] + new_inside + text[call_m.end(1):]
+                    return _replace_line(source, line, text, updated, f"supplied default argument(s) for {diff} missing parameter(s)")
+        return source, None
+
+    # -------------------------------------------------------------
+    # 6B. Unknown Struct Member
+    # -------------------------------------------------------------
+    if kind == "unknown_member":
+        m_un = re.search(r"'struct\s+([A-Za-z_]\w*)'\s+has no member named\s+'([A-Za-z_]\w*)'", message)
+        if m_un:
+            sname = m_un.group(1)
+            bad_mem = m_un.group(2)
+            m_decl = re.search(rf'struct\s+{re.escape(sname)}\s*\{{([^\}}]+)\}}', source)
+            if m_decl:
+                members = re.findall(r'[a-zA-Z_]\w*\s+([a-zA-Z_]\w*)\s*;', m_decl.group(1))
+                if members:
+                    target_mem = members[0]
+                    updated = re.sub(rf'\.{re.escape(bad_mem)}\b', f'.{target_mem}', text)
+                    if updated != text:
+                        return _replace_line(source, line, text, updated, f"replaced invalid member '{bad_mem}' with '{target_mem}'")
 
     # -------------------------------------------------------------
     # 7. Invalid Operand Type (Bitwise & Shift operators)
@@ -445,8 +471,8 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                     vinit = (m.group("init") or "").strip()
                     indent = m.group("indent")
                     rest = m.group("rest")
-                    nl = l[len(l.rstrip("\r\n")):] or "\n"
-                    clean_rest = rest.rstrip("\r\n")
+                    nl = l[len(l.rstrip("\n")):] or "\n"
+                    clean_rest = rest.rstrip("\n")
 
                     is_bitwise_init = bool(re.search(r"(?:~|[&|^]|<<|>>)", vinit))
                     is_operand = bool(re.search(rf"\b{re.escape(vname)}\b", err_line_text)) or any(
@@ -548,6 +574,33 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                     break
             del lines[index:end_idx + 1]
             return "".join(lines), f"removed redeclaration of struct '{sname}'"
+
+    # -------------------------------------------------------------
+    # 12b. Redeclared / Redefined Function (remove duplicate definition)
+    # -------------------------------------------------------------
+    if kind in ("redeclared", "redefinition") or "redeclared" in kind or "redeclared" in message.lower() or "redefinition" in message.lower():
+        fn_name = issue.get("name")
+        if not fn_name:
+            m_fn = re.search(r"[Rr]edeclaration of function ['`]([a-zA-Z_]\w*)['`]", message) or re.search(r"redefinition of ['`]([a-zA-Z_]\w*)['`]", message)
+            if m_fn:
+                fn_name = m_fn.group(1)
+        if fn_name:
+            fn_pat = re.compile(rf"\b{re.escape(fn_name)}\s*\(")
+            has_earlier = any(fn_pat.search(lines[prev_k]) for prev_k in range(0, index))
+            if fn_pat.search(text) and has_earlier:
+                end_idx = index
+                brace_count = 0
+                started = False
+                for k in range(index, len(lines)):
+                    l = lines[k]
+                    brace_count += l.count("{") - l.count("}")
+                    if "{" in l:
+                        started = True
+                    if started and brace_count <= 0:
+                        end_idx = k
+                        break
+                del lines[index:end_idx + 1]
+                return "".join(lines), f"removed duplicate definition of function '{fn_name}'"
 
     # -------------------------------------------------------------
     # 13. Use Before Declare (User change 3: hoist bare declaration, leave initializer as assignment in place)

@@ -152,6 +152,8 @@ def parse_source(source_text: str, source_name: str = "<input>"):
         print(f"Parsing: {source_name}")
         print("=" * 70)
 
+    if "'\\0'" in source_text:
+        source_text = source_text.replace("'\\0'", "0")
     input_stream = InputStream(source_text)
 
     lexer = SimpleCLexer(input_stream)

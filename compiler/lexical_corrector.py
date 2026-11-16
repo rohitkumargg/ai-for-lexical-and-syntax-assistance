@@ -74,6 +74,12 @@ def fix_common_lexical_issues(source_text: str) -> Tuple[str, List[str]]:
     """
     fixes: List[str] = []
 
+    # Close unterminated character literal before semicolon
+    char_sub = re.sub(r"'([^'\\\n]|\\.)(?=;)", r"'\1'", source_text)
+    if char_sub != source_text:
+        fixes.append("Closed unterminated character literal")
+        source_text = char_sub
+
     new_text, char_fixes = _normalize_characters(source_text)
     fixes.extend(char_fixes)
 
@@ -82,6 +88,29 @@ def fix_common_lexical_issues(source_text: str) -> Tuple[str, List[str]]:
 
     new_text, keyword_fixes = _fix_keyword_typos(new_text)
     fixes.extend(keyword_fixes)
+
+    if new_text.count("/*") > new_text.count("*/"):
+        lines = new_text.splitlines(keepends=True)
+        new_lines = []
+        in_comm = False
+        for line in lines:
+            if "/*" in line and "*/" not in line:
+                in_comm = True
+                new_lines.append(line)
+                continue
+            if in_comm and re.match(r'^(?:#|int\b|void\b|char\b|float\b|double\b|struct\b|typedef\b|return\b|[a-zA-Z_]\w*\s*\()', line.strip()):
+                prev = new_lines[-1].rstrip("\r\n")
+                ending = "\r\n" if new_lines[-1].endswith("\r\n") else "\n"
+                new_lines[-1] = prev + " */" + ending
+                in_comm = False
+                fixes.append("Closed unterminated comment")
+            new_lines.append(line)
+        if in_comm:
+            prev = new_lines[-1].rstrip("\r\n")
+            ending = "\r\n" if new_lines[-1].endswith("\r\n") else "\n"
+            new_lines[-1] = prev + " */" + ending
+            fixes.append("Closed unterminated comment at EOF")
+        new_text = "".join(new_lines)
 
     return new_text, fixes
 
@@ -127,6 +156,12 @@ def _normalize_common_tokens(source_text: str) -> Tuple[str, List[str]]:
             continue
 
         updated = chunk
+        # Close unterminated character literal before semicolon: 'A; -> 'A';
+        updated2 = re.sub(r"'([^'\\]|\\.)(?=;)", r"'\1'", updated)
+        if updated2 != updated:
+            fixes.append("Closed unterminated character literal")
+            updated = updated2
+            changed = True
         for bad, good in TOKEN_NORMALIZATIONS.items():
             if bad in updated:
                 count = updated.count(bad)
