@@ -30,6 +30,7 @@ UNSAFE_FUNCTIONS = {
     "sprintf": "Unsafe string formatting",
     "vsprintf": "Unsafe variadic string formatting",
     "tmpnam": "Insecure temporary file creation",
+    "mktemp": "Insecure temporary file creation (CWE-377)",
     "rand": "Weak pseudo-random number generator (CWE-338)",
 }
 
@@ -482,6 +483,50 @@ class SecurityChecker:
                             is_confirmed=True,
                         )
                     )
+
+        # ------------------------------------------------
+        # 13. Unchecked realloc assignment (CWE-401 / CWE-252)
+        # ------------------------------------------------
+        m_realloc = re.search(r'\b([A-Za-z_]\w*)\s*=\s*(?:\([^\)]+\)\s*)?realloc\s*\(\s*\1\s*,', clean_code_no_strings)
+        if m_realloc:
+            v_name = m_realloc.group(1)
+            line_no = clean_code_no_strings.count("\n", 0, m_realloc.start()) + 1
+            stable_id = f"unchecked_realloc:{v_name}:{line_no}"
+            if stable_id not in seen_ids:
+                seen_ids.add(stable_id)
+                issues.append(
+                    SecurityIssue(
+                        severity="WARNING",
+                        message=f"Direct realloc assignment to '{v_name}' leaks memory on failure (CWE-401)",
+                        suggestion="Use a temporary pointer to check realloc return value.",
+                        score=3,
+                        line=line_no,
+                        stable_id=stable_id,
+                        is_confirmed=True,
+                    )
+                )
+
+        # ------------------------------------------------
+        # 14. Insecure file creation permissions (CWE-732)
+        # ------------------------------------------------
+        m_perm = re.search(r'\b(?:open|creat)\s*\([^;]*\b(0[67][67][67])\b', clean_code_no_strings)
+        if m_perm:
+            perm_str = m_perm.group(1)
+            line_no = clean_code_no_strings.count("\n", 0, m_perm.start()) + 1
+            stable_id = f"insecure_perm:{perm_str}:{line_no}"
+            if stable_id not in seen_ids:
+                seen_ids.add(stable_id)
+                issues.append(
+                    SecurityIssue(
+                        severity="WARNING",
+                        message=f"Overly permissive file creation mode {perm_str} (CWE-732)",
+                        suggestion="Restrict file permissions to 0600 or use secure umask.",
+                        score=3,
+                        line=line_no,
+                        stable_id=stable_id,
+                        is_confirmed=True,
+                    )
+                )
         # Remove duplicate identical findings (Step 3c)
         unique_issues = []
         seen_findings = set()

@@ -1,0 +1,101 @@
+file,lines,language,category,subcat,split,expected_class,passed,status,tier,windows,stage_seconds,errors_before,errors_after,failure_cause,apply_http_status,gcc_rc,gcc_stderr,parser_rc,parser_stderr,metrics_overall_quality,metrics_optimal_code,metrics_poor_code,metrics_vulnerability_risk,metrics_green,metrics_model_accuracy,elapsed_s,run_output
+tests/corpus/c_str_015.c,0,c,structure,empty_file,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/py_str_013.py,0,python,structure,empty_file_py,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/cross_032.py,0,unknown,unknown,,unknown,unknown,False,ERROR,none,0,,0,0,Exception during execution: Job d27e1243864c4fd792825870562ca1e0 did not complete within 120.0s (last state: none),ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,Job d27e1243864c4fd792825870562ca1e0 did not complete within 120.0s (last state: none)
+tests/corpus/py_syn_032.py,0,unknown,unknown,,unknown,unknown,False,ERROR,none,0,,0,0,Exception during execution: Job a11051cd1a4c4cb39d7278a54b33a853 did not complete within 120.0s (last state: none),ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,Job a11051cd1a4c4cb39d7278a54b33a853 did not complete within 120.0s (last state: none)
+tests/corpus/py_syn_028.py,0,unknown,unknown,,unknown,unknown,False,ERROR,none,0,,0,0,Exception during execution: Job eb231d953fec4925b9bb6c847b2a707e did not complete within 120.0s (last state: none),ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,Job eb231d953fec4925b9bb6c847b2a707e did not complete within 120.0s (last state: none)
+tests/corpus/c_str_015.c,0,c,structure,empty_file,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/py_str_013.py,0,python,structure,empty_file_py,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/cross_032.py,1,python,cross_cutting,clean_py_tiny,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.11,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_032.py,1,python,syntax,bad_assignment_operator,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.92,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_028.py,1,python,syntax,stray_character_dollar,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.85,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_028.c,6,c,security,pointer_arithmetic_overflow,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.7,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_015.c,4,c,semantic,subscript_non_array,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.77,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_015.c,5,c,security,weak_random_number,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,2,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.82,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_sec_016.c,6,c,security,temp_file_race_tmpnam,dev,security-issue,False,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,"Security repair failed (apply=200, comp_rc=0)",200,0,,1,Line 4:12 - PARSE Error: mismatched input '=' expecting ';' (offending: =),80%,80%,0%,0%,85/100,86.7%,6.19,"Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_sec_017.c,6,c,security,unchecked_fopen_return,dev,security-issue,False,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,"Security repair failed (apply=200, comp_rc=0)",200,0,,1,Line 4:12 - PARSE Error: mismatched input '=' expecting ';' (offending: =),80%,80%,0%,0%,85/100,86.7%,7.78,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_026.py,2,python,security,sql_format_concatenation,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_035.c,5,c,structure,enum_bitmasks,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.43,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_014.c,6,c,cross_cutting,reg_c_struct_ptr_deref,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.59,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_041.c,12,c,syntax,multiple_errors_3funcs,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,6.19,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_011.c,8,c,cross_cutting,reg_c_switch_case_break,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,9.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_011.c,9,c,semantic,redefinition_func,dev,broken,True,REPAIR_PLAN_READY,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,11.19,Status: REPAIR_PLAN_READY | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_016.c,6,c,security,temp_file_race_tmpnam,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,7.1,"Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_sec_017.c,6,c,security,unchecked_fopen_return,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,10.51,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_003.c,6,c,syntax,missing_semicolon_return,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.37,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_030.c,7,c,structure,goto_label_statement,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.92,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_024.c,5,c,semantic,array_size_negative,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpzo0r08ik.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpzo0r08ik.c:4:12: warning: return makes integer from pointer without a cast [-Wint-conversion]
+     return arr;
+            ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpzo0r08ik.c:4:12: warning: function returns address of local variable [-Wreturn-local-addr]",0,,80%,80%,0%,0%,85/100,86.7%,7.56,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_006.c,6,c,semantic,type_mismatch_int_to_ptr,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_008.c,9,c,security,use_after_free,dev,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,3,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,3.59,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 2 security issue(s) need manual review"
+tests/corpus/c_sec_031.c,7,c,security,unrestricted_file_permission,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,2,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.06,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_024.c,7,c,security,unvalidated_loop_bound_copy,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,3,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.26,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_026.c,8,c,security,unchecked_realloc,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.29,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_030.c,14,c,security,unbounded_vsnprintf,dev,security-issue,False,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,"Security repair failed (apply=200, comp_rc=0)",200,0,,1,"Line 3:24 - PARSE Error: no viable alternative at input 'voidlog_msg(char*fmt,.' (offending: .)
+Line 3:24 - PARSE Error: mismatched input '.' expecting {'*', IDENTIFIER} (offending: .)
+Line 6:4 - PARSE Error: extraneous input 'va_start' expecting {<EOF>, 'const', 'volatile', 'static', 'extern', 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: va_start)",80%,80%,0%,0%,85/100,86.7%,5.2,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_008.c,9,c,security,use_after_free,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,2,,0,2,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,16.07,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 2 security issue(s) need manual review"
+tests/corpus/c_sec_030.c,14,c,security,unbounded_vsnprintf,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,18.36,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_003.c,6,c,semantic,wrong_arg_count_few,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,41.57,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_004.c,6,c,semantic,wrong_arg_count_many,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,6.09,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_049.c,4,c,syntax,double_type_specifier,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,11.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_025.c,5,c,semantic,invalid_operands_binary_modulo,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.01,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_034.c,6,c,security,scanf_missing_ampersand,held_out,security-issue,True,REPAIR_PLAN_READY,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.22,Status: REPAIR_PLAN_READY | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_009.c,8,c,security,double_free,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,2,,0,3,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.79,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp1vh9_pbv.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp1vh9_pbv.c:6:5: warning: implicit declaration of function 'mkstemp' [-Wimplicit-function-declaration]
+     mkstemp(templ);
+     ^~~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,3.81,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_022.c,8,c,security,unchecked_write_return,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.99,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_028.c,10,c,structure,macro_multiline,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,8.6,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_001.c,3,c,semantic,undeclared_var,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,9.36,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmpuyco11jk.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpuyco11jk.c:5:5: warning: implicit declaration of function 'mktemp' [-Wimplicit-function-declaration]
+     mktemp(templ);
+     ^~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,6.0,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sem_027.c,4,c,semantic,void_variable_declaration,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpdmda29v8.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpdmda29v8.c:2:9: warning: unused variable 'val' [-Wunused-variable]
+     int val = 0;
+         ^~~",0,,80%,80%,0%,0%,85/100,86.7%,26.9,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Program is clean
+tests/corpus/c_syn_030.c,4,c,syntax,bad_decl_inverted_order,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,21.4,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_040.c,5,c,syntax,stray_hash_token,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.56,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmp17vvvu90.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp17vvvu90.c:5:5: warning: implicit declaration of function 'mktemp' [-Wimplicit-function-declaration]
+     mktemp(templ);
+     ^~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,4.0,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmp97878lau.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp97878lau.c:5:5: warning: implicit declaration of function 'mktemp' [-Wimplicit-function-declaration]
+     mktemp(templ);
+     ^~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,3.72,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmpvzkwi1_n.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpvzkwi1_n.c:5:5: warning: implicit declaration of function 'mktemp' [-Wimplicit-function-declaration]
+     mktemp(templ);
+     ^~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,3.79,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmpruaokasu.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpruaokasu.c:5:5: warning: implicit declaration of function 'mktemp' [-Wimplicit-function-declaration]
+     mktemp(templ);
+     ^~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,3.82,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpcahj1bun.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpcahj1bun.c:4:10: warning: unused variable 'templ' [-Wunused-variable]
+     char templ[] = ""/tmp/testXXXXXX"";
+          ^~~~~",0,,80%,80%,0%,0%,85/100,86.7%,11.17,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_027.c,4,c,semantic,void_variable_declaration,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpshgfe8wy.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpshgfe8wy.c:2:9: warning: unused variable 'val' [-Wunused-variable]
+     int val = 0;
+         ^~~",0,,80%,80%,0%,0%,85/100,86.7%,3.82,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Program is clean
+tests/corpus/c_syn_030.c,4,c,syntax,bad_decl_inverted_order,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,18.1,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_040.c,5,c,syntax,stray_hash_token,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.64,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_001.c,3,c,semantic,undeclared_var,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.43,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp4xm15riz.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp4xm15riz.c:4:10: warning: unused variable 'templ' [-Wunused-variable]
+     char templ[] = ""/tmp/testXXXXXX"";
+          ^~~~~",0,,80%,80%,0%,0%,85/100,86.7%,8.04,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_010.c,5,c,semantic,redefinition_var,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,34.41,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Time budget slice reached in stage 'static_analysis'. Partial candidate and findings preserved.
+tests/corpus/cross_052.c,4,c,cross_cutting,metric_c_uncompilable,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,18.69,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_031.c,7,c,security,unrestricted_file_permission,dev,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,2,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,1.84,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 2 security issue(s) need manual review"
+tests/corpus/c_sec_031.c,7,c,security,unrestricted_file_permission,dev,security-issue,False,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,2,"Security repair failed (apply=N/A (No Patch Offered), comp_rc=0)",N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,1.84,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 2 security issue(s) need manual review"
+tests/corpus/c_sec_031.c,7,c,security,unrestricted_file_permission,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.49,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_026.c,8,c,security,unchecked_realloc,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.9,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 

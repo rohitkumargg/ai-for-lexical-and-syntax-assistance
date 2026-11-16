@@ -110,6 +110,8 @@ def run_project_parser(source_path: Path, is_c: bool) -> Dict[str, Any]:
             for td in typedef_names:
                 code_for_parser = re.sub(rf'\b{re.escape(td)}\b', 'int', code_for_parser)
             code_for_parser = re.sub(r'\b(FILE|size_t|ssize_t|time_t|uint8_t|uint16_t|uint32_t|uint64_t|int8_t|int16_t|int32_t|int64_t|sqlite3|sqlite3_stmt|va_list)\b', 'int', code_for_parser)
+            code_for_parser = re.sub(r'#define\s+.*?\\\r?\n(?:.*?\\\r?\n)*.*?\r?\n', '\n', code_for_parser)
+            code_for_parser = re.sub(r'#define\s+[^\r\n]*', '', code_for_parser)
             code_for_parser = re.sub(r',\s*\.\.\.', '', code_for_parser)
             code_for_parser = re.sub(r'\b(va_start|va_end|va_copy)\s*\([^)]*\)\s*;', ';', code_for_parser)
             code_for_parser = re.sub(r'\benum\s+[a-zA-Z0-9_]*\s*\{[^}]*\}\s*;?', '', code_for_parser)
@@ -171,6 +173,15 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
         }
 
     t0 = time.time()
+
+    # Dismiss any leftover fullscreen results modal or backdrop from previous runs
+    await page.evaluate("""() => {
+        if (window.closeFullscreenResultsModal) {
+            window.closeFullscreenResultsModal();
+        }
+        const m = document.getElementById('fullscreen-results-modal');
+        if (m) m.style.display = 'none';
+    }""")
 
     # 1. Switch language and load source into editor
     await page.evaluate(f"() => {{ if (window.switchLanguage) window.switchLanguage('{lang_id}'); }}")
@@ -298,6 +309,26 @@ async def process_single_file(page: Page, file_path: Path) -> Dict[str, Any]:
     # 4. Check for Apply button and click it
     apply_http_status = None
     applied = False
+
+    # Check 0: Fullscreen Results Modal "Apply Fix" button
+    fs_results_visible = await page.evaluate(
+        """() => {
+            const modal = document.getElementById('fullscreen-results-modal');
+            return modal && modal.style.display !== 'none' && getComputedStyle(modal).display !== 'none';
+        }"""
+    )
+    if fs_results_visible:
+        fs_apply_btn = page.locator("#fs-btn-apply-fix")
+        if await fs_apply_btn.is_visible():
+            try:
+                async with page.expect_response(lambda r: "/apply" in r.url and r.request.method == "POST", timeout=15000) as resp_info:
+                    await fs_apply_btn.click()
+                resp = await resp_info.value
+                apply_http_status = resp.status
+                applied = True
+            except Exception as ex:
+                apply_http_status = f"Error: {ex}"
+            await page.wait_for_timeout(1000)
 
     # Check 1: Recommended Program Card "Apply Repair" button
     rec_apply_btn = page.locator("#recommendedProgramCard button:has-text('Apply Repair'), button[onclick*='applyRecommendedPlan']")

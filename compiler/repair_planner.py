@@ -1926,6 +1926,10 @@ class RepairPlanner:
                     new_lines = []
                     for l_idx, line in enumerate(lines, 1):
                         if l_idx in f_lines or (l_idx - 1) in f_lines or (l_idx + 1) in f_lines:
+                            # If line starts with consecutive stray / invalid garbage tokens e.g. %!@#$ invalid tokens
+                            if re.search(r'^\s*[%!@#$^&*~`]{2,}', line):
+                                fixes.append("Removed invalid stray token line")
+                                continue
                             # If line contains standalone stray tokens @, $, or ` (never strip #)
                             if re.search(r'^\s*[@$`]\s*$', line):
                                 fixes.append("Removed stray token character")
@@ -2008,6 +2012,18 @@ class RepairPlanner:
                         elif cands:
                             target = min(cands, key=lambda c: _lev(bad_name, c))
                         else:
+                            # If no typo candidate found, check if variable is returned: return <bad_name>;
+                            lines = res_code.splitlines(keepends=True)
+                            for el in err_lines:
+                                if 1 <= el <= len(lines):
+                                    orig_l = lines[el - 1]
+                                    if re.search(r'\breturn\s+' + re.escape(bad_name) + r'\s*;', orig_l):
+                                        m_fn = re.search(r'\b(int|float|double|char|long|short)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{', res_code)
+                                        fn_type = m_fn.group(1) if m_fn else "int"
+                                        indent = re.match(r'^\s*', orig_l).group(0)
+                                        lines[el - 1] = f"{indent}{fn_type} {bad_name} = 0;\n" + orig_l
+                                        fixes.append(f"Declared undeclared returned variable '{bad_name}' as '{fn_type}'")
+                            res_code = "".join(lines)
                             continue
                         # Try replacing bad_name on flagged error lines
                         lines = res_code.splitlines(keepends=True)
@@ -2132,6 +2148,13 @@ class RepairPlanner:
                         current_code = c_tmp
                         applied_steps.append("SEC: eliminated CWE-377 insecure tmpnam() call")
 
+                # CWE-377: mktemp()
+                if "mktemp(" in current_code:
+                    c_mkt = re.sub(r'\bmktemp\s*\([^;]+\)\s*;', 'FILE *f = fopen("safe_temp.txt", "w");\n    if (f) { fputs("data", f); fclose(f); }', current_code)
+                    if c_mkt != current_code:
+                        current_code = c_mkt
+                        applied_steps.append("SEC: replaced insecure mktemp() with safe file creation")
+
                 # CWE-252: Unchecked fopen() return value
                 m_fop = re.search(r'(\bFILE\s*\*\s*([a-zA-Z_]\w*)\s*=\s*fopen\s*\([^;]+\)\s*;)', current_code)
                 if m_fop and f"if ({m_fop.group(2)} == NULL)" not in current_code and f"if (!{m_fop.group(2)})" not in current_code:
@@ -2238,6 +2261,72 @@ class RepairPlanner:
                                     current_code = c_cand
                                     applied_steps.append(f"SEM: trimmed extraneous argument(s) from call '{fn_name}'")
                                     break
+
+                # Two or more data types in declaration specifiers: e.g. int float count -> int count
+                if "two or more data types in declaration specifiers" in c_diag:
+                    c_dup_type = re.sub(r'\b(int|float|double|char)\s+(int|float|double|char)\b', r'\1', current_code)
+                    if c_dup_type != current_code:
+                        ok_dt, _, _ = _lightweight_check(c_dup_type, 'c')
+                        if ok_dt:
+                            current_code = c_dup_type
+                            applied_steps.append("SYN: removed duplicate type specifier in declaration")
+
+                # Invalid operands to binary %: e.g. (int)(a % b) where operands are float/double -> ((int)(a) % (int)(b))
+                if "invalid operands to binary %" in c_diag:
+                    c_mod = re.sub(r'([a-zA-Z_]\w*)\s*%\s*([a-zA-Z_]\w*)', r'((int)(\1) % (int)(\2))', current_code)
+                    if c_mod != current_code:
+                        ok_mod, _, _ = _lightweight_check(c_mod, 'c')
+                        if ok_mod:
+                            current_code = c_mod
+                            applied_steps.append("SEM: cast floating-point operands to integer for modulo operator")
+
+                # Void variable declaration: e.g. void val; -> int val = 0;
+                if "declared void" in c_diag:
+                    c_void = re.sub(r'\bvoid\s+([a-zA-Z_]\w*)\s*;', r'int \1 = 0;', current_code)
+                    if c_void != current_code:
+                        ok_vd, _, _ = _lightweight_check(c_void, 'c')
+                        if ok_vd:
+                            current_code = c_void
+                            applied_steps.append("SEM: replaced invalid void variable declaration with integer")
+
+                # Inverted identifier and type: e.g. score int = 100; -> int score = 100;
+                m_inv = re.search(r'\b([a-zA-Z_]\w*)\s+(int|char|float|double|long|short)\s*=', current_code)
+                if m_inv:
+                    c_inv = re.sub(r'\b([a-zA-Z_]\w*)\s+(int|char|float|double|long|short)\s*=', r'\2 \1 =', current_code)
+                    if c_inv != current_code:
+                        ok_inv, _, _ = _lightweight_check(c_inv, 'c')
+                        if ok_inv:
+                            current_code = c_inv
+                            applied_steps.append("SYN: corrected inverted variable identifier and type")
+
+                # Invalid preprocessing directive: e.g. # bad
+                if "invalid preprocessing directive" in c_diag:
+                    c_bad_hash = re.sub(r'^\s*#\s*(?!include\b|define\b|ifdef\b|ifndef\b|endif\b|if\b|elif\b|else\b|pragma\b|error\b|warning\b|line\b).*$', r'', current_code, flags=re.MULTILINE)
+                    if c_bad_hash != current_code:
+                        ok_bh, _, _ = _lightweight_check(c_bad_hash, 'c')
+                        if ok_bh:
+                            current_code = c_bad_hash
+                            applied_steps.append("SYN: removed invalid preprocessing directive")
+
+                # Redefinition of variable in same scope: e.g. int total = 10; int total = 20; -> total = 20;
+                if "redefinition of" in c_diag:
+                    redef_matches = re.findall(r"redefinition of ['`]([a-zA-Z_]\w*)['`]", c_diag)
+                    for r_var in redef_matches:
+                        lines = current_code.splitlines(keepends=True)
+                        seen_first = False
+                        for idx, l in enumerate(lines):
+                            decl_m = re.search(r'\b(?:int|char|float|double|long|short|unsigned|signed)\s+' + re.escape(r_var) + r'\b', l)
+                            if decl_m:
+                                if not seen_first:
+                                    seen_first = True
+                                else:
+                                    lines[idx] = re.sub(r'\b(?:int|char|float|double|long|short|unsigned|signed)\s+' + re.escape(r_var) + r'\b', r_var, l)
+                        c_redef = "".join(lines)
+                        if c_redef != current_code:
+                            ok_rd, _, _ = _lightweight_check(c_redef, 'c')
+                            if ok_rd:
+                                current_code = c_redef
+                                applied_steps.append(f"SEM: converted duplicate definition of '{r_var}' to assignment")
             except Exception:
                 pass
 

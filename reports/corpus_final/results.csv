@@ -1,0 +1,438 @@
+file,lines,language,category,subcat,split,expected_class,passed,status,tier,windows,stage_seconds,errors_before,errors_after,failure_cause,apply_http_status,gcc_rc,gcc_stderr,parser_rc,parser_stderr,metrics_overall_quality,metrics_optimal_code,metrics_poor_code,metrics_vulnerability_risk,metrics_green,metrics_model_accuracy,elapsed_s,run_output
+tests/corpus/c_str_015.c,0,c,structure,empty_file,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/py_str_013.py,0,python,structure,empty_file_py,dev,clean,True,CLEAN,Clean,0,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100,100%,0.01,Empty file — clean
+tests/corpus/cross_048.py,1,python,cross_cutting,metric_py_1line,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_032.py,1,python,cross_cutting,clean_py_tiny,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_032.py,1,python,syntax,bad_assignment_operator,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_034.py,1,python,syntax,missing_operator_expr,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_028.py,1,python,syntax,stray_character_dollar,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_025.py,2,python,syntax,break_outside_loop,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_038.py,1,python,syntax,extra_closing_paren,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_026.py,2,python,syntax,continue_outside_loop,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_016.py,2,python,syntax,missing_indent_if_body,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_020.py,1,python,syntax,unclosed_bracket_tuple,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_027.py,2,python,syntax,return_outside_func,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_039.py,1,python,syntax,extra_closing_bracket,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_015.py,1,python,syntax,missing_indent_def_body,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_029.py,1,python,syntax,missing_comma_in_list,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_018.py,1,python,syntax,unclosed_bracket_list,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_030.py,1,python,syntax,missing_comma_in_dict,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.64,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_037.py,1,python,syntax,missing_colon_lambda,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_040.py,1,python,syntax,extra_closing_brace,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_021.py,1,python,syntax,unclosed_quote_single,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_047.c,1,c,cross_cutting,metric_c_1line,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.24,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_011.py,1,python,semantic,duplicate_dict_key,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.59,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_022.py,1,python,syntax,unclosed_quote_double,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_023.py,3,python,syntax,unclosed_triple_quote,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_046.py,2,python,cross_cutting,warn_py_unreachable,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_060.c,2,c,cross_cutting,ui_flow_apply_patch,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_061.c,2,c,cross_cutting,ui_flow_reject_patch,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_031.c,1,c,cross_cutting,clean_c_tiny,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_053.c,1,c,cross_cutting,api_neg_malformed_json,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_054.c,1,c,cross_cutting,api_neg_empty_body,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.67,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_055.c,1,c,cross_cutting,api_neg_oversize_body,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_056.c,1,c,cross_cutting,api_neg_wrong_language,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_057.c,1,c,cross_cutting,api_neg_cancelled_job,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_062.c,1,c,cross_cutting,ui_flow_results_close_reopen,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_012.py,2,python,semantic,attribute_error_call,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_006.py,3,python,syntax,missing_colon_while,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_010.py,2,python,structure,crlf_endings_py,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_014.py,2,python,semantic,zero_division_literal,dev,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_045.py,1,python,cross_cutting,warn_py_none_equality,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_020.py,4,python,semantic,bare_except_clause,dev,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_019.py,2,python,semantic,is_literal_comparison,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_011.py,3,python,structure,tabs_indentation_py,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_011.py,4,python,syntax,missing_colon_finally,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_001.c,3,c,semantic,undeclared_var,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.2,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_024.py,2,python,syntax,unclosed_fstring_brace,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_013.py,1,python,semantic,import_nonexistent_attr,held_out,compiles-with-warnings,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_syn_002.py,3,python,syntax,missing_colon_if,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_009.py,2,python,semantic,none_comparison_equality,held_out,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_010.py,2,python,semantic,type_error_concat_str_int,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_010.py,2,python,cross_cutting,reg_py_def_colon_at_end,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_041.c,1,c,cross_cutting,warn_c_missing_include,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_002.py,2,python,semantic,undefined_name_call,held_out,compiles-with-warnings,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sec_001.py,2,python,security,unsafe_eval_call,held_out,security-issue,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sem_001.py,2,python,semantic,undefined_name_var,dev,compiles-with-warnings,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sec_002.py,2,python,security,unsafe_exec_call,dev,security-issue,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.89,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_syn_005.py,3,python,syntax,missing_colon_for,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_033.py,3,python,syntax,keyword_used_as_ident,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_020.c,4,c,semantic,uninitialized_var_warning,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.7,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_019.py,1,python,syntax,unclosed_bracket_dict,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_029.c,4,c,syntax,bad_decl_missing_type,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.72,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_024.py,2,python,security,open_redirect_url,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_015.py,2,python,semantic,assert_always_true_tuple,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_018.py,4,python,semantic,pointless_statement_expr,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_003.py,5,python,syntax,missing_colon_else,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_035.py,5,python,syntax,multi_funcs_missing_colons,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_008.py,4,python,semantic,unbound_local_var,held_out,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_027.c,4,c,semantic,void_variable_declaration,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpdt9t_uus.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpdt9t_uus.c:2:9: warning: unused variable 'val' [-Wunused-variable]
+     int val = 0;
+         ^~~",0,,80%,80%,0%,0%,85/100,86.7%,1.71,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Program is clean
+tests/corpus/py_sem_004.py,3,python,semantic,unreachable_code_after_return,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_001.py,4,python,syntax,missing_colon_def,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_017.py,4,python,syntax,unclosed_bracket_call,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_050.c,2,c,cross_cutting,metric_c_no_functions,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_003.py,1,python,structure,list_comprehensions,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_031.py,4,python,syntax,missing_comma_in_args,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_008.c,4,c,semantic,missing_include_stdio,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_016.c,4,c,semantic,call_non_function,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.7,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_042.c,1,c,cross_cutting,warn_c_unused_var,dev,compiles-with-warnings,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp0tm1l6rm.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp0tm1l6rm.c:1:33: warning: unused variable 'b' [-Wunused-variable]
+ int main(void) { int a = 1; int b = 2; return a; }
+                                 ^",0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/cross_051.py,3,python,cross_cutting,metric_py_only_comments,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.59,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_syn_004.py,5,python,syntax,missing_colon_elif,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_044.py,3,python,cross_cutting,warn_py_unused_import,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_023.c,4,c,syntax,typo_keyword_itn,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_007.py,3,python,syntax,missing_colon_class,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_017.c,4,c,syntax,extra_token_stray_semis,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_008.py,3,python,syntax,missing_colon_with,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_009.py,4,python,syntax,missing_colon_try,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_010.py,4,python,syntax,missing_colon_except,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_012.py,4,python,syntax,indent_unexpected,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_007.c,4,c,semantic,missing_return_nonvoid,dev,compiles-with-warnings,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,"C:\Users\rohit\AppData\Local\Temp\tmp8u5i40vw.c: In function 'get_status':
+C:\Users\rohit\AppData\Local\Temp\tmp8u5i40vw.c:4:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^",0,,80%,80%,0%,0%,85/100,86.7%,1.17,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sem_015.c,4,c,semantic,subscript_non_array,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.7,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_010.c,4,c,structure,crlf_line_endings,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_012.c,4,c,structure,no_trailing_newline,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_020.c,4,c,syntax,typo_keyword_cahr,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_011.py,2,python,security,hardcoded_secret_token,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_007.py,4,python,semantic,wrong_args_too_few,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_036.py,4,python,syntax,multi_errors_same_func,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_050.c,4,c,syntax,unterminated_char_literal,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_030.c,4,c,syntax,bad_decl_inverted_order,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,7.41,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_040.c,5,c,syntax,stray_hash_token,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.69,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_052.c,4,c,cross_cutting,metric_c_uncompilable,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_011.c,5,c,structure,tab_indentation,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_012.py,2,python,security,hardcoded_db_password,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_032.c,4,c,syntax,unterminated_comment,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_024.c,4,c,syntax,typo_keyword_doubel,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_021.py,2,python,security,hardcoded_aws_secret,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_016.py,3,python,semantic,mutable_default_arg,dev,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_049.c,4,c,syntax,double_type_specifier,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sem_003.py,3,python,semantic,shadowed_builtin_list,dev,compiles-with-warnings,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.59,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_018.c,5,c,semantic,break_not_in_loop,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,16.59,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_002.c,5,c,syntax,missing_semicolon_decl,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.25,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_017.py,2,python,security,hardcoded_jwt_secret,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_005.py,5,python,semantic,unused_import_module,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_004.py,3,python,structure,generator_expression,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_026.c,5,c,semantic,lvalue_required_assign,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/c_syn_018.c,5,c,syntax,extra_token_stray_char,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.81,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_025.c,4,c,syntax,typo_keyword_flota,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_004.py,3,python,security,insecure_pickle_load,dev,security-issue,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sec_009.py,3,python,security,insecure_temp_mktemp,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_014.c,5,c,semantic,dereference_non_pointer,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,8.89,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_022.c,5,c,semantic,unused_variable_warning,dev,compiles-with-warnings,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp_zuvmwiw.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp_zuvmwiw.c:3:9: warning: unused variable 'b' [-Wunused-variable]
+     int b = 20;
+         ^",0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/py_sem_017.py,4,python,semantic,unused_variable_func,held_out,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_019.c,5,c,semantic,continue_not_in_loop,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,10.96,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_003.c,5,c,cross_cutting,reg_semicolon_at_end_of_line,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_009.py,3,python,structure,walrus_operator,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_014.py,4,python,syntax,indent_mixed_tabs_spaces,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_038.c,6,c,syntax,missing_left_brace_func,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_016.c,4,c,syntax,missing_comma_array,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.82,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_017.c,5,c,semantic,case_label_not_in_switch,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.2,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_010.c,5,c,syntax,missing_right_bracket_decl,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.76,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_018.c,5,c,security,off_by_one_null_term,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp6wijtmds.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp6wijtmds.c:2:10: warning: variable 'buf' set but not used [-Wunused-but-set-variable]
+     char buf[10];
+          ^~~",0,,80%,80%,0%,0%,85/100,86.7%,1.7,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_024.c,5,c,semantic,array_size_negative,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp5u9mxk0k.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp5u9mxk0k.c:4:12: warning: return makes integer from pointer without a cast [-Wint-conversion]
+     return arr;
+            ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp5u9mxk0k.c:4:12: warning: function returns address of local variable [-Wreturn-local-addr]",0,,80%,80%,0%,0%,85/100,86.7%,2.75,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_011.c,4,c,syntax,missing_right_bracket_idx,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.78,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_009.c,5,c,semantic,missing_include_stdlib,held_out,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_013.c,5,c,cross_cutting,reg_c_return_expression_paren,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_012.py,3,python,structure,unicode_identifiers_comments,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_030.c,4,c,semantic,missing_include_string,held_out,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_004.c,5,c,syntax,missing_semicolon_call,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/py_sec_014.py,3,python,security,unverified_ssl_context,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sec_018.py,3,python,security,tarfile_unsafe_extract,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_020.py,3,python,security,insecure_deserialization_shelve,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.64,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sem_006.py,4,python,semantic,wrong_args_too_many,held_out,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_003.c,6,c,syntax,missing_semicolon_return,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.36,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_005.py,3,python,security,unsafe_yaml_load,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sem_010.c,5,c,semantic,redefinition_var,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.2,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_007.py,4,python,cross_cutting,reg_py_no_delete_statements,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_030.c,7,c,structure,goto_label_statement,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.33,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_031.c,5,c,structure,ternary_operator_assign,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.69,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_021.c,6,c,syntax,typo_keyword_retrun,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_048.c,4,c,syntax,missing_right_bracket_matrix,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_043.c,2,c,cross_cutting,warn_c_format_specifier,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_004.c,6,c,semantic,wrong_arg_count_many,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_015.py,3,python,security,weak_random_secrets,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_027.c,5,c,security,signed_int_overflow_calc,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_032.c,4,c,structure,multiple_declarations_comma,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_012.c,6,c,syntax,missing_right_brace_func,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.33,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_031.c,5,c,syntax,unterminated_string,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_006.py,5,python,cross_cutting,reg_py_indent_normalize,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_016.c,3,c,structure,only_comments,dev,clean,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,,1,"Line 4:0 - PARSE Error: mismatched input '<EOF>' expecting {'const', 'volatile', 'static', 'extern', 'int', 'float', 'char', 'void', 'double', 'signed', 'unsigned', 'short', 'long', 'struct'} (offending: <EOF>)",80%,80%,0%,0%,85/100,86.7%,1.25,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sec_019.py,3,python,security,xml_entity_expansion,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_033.c,6,c,syntax,missing_binary_operator,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_001.c,6,c,syntax,missing_semicolon_assign,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_044.c,6,c,syntax,missing_type_in_param,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.32,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_022.py,4,python,security,flask_debug_true_production,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_005.c,6,c,syntax,missing_semicolon_multi,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.78,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_015.c,6,c,syntax,missing_comma_params,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_001.c,6,c,security,unsafe_gets,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_003.c,6,c,semantic,wrong_arg_count_few,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,12.03,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_025.c,5,c,semantic,invalid_operands_binary_modulo,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.73,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_014.c,6,c,syntax,missing_comma_args,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_006.py,5,python,structure,dataclass_definition,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_013.py,6,python,syntax,indent_unindent_mismatch,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_007.c,7,c,syntax,missing_right_paren_while,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_022.c,7,c,syntax,typo_keyword_whiel,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_015.py,5,python,cross_cutting,reg_py_try_except_clause,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_010.py,3,python,security,disabled_cert_verify_requests,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_026.c,7,c,syntax,missing_paren_if_cond,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_006.py,3,python,security,weak_hash_md5_pwd,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_007.py,3,python,security,weak_hash_sha1,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_006.c,7,c,syntax,missing_right_paren_if,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_013.c,7,c,syntax,missing_right_brace_if,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_002.c,7,c,cross_cutting,reg_comma_after_if_keyword,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_010.c,5,c,security,buffer_index_overflow,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_037.c,7,c,syntax,missing_semicolon_do_while,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_013.py,3,python,security,assert_used_for_auth,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_034.c,6,c,security,scanf_missing_ampersand,held_out,security-issue,True,REPAIR_PLAN_READY,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.7,Status: REPAIR_PLAN_READY | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_016.c,6,c,security,temp_file_race_tmpnam,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,4,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.72,"Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_str_005.c,5,c,structure,const_volatile_qualifiers,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_027.c,7,c,syntax,missing_paren_while_cond,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.32,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_028.py,4,python,security,unsafe_chmod_world_writable,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_005.c,6,c,security,unsafe_scanf_unbounded,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_002.c,5,c,semantic,undeclared_func,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.23,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_034.py,5,python,cross_cutting,clean_py_medium,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_059.c,2,c,cross_cutting,ui_flow_approval_decline,dev,security-issue,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpi2kz5x03.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpi2kz5x03.c:2:30: warning: unused variable 'k' [-Wunused-variable]
+ int main(void) { const char *k = ""[REDACTED:API_KEY]""; return 0; }
+                              ^",0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/c_sec_006.c,6,c,security,format_string_misuse,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_033.c,4,c,structure,anonymous_struct,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.31,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/c_sem_029.c,8,c,semantic,conflicting_types_for_func,dev,broken,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp886kvmub.c: In function 'test':
+C:\Users\rohit\AppData\Local\Temp\tmp886kvmub.c:4:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^",0,,80%,80%,0%,0%,85/100,86.7%,14.56,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_009.c,6,c,syntax,missing_right_paren_call,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.32,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/cross_012.py,7,python,cross_cutting,reg_py_elif_colon_at_end,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_021.c,6,c,semantic,format_specifier_mismatch,dev,compiles-with-warnings,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.22,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_002.c,6,c,structure,union_demo,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/c_str_014.c,5,c,structure,unicode_in_comments,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.32,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_005.py,4,python,structure,async_await_funcs,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_032.c,7,c,security,free_non_heap_pointer,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_019.c,8,c,syntax,typo_keyword_viod,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_036.c,8,c,syntax,missing_semicolon_enum_def,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.78,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_008.c,5,c,cross_cutting,reg_c_clean_preserves_macros,dev,clean,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,1,,N/A (No Patch Offered),0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sem_006.c,6,c,semantic,type_mismatch_int_to_ptr,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.19,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_028.c,7,c,syntax,missing_paren_for_cond,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.79,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_058.c,2,c,cross_cutting,ui_flow_approval_accept,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_015.c,5,c,security,weak_random_number,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,2,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.22,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles with 3 warning(s)
+tests/corpus/c_syn_008.c,7,c,syntax,missing_right_paren_for,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_008.py,2,python,security,sql_injection_fstring,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_017.c,6,c,security,unchecked_fopen_return,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_028.c,6,c,security,pointer_arithmetic_overflow,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sec_025.py,4,python,security,regex_dos_catastrophic,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_sec_026.py,2,python,security,sql_format_concatenation,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.64,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_003.c,6,c,security,unsafe_strcat,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.23,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_004.c,6,c,security,unsafe_sprintf,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_005.c,6,c,semantic,type_mismatch_ptr_to_int,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_023.c,6,c,semantic,comparison_pointer_integer,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.24,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_035.c,8,c,syntax,missing_semicolon_struct_def,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_009.c,7,c,cross_cutting,reg_c_for_comma_no_insert,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_013.c,8,c,semantic,access_nonexistent_struct_member,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.22,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_004.c,5,c,structure,function_pointer,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_047.c,7,c,syntax,broken_for_loop_semicolons,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_003.c,5,c,structure,enum_typedef,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_046.c,8,c,syntax,missing_return_semicolon_nested,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_011.c,9,c,semantic,redefinition_func,dev,broken,True,REPAIR_PLAN_READY,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.27,Status: REPAIR_PLAN_READY | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_039.c,7,c,syntax,missing_right_paren_switch,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_016.py,3,python,security,shell_true_popen,held_out,security-issue,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_str_006.c,7,c,structure,static_func_and_var,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.33,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_049.c,5,c,cross_cutting,metric_c_deeply_nested,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.67,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_008.py,6,python,structure,match_case_statements,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_027.py,2,python,security,hardcoded_private_rsa_key,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_002.c,7,c,security,unsafe_strcpy,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpvhzabbhw.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpvhzabbhw.c:5:5: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
+     snprintf(dst, sizeof(dst), ""%s"", src);
+     ^~~~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpvhzabbhw.c:5:5: warning: incompatible implicit declaration of built-in function 'snprintf'
+C:\Users\rohit\AppData\Local\Temp\tmpvhzabbhw.c:5:5: note: include '<stdio.h>' or provide a declaration of 'snprintf'",0,,80%,80%,0%,0%,85/100,86.7%,2.25,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_009.c,7,c,structure,recursion_fibonacci,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_034.c,5,c,structure,complex_initializers,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.82,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_003.py,3,python,security,shell_true_subprocess,dev,security-issue,True,VALID_WITH_SECURITY_ISSUES,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,"Status: VALID_WITH_SECURITY_ISSUES | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/py_sec_023.py,3,python,security,insecure_cipher_des,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_043.c,9,c,syntax,semicolon_and_paren_mix,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,2,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.79,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_029.py,4,python,security,logging_sensitive_credential,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.59,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_045.c,8,c,syntax,bad_struct_field_decl,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_007.c,7,c,security,unchecked_malloc,dev,security-issue,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/c_sec_009.c,8,c,security,double_free,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,2,,0,3,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.19,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 3 security issue(s) need manual review"
+tests/corpus/c_str_007.c,6,c,structure,preprocessor_macros,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.33,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_023.c,7,c,security,unsafe_temp_mktemp,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpi_a5q8nt.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpi_a5q8nt.c:4:10: warning: unused variable 'templ' [-Wunused-variable]
+     char templ[] = ""/tmp/testXXXXXX"";
+          ^~~~~",0,,80%,80%,0%,0%,85/100,86.7%,3.25,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_sec_030.py,5,python,security,insecure_ssl_protocol,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_028.py,7,python,cross_cutting,agent_sec_py_password,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_034.c,9,c,syntax,missing_colon_switch_case,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_035.c,5,c,structure,enum_bitmasks,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.29,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_014.c,6,c,cross_cutting,reg_c_struct_ptr_deref,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.84,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_029.py,7,python,cross_cutting,agent_sec_py_prompt_injection,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_013.c,6,c,security,hardcoded_credential_password,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.34,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sem_028.c,8,c,semantic,duplicate_case_value,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.2,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_020.c,8,c,cross_cutting,agent_sec_c_password,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpaha34vad.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpaha34vad.c:5:17: warning: unused variable 'password' [-Wunused-variable]
+     const char *password = getenv(""PASSWORD"") ? getenv(""PASSWORD"") : ""[REDACTED:PASSWORD]"";
+                 ^~~~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,2.23,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_020.c,6,c,security,hardcoded_api_token,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_syn_041.c,12,c,syntax,multiple_errors_3funcs,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,3,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.34,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_007.py,4,python,structure,type_hints_annotations,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,4,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_011.c,8,c,cross_cutting,reg_c_switch_case_break,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_017.c,8,c,cross_cutting,agent_sec_c_comment_secret,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_033.c,7,c,cross_cutting,clean_c_medium,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_002.py,8,python,structure,decorator_usage,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.65,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_012.c,8,c,security,command_injection_system,dev,security-issue,True,VALIDATION_FAILED,Tiered Pipeline,1,,0,0,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.26,Status: VALIDATION_FAILED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_025.c,8,c,security,stack_buffer_overread,held_out,security-issue,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/c_sec_035.c,7,c,security,unsafe_memcpy_unbounded,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_011.c,7,c,security,integer_overflow_alloc,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_022.c,8,c,security,unchecked_write_return,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.78,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_025.py,7,python,cross_cutting,agent_sec_py_comment_secret,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_026.py,7,python,cross_cutting,agent_sec_py_conn_str,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_016.c,8,c,cross_cutting,agent_sec_c_api_key,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp37ztryv5.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp37ztryv5.c:5:17: warning: unused variable 'api_key' [-Wunused-variable]
+     const char *api_key = getenv(""API_KEY"") ? getenv(""API_KEY"") : ""[REDACTED:API_KEY]"";
+                 ^~~~~~~",0,,80%,80%,0%,0%,85/100,86.7%,2.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_018.c,8,c,cross_cutting,agent_sec_c_conn_str,dev,security-issue,True,VALID_WITH_WARNINGS,Tiered Pipeline,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmpqz9b2pbh.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpqz9b2pbh.c:4:17: warning: unused variable 'uri' [-Wunused-variable]
+     const char *uri = ""[REDACTED:CONNECTION_STRING]"";
+                 ^~~",0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: VALID_WITH_WARNINGS | Tier: Tiered Pipeline | Result: Compiles with 1 warning(s)
+tests/corpus/py_str_001.py,5,python,structure,class_and_methods,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_001.c,8,c,cross_cutting,reg_rename_variable_guard,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.32,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_008.c,9,c,security,use_after_free,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,2,,0,2,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.74,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 2 security issue(s) need manual review"
+tests/corpus/c_sec_019.c,8,c,security,unbounded_sscanf,held_out,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,1,,422,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.2,"Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_sec_031.c,7,c,security,unrestricted_file_permission,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.73,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_014.c,7,c,security,sql_injection_sprintf,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.22,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_001.c,6,c,structure,struct_nested,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.79,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_024.c,7,c,security,unvalidated_loop_bound_copy,dev,security-issue,True,PARTIALLY_REPAIRED,Tiered Pipeline,1,,0,3,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.76,Status: PARTIALLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_024.py,7,python,cross_cutting,agent_sec_py_api_key,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.64,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_028.c,10,c,structure,macro_multiline,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.84,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_029.c,5,c,structure,deep_nested_ifs,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_033.c,7,c,security,missing_boundary_check_strncat,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.16,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_027.c,4,c,structure,typedef_func_pointer,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.82,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_042.c,6,c,syntax,multiple_errors_5funcs,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,5,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_026.c,8,c,security,unchecked_realloc,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.73,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_021.c,6,c,security,hardcoded_db_conn,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_029.c,6,c,security,hardcoded_private_key,held_out,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.17,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_022.c,8,c,cross_cutting,agent_sec_c_prompt_injection,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_017.c,13,c,structure,size_5_lines,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_018.c,13,c,structure,size_5_lines_clean,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.18,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_027.py,8,python,cross_cutting,agent_sec_py_neg_ctrl_var,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_021.c,8,c,cross_cutting,agent_sec_c_private_key,dev,security-issue,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_014.py,14,python,structure,size_5_lines_py,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.63,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_015.py,14,python,structure,size_5_lines_clean_py,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.6,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_sec_030.c,14,c,security,unbounded_vsnprintf,dev,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.83,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_008.c,13,c,structure,nested_loops_switch,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.8,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_004.c,11,c,cross_cutting,reg_same_error_10_funcs,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,10,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.85,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_019.c,17,c,cross_cutting,agent_sec_c_neg_ctrl_var,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.19,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_013.c,4,c,structure,very_long_line,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.27,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/cross_005.c,28,c,cross_cutting,reg_high_error_count_dense,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,25,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:26:9: warning: unused variable 'v_24' [-Wunused-variable]
+     int v_24 = 24;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:25:9: warning: unused variable 'v_23' [-Wunused-variable]
+     int v_23 = 23;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:24:9: warning: unused variable 'v_22' [-Wunused-variable]
+     int v_22 = 22;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:23:9: warning: unused variable 'v_21' [-Wunused-variable]
+     int v_21 = 21;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:22:9: warning: unused variable 'v_20' [-Wunused-variable]
+     int v_20 = 20;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:21:9: warning: unused variable 'v_19' [-Wunused-variable]
+     int v_19 = 19;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:20:9: warning: unused variable 'v_18' [-Wunused-variable]
+     int v_18 = 18;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:19:9: warning: unused variable 'v_17' [-Wunused-variable]
+     int v_17 = 17;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:18:9: warning: unused variable 'v_16' [-Wunused-variable]
+     int v_16 = 16;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:17:9: warning: unused variable 'v_15' [-Wunused-variable]
+     int v_15 = 15;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:16:9: warning: unused variable 'v_14' [-Wunused-variable]
+     int v_14 = 14;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:15:9: warning: unused variable 'v_13' [-Wunused-variable]
+     int v_13 = 13;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:14:9: warning: unused variable 'v_12' [-Wunused-variable]
+     int v_12 = 12;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:13:9: warning: unused variable 'v_11' [-Wunused-variable]
+     int v_11 = 11;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:12:9: warning: unused variable 'v_10' [-Wunused-variable]
+     int v_10 = 10;
+         ^~~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:11:9: warning: unused variable 'v_9' [-Wunused-variable]
+     int v_9 = 9;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:10:9: warning: unused variable 'v_8' [-Wunused-variable]
+     int v_8 = 8;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:9:9: warning: unused variable 'v_7' [-Wunused-variable]
+     int v_7 = 7;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:8:9: warning: unused variable 'v_6' [-Wunused-variable]
+     int v_6 = 6;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:7:9: warning: unused variable 'v_5' [-Wunused-variable]
+     int v_5 = 5;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:6:9: warning: unused variable 'v_4' [-Wunused-variable]
+     int v_4 = 4;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:5:9: warning: unused variable 'v_3' [-Wunused-variable]
+     int v_3 = 3;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:4:9: warning: unused variable 'v_2' [-Wunused-variable]
+     int v_2 = 2;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:3:9: warning: unused variable 'v_1' [-Wunused-variable]
+     int v_1 = 1;
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp1fuy_bht.c:2:9: warning: unused variable 'v_0' [-Wunused-variable]
+     int v_0 = 0;
+         ^~~",0,,80%,80%,0%,0%,85/100,86.7%,6.43,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_019.c,34,c,structure,size_50_lines,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.82,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_020.c,34,c,structure,size_50_lines_clean,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.22,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_016.py,38,python,structure,size_50_lines_py,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_017.py,38,python,structure,size_50_lines_clean_py,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_035.c,65,c,cross_cutting,clean_c_large,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.27,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_036.py,68,python,cross_cutting,clean_py_large,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_021.c,125,c,structure,size_200_lines,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.26,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_022.c,125,c,structure,size_200_lines_clean,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.3,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_037.c,155,c,cross_cutting,clean_c_xlarge,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.35,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_018.py,128,python,structure,size_200_lines_py,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.61,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_019.py,128,python,structure,size_200_lines_clean_py,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.62,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_038.py,163,python,cross_cutting,clean_py_xlarge,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_039.c,245,c,cross_cutting,clean_c_xxlarge,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.32,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_023.c,305,c,structure,size_500_lines,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,6.28,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_024.c,305,c,structure,size_500_lines_clean,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.33,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/cross_040.py,253,python,cross_cutting,clean_py_xxlarge,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.66,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/py_str_020.py,318,python,structure,size_500_lines_py,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,1.21,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_str_021.py,318,python,structure,size_500_lines_clean_py,dev,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.64,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.
+tests/corpus/c_str_025.c,605,c,structure,size_1000_lines,held_out,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,10.3,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_str_026.c,605,c,structure,size_1000_lines_clean,held_out,clean,True,CLEAN,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.74,Status: CLEAN | Tier: Tiered Pipeline | Result: Source code has zero compiler errors or security issues.

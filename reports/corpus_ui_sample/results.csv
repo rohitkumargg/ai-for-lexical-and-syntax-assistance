@@ -1,0 +1,346 @@
+file,lines,language,category,subcat,split,expected_class,passed,status,tier,windows,stage_seconds,errors_before,errors_after,failure_cause,apply_http_status,gcc_rc,gcc_stderr,parser_rc,parser_stderr,metrics_overall_quality,metrics_optimal_code,metrics_poor_code,metrics_vulnerability_risk,metrics_green,metrics_model_accuracy,elapsed_s,run_output
+tests/corpus/c_str_015.c,0,c,structure,empty_file,dev,clean,True,,UI Tier,1,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100 (0.0 ms | 0.0 MB | 0.0 J),100% (Clean),0.01,Empty file — clean
+tests/corpus/py_str_013.py,0,python,structure,empty_file_py,dev,clean,True,,UI Tier,1,,0,0,,200 (Clean - Empty file),0,,0,,100%,100%,0%,0%,100/100 (0.0 ms | 0.0 MB | 0.0 J),100% (Clean),0.01,Empty file — clean
+tests/corpus/cross_048.py,1,python,cross_cutting,metric_py_1line,held_out,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,72.6/100 (0.4 ms | 0.0464 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),3.15,"Status:  | Progress: 
+Card: ✓ Program is Clean
+0 Errors / 0 Vulnerabilities
+All syntax, semantic, security, and quality checks passed. No code modifications required.
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 15b087ec44a74f949520b984f466ba6b
+18 stages recorded
+21:45:31.513
+✓ PASSED
+0. Security gate
+1.31 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:45:31.513
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'cross_048.py' (1 lines, 4 bytes, SHA-256: d74ff0ee8da3...).
+21:45:31.513
+✓ PASSED
+2. Lexical Analysis
+0.03 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+21:45:31.513
+✓ PASSED
+3. Syntax Analysis
+0.03 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+21:45:31.513
+✓ PASSED
+4. Semantic Analysis
+0.22 ms
+Details ▼
+Scope, identifiers, and types verified.
+21:45:31.513
+✓ PASSED
+5. Security Vulnerability Analysis
+--
+Details ▼
+Static security analysis passed; zero detected vulnerabilities.
+21:45:31.513
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 0 finding(s) across 0 categories; identified 0 root causes.
+21:45:31.513
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 658 messages checked, 0 rejected, 926 values redacted
+21:45:31.515
+⊘ SKIPPED
+7. Deterministic Rule Engine
+skipped
+Program has zero errors; deterministic repair skipped.
+21:45:31.515
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Program has zero errors; CodeT5 ML stage skipped.
+21:45:31.515
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Program has zero errors; AI reasoning repair skipped.
+21:45:31.515
+⊘ SKIPPED
+10. Repair Candidate Generation
+skipped
+Zero errors detected; repair candidate generation skipped.
+21:45:31.515
+✓ PASSED
+11. Patch Validation
+0.1 ms
+Original program passed whole-program validation completely clean.
+21:45:31.515
+⊘ SKIPPED
+12. User Approval & Patch Application
+skipped
+No patch pending; program is clean.
+21:45:31.515
+⊘ SKIPPED
+13. Re-analysis after Applying Patch
+skipped
+Program is already verified clean; re-analysis skipped.
+21:45:31.514
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.05 ms
+Details ▼
+Evaluated 5 quality components (100.0%) and 0 optimization opportunity(ies).
+21:45:31.514
+✓ PASSED
+15. Security Risk Scoring
+0.03 ms
+Details ▼
+Assessed security risk score (0.0% / 100) using severity and exposure weights.
+21:45:31.514
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.58 ms
+Details ▼
+Tracked hardware telemetry: 0.4 ms, 1750.68 MB peak RSS, 0.0464 J estimated TDP energy."
+tests/corpus/cross_032.py,1,python,cross_cutting,clean_py_tiny,dev,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,75.7/100 (0.19 ms | 0.0276 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),3.15,"Status:  | Progress: 
+Card: ✓ Program is Clean
+0 Errors / 0 Vulnerabilities
+All syntax, semantic, security, and quality checks passed. No code modifications required.
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: f5529e6139694bc3b08d2046a313e645
+18 stages recorded
+21:45:34.648
+✓ PASSED
+0. Security gate
+0.84 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:45:34.649
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'cross_032.py' (1 lines, 6 bytes, SHA-256: dbe37ac31a72...).
+21:45:34.649
+✓ PASSED
+2. Lexical Analysis
+0.01 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+21:45:34.649
+✓ PASSED
+3. Syntax Analysis
+0.03 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+21:45:34.649
+✓ PASSED
+4. Semantic Analysis
+0.03 ms
+Details ▼
+Scope, identifiers, and types verified.
+21:45:34.649
+✓ PASSED
+5. Security Vulnerability Analysis
+--
+Details ▼
+Static security analysis passed; zero detected vulnerabilities.
+21:45:34.649
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 0 finding(s) across 0 categories; identified 0 root causes.
+21:45:34.649
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 658 messages checked, 0 rejected, 926 values redacted
+21:45:34.650
+⊘ SKIPPED
+7. Deterministic Rule Engine
+skipped
+Program has zero errors; deterministic repair skipped.
+21:45:34.650
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Program has zero errors; CodeT5 ML stage skipped.
+21:45:34.650
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Program has zero errors; AI reasoning repair skipped.
+21:45:34.650
+⊘ SKIPPED
+10. Repair Candidate Generation
+skipped
+Zero errors detected; repair candidate generation skipped.
+21:45:34.650
+✓ PASSED
+11. Patch Validation
+0.1 ms
+Original program passed whole-program validation completely clean.
+21:45:34.650
+⊘ SKIPPED
+12. User Approval & Patch Application
+skipped
+No patch pending; program is clean.
+21:45:34.650
+⊘ SKIPPED
+13. Re-analysis after Applying Patch
+skipped
+Program is already verified clean; re-analysis skipped.
+21:45:34.649
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.04 ms
+Details ▼
+Evaluated 5 quality components (100.0%) and 0 optimization opportunity(ies).
+21:45:34.649
+✓ PASSED
+15. Security Risk Scoring
+0.03 ms
+Details ▼
+Assessed security risk score (0.0% / 100) using severity and exposure weights.
+21:45:34.650
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.42 ms
+Details ▼
+Tracked hardware telemetry: 0.19 ms, 1750.7 MB peak RSS, 0.0276 J estimated TDP energy."
+tests/corpus/py_syn_032.py,1,python,syntax,bad_assignment_operator,dev,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,63.2/100 (0.37 ms | 0.0276 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),4.14,"Status:  | Progress: 
+Card: Budget: 0.1s
+Plan Explanation: Autonomous repair applied 1 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (1):
+Syntax error: Python syntax error: cannot assign to literal here. Maybe you meant '==' instead of '='? (Line 1): Python syntax error: cannot assign 
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: a7a1a84fc17d4685bce40ee13251afc2
+19 stages recorded
+21:45:37.778
+✓ PASSED
+0. Security gate
+1.06 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+21:45:37.778
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'py_syn_032.py' (1 lines, 7 bytes, SHA-256: b7d1c96df098...).
+21:45:37.778
+✓ PASSED
+2. Lexical Analysis
+0.03 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+21:45:37.778
+✗ FAILED
+3. Syntax Analysis
+0.18 ms
+Details ▼
+1 syntax parser error(s) identified.
+21:45:37.778
+✓ PASSED
+4. Semantic Analysis
+0.04 ms
+Details ▼
+Scope, identifiers, and types verified.
+21:45:37.778
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+skipped
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+21:45:37.778
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 1 finding(s) across 1 categories; identified 1 root causes.
+21:45:37.778
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 659 messages checked, 0 rejected, 926 values redacted
+21:45:37.837
+✓ PASSED
+7. Deterministic Rule Engine
+0.8 ms
+Details ▼
+Deterministic rule engine resolved all findings (1 fixes applied): Fixed Python syntax: swap assignment
+21:45:37.837
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+21:45:37.837
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+21:45:37.839
+✓ PASSED
+10. Repair Candidate Generation
+1.41 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+21:45:37.839
+✓ PASSED
+11. Patch Validation
+0.43 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+21:45:37.839
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_3bb3fcdf79ef). Original source preserved; awaiting user click on Apply.
+21:45:37.839
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+21:45:37.778
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.04 ms
+Details ▼
+Evaluated 5 quality components (91.2%) and 0 optimization opportunity(ies).
+21:45:37.778
+⊘ SKIPPED
+15. Security Risk Scoring
+0.03 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+21:45:37.779
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.53 ms
+Details ▼
+Tracked hardware telemetry: 0.37 ms, 1750.7 MB peak RSS, 0.0276 J estimated TDP energy.
+21:45:37.836
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."

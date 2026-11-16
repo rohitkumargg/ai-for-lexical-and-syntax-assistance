@@ -16,7 +16,19 @@ BUILTIN_FUNCTIONS = {
     "memset": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
     "malloc": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
     "calloc": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "realloc": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
     "free": {"kind": "func", "type": "void", "line": 0, "builtin": True},
+    "open": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "close": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "read": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "write": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "fopen": {"kind": "func", "type": "void*", "line": 0, "builtin": True},
+    "fclose": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "fputs": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "fread": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "fwrite": {"kind": "func", "type": "int", "line": 0, "builtin": True},
+    "mktemp": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
+    "mkstemp": {"kind": "func", "type": "int", "line": 0, "builtin": True},
     "strncpy": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
     "strncat": {"kind": "func", "type": "char*", "line": 0, "builtin": True},
     "sqlite3_open": {"kind": "func", "type": "int", "line": 0, "builtin": True},
@@ -56,6 +68,10 @@ class SymbolTableBuilder(SimpleCVisitor):
             self.symbols[name] = dict(info)
         self.symbols["sqlite3"] = {"kind": "type", "type": "sqlite3", "line": 0, "builtin": True}
         self.symbols["sqlite3_stmt"] = {"kind": "type", "type": "sqlite3_stmt", "line": 0, "builtin": True}
+        self.symbols["FILE"] = {"kind": "type", "type": "FILE", "line": 0, "builtin": True}
+        self.symbols["size_t"] = {"kind": "type", "type": "size_t", "line": 0, "builtin": True}
+        for const_name in ("O_CREAT", "O_RDONLY", "O_WRONLY", "O_RDWR", "O_APPEND", "O_TRUNC", "O_EXCL"):
+            self.symbols[const_name] = {"kind": "var", "type": "int", "line": 0, "builtin": True}
 
     def _type_text(self, type_ctx) -> str:
         if type_ctx is None:

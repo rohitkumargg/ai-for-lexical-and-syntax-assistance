@@ -28758,3 +28758,59 @@ Tracked hardware telemetry: 1016.06 ms, 2828.16 MB peak RSS, 31.2801 J estimated
 5b. Security Remediation Synthesis
 skipped
 Zero security findings detected; security remediation synthesis skipped."
+tests/corpus/c_syn_001.c,6,c,syntax,missing_semicolon_assign,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,3.16,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/py_syn_001.py,4,python,syntax,missing_colon_def,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,0.81,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_sec_001.c,6,c,security,unsafe_gets,held_out,security-issue,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,2.47,"Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: Compiles, but 1 security issue(s) need manual review"
+tests/corpus/c_syn_035.c,8,c,syntax,missing_semicolon_struct_def,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,15.6,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_047.c,7,c,syntax,broken_for_loop_semicolons,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,5.14,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_032.c,4,c,syntax,unterminated_comment,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,4.45,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_050.c,4,c,syntax,unterminated_char_literal,dev,broken,False,COMPILATION_FAILED,Tiered Pipeline,1,,0,1,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c: In function 'main':
+C:\Users\rohit\AppData\Local\Te; Parser error (rc=1): Line 2:14 - PARSE Error: extraneous input ''' expecting {'sizeof', 'NULL', '++', '--', '&', '~', '+'; Apply failed (status=N/A (No Patch Offered))",N/A (No Patch Offered),1,"C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c:2:15: warning: missing terminating ' character
+     char ch = 'A;
+               ^
+C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c:2:15: error: missing terminating ' character
+     char ch = 'A;
+               ^~~
+C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c:3:5: error: expected expression before 'return'
+     return (int)ch;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpeydrwwx5.c:2:10: warning: unused variable 'ch' [-Wunused-variable]
+     char ch = 'A;
+          ^~",1,"Line 2:14 - PARSE Error: extraneous input ''' expecting {'sizeof', 'NULL', '++', '--', '&', '~', '+', '-', '*', '!', '(', '{', IDENTIFIER, INTEGER, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL} (offending: ')",80%,80%,0%,0%,85/100,86.7%,96.33,Status: COMPILATION_FAILED | Tier: Tiered Pipeline | Result: Automated repair unavailable: no further automated repairs can be applied.
+tests/corpus/c_syn_050.c,4,c,syntax,unterminated_char_literal,dev,broken,True,FULLY_REPAIRED,Tiered Pipeline,1,,0,0,,200,0,,0,,80%,80%,0%,0%,85/100,86.7%,12.11,Status: FULLY_REPAIRED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_038.c,6,c,syntax,missing_left_brace_func,dev,broken,False,VALIDATION_FAILED,Tiered Pipeline,1,,0,0,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c: In function 'run':
+C:\Users\rohit\AppData\Local\Tem; Parser error (rc=1): Line 2:4 - PARSE Error: no viable alternative at input 'intrun(void)return' (offending: return); Apply failed (status=422)",422,1,"C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c: In function 'run':
+C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c:2:5: error: expected declaration specifiers before 'return'
+     return 42;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c:3:1: error: expected declaration specifiers before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c:4:16: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+ int main(void) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c:6:1: error: expected '{' at end of input
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmpek6_9hls.c:6:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^",1,Line 2:4 - PARSE Error: no viable alternative at input 'intrun(void)return' (offending: return),80%,80%,0%,0%,85/100,86.7%,10.2,Status: VALIDATION_FAILED | Tier: Tiered Pipeline | Result: 
+tests/corpus/c_syn_038.c,6,c,syntax,missing_left_brace_func,dev,broken,False,VALIDATION_FAILED,Tiered Pipeline,1,,0,0,"Compiler error (rc=1): C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c: In function 'run':
+C:\Users\rohit\AppData\Local\Tem; Parser error (rc=1): Line 2:4 - PARSE Error: no viable alternative at input 'intrun(void)return' (offending: return); Apply failed (status=422)",422,1,"C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c: In function 'run':
+C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c:2:5: error: expected declaration specifiers before 'return'
+     return 42;
+     ^~~~~~
+C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c:3:1: error: expected declaration specifiers before '}' token
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c:4:16: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+ int main(void) {
+                ^
+C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c:6:1: error: expected '{' at end of input
+ }
+ ^
+C:\Users\rohit\AppData\Local\Temp\tmp9h_r69bo.c:6:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^",1,Line 2:4 - PARSE Error: no viable alternative at input 'intrun(void)return' (offending: return),80%,80%,0%,0%,85/100,86.7%,71.82,Status: VALIDATION_FAILED | Tier: Tiered Pipeline | Result: Candidate rejected: security validation failed.
+tests/corpus/c_syn_038.c,0,unknown,unknown,,unknown,unknown,False,ERROR,none,0,,0,0,Exception during execution: Job 347fb4a2c2bb426b91143a88bb690ffe did not complete within 120.0s (last state: none),ERROR,-1,,-1,,--%,--%,--%,--%,--,--,0.0,Job 347fb4a2c2bb426b91143a88bb690ffe did not complete within 120.0s (last state: none)

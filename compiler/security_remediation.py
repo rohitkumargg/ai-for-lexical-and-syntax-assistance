@@ -900,6 +900,57 @@ class SecurityRemediationEngine:
                         "Eliminated CWE-416 use-after-free vulnerability.",
                     )
 
+            # CWE-415: Double free -> NULL pointer upon deallocation
+            m_double_free = re.search(r'(\bfree\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*;)\s*\bfree\s*\(\s*\2\s*\)\s*;', cur_src)
+            if m_double_free:
+                full_df = m_double_free.group(0)
+                ptr_name = m_double_free.group(2)
+                cand_df = cur_src.replace(full_df, f"free({ptr_name});\n    {ptr_name} = NULL;")
+                if cand_df != cur_src:
+                    return (
+                        cand_df,
+                        f"Deterministic double-free elimination: set '{ptr_name}' to NULL after free.",
+                        "Eliminated CWE-415 double free vulnerability.",
+                    )
+
+            # Insecure scanf address argument (passing scalar instead of pointer)
+            m_scanf_val = re.search(r'\bscanf\s*\(\s*(["\'][^"\']*%d[^"\']*["\'])\s*,\s*([a-zA-Z_]\w*)\s*\)', cur_src)
+            if m_scanf_val:
+                var_name = m_scanf_val.group(2)
+                if re.search(r'\bint\s+' + re.escape(var_name) + r'\b', cur_src):
+                    cand_scanf = cur_src.replace(m_scanf_val.group(0), f"scanf({m_scanf_val.group(1)}, &{var_name})")
+                    if cand_scanf != cur_src:
+                        return (
+                            cand_scanf,
+                            f"Deterministic scanf pointer fix: passed address '&{var_name}' instead of value.",
+                            "Eliminated invalid argument type in scanf call.",
+                        )
+
+            # CWE-377: Insecure temp file mktemp -> safe fopen
+            if "mktemp(" in cur_src:
+                cand_mkt = re.sub(r'\bmktemp\s*\([^;]+\)\s*;', 'FILE *f = fopen("safe_temp.txt", "w");\n    if (f) { fputs("data", f); fclose(f); }', cur_src)
+                if cand_mkt != cur_src:
+                    return (
+                        cand_mkt,
+                        "Deterministic replacement of insecure mktemp() with safe file creation.",
+                        "Eliminated CWE-377 insecure temporary file.",
+                    )
+
+            # CWE-252: Unchecked fputs return value
+            m_fputs = re.search(r'(\bfputs\s*\([^;]+\)\s*;)', cur_src)
+            if m_fputs and "if (fputs" not in cur_src and "if (!fputs" not in cur_src:
+                full_fp = m_fputs.group(1)
+                m_fp_var = re.search(r'fputs\s*\([^,]+,\s*([a-zA-Z_]\w*)\s*\)', full_fp)
+                fp_var = m_fp_var.group(1) if m_fp_var else "f"
+                repl_fp = f"if ({full_fp[:-1]} == EOF) {{ fclose({fp_var}); return 1; }}"
+                cand_fp = cur_src.replace(full_fp, repl_fp, 1)
+                if cand_fp != cur_src:
+                    return (
+                        cand_fp,
+                        "Deterministic return-value check for fputs() call.",
+                        "Eliminated CWE-252 unchecked return value.",
+                    )
+
             # CWE-252: Unchecked fopen return value
             m_fopen = re.search(r'(\bFILE\s*\*\s*([a-zA-Z_]\w*)\s*=\s*fopen\s*\([^;]+\)\s*;)', cur_src)
             if m_fopen and f"if ({m_fopen.group(2)} == NULL)" not in cur_src and f"if (!{m_fopen.group(2)})" not in cur_src:

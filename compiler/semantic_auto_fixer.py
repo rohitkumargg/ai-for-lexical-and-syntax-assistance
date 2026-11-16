@@ -864,6 +864,17 @@ def fix_semantic_issue(source: str, issue: Dict[str, Any]) -> Tuple[str, Optiona
                     updated = re.sub(rf"\bfor\s*\(\s*{re.escape(target_name)}\s*=", f"for (int {target_name} =", text, count=1)
                     return _replace_line(source, line, text, updated, f"declared '{target_name}' as 'int' in for loop header")
 
+            # Return statement: return target_name;
+            ret_pattern = rf"^(?P<indent>\s*)\breturn\s+{re.escape(target_name)}\s*;(?P<rest>.*)$"
+            m_ret = re.match(ret_pattern, text)
+            if m_ret:
+                m_fn = re.search(r'\b(int|float|double|char|long|short)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{', source)
+                ret_type = m_fn.group(1) if m_fn else "int"
+                indent = m_ret.group("indent")
+                decl = f"{indent}{ret_type} {target_name} = 0;\n"
+                updated = decl + text
+                return _replace_line(source, line, text, updated, f"declared '{target_name}' as '{ret_type}' inferred from return statement")
+
         # Ambiguous or non-inferable usage remains SUGGESTED / model
         return source, None
 
