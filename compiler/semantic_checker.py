@@ -709,6 +709,7 @@ class SemanticChecker(_VISITOR_BASE):
                             # Pointer arithmetic is deliberately outside this
                             # teaching subset; retain pointer type for p +/- n.
                             if self._is_pointer_type(t) and self._is_integral_type(rhs):
+                                i += 2
                                 continue
                             line, col = _tok_line_col(ctx.getChild(i))
                             self._add_issue("invalid_operand_type", "", line, col, "Invalid pointer arithmetic operands")

@@ -397,7 +397,7 @@ def get_fix_candidate(source: str, findings: List[Dict[str, Any]]) -> Optional[T
                 warn = f"PY-SEC-08 [auto-fixed] line {line_num}: parameterized SQL query to prevent injection"
                 step = "SEC: parameterized SQL query to prevent injection"
                 return "\n".join(new_lines), step, warn, line_num, f
-            m_csql = re.search(r'(\w+\.execute\s*\(\s*)(["\'].*?["\'])\s*\+\s*([a-zA-Z_]\w*)(\s*\))', line_text)
+            m_csql = re.search(r'(\w+\.execute\s*\(\s*)(["\'].*?["\'])\s*\+\s*(?:str\s*\(\s*)?([a-zA-Z_]\w*)(?:\s*\))?(\s*\))', line_text)
             if m_csql:
                 prefix, sql_str, vname, suffix = m_csql.group(1), m_csql.group(2), m_csql.group(3), m_csql.group(4)
                 sql_clean = sql_str[1:-1]

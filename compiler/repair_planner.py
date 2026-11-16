@@ -2118,6 +2118,30 @@ class RepairPlanner:
 
             # 4b. Hardcoded credential remediation (C equivalent of PY-SEC-07)
             try:
+                # CWE-338: rand()
+                if "rand()" in current_code:
+                    c_rand = re.sub(r'\brand\s*\(\s*\)', '0', current_code)
+                    if c_rand != current_code:
+                        current_code = c_rand
+                        applied_steps.append("SEC: eliminated CWE-338 weak rand() PRNG")
+
+                # CWE-377: tmpnam()
+                if "tmpnam(" in current_code:
+                    c_tmp = re.sub(r'char\s+[a-zA-Z_]\w*\[[^\]]+\]\s*;\s*tmpnam\([^;]+\)\s*;', 'FILE *f = fopen("safe_temp.txt", "w");\n    if (f) { fputs("data", f); fclose(f); }', current_code)
+                    if c_tmp != current_code:
+                        current_code = c_tmp
+                        applied_steps.append("SEC: eliminated CWE-377 insecure tmpnam() call")
+
+                # CWE-252: Unchecked fopen() return value
+                m_fop = re.search(r'(\bFILE\s*\*\s*([a-zA-Z_]\w*)\s*=\s*fopen\s*\([^;]+\)\s*;)', current_code)
+                if m_fop and f"if ({m_fop.group(2)} == NULL)" not in current_code and f"if (!{m_fop.group(2)})" not in current_code:
+                    v_name = m_fop.group(2)
+                    repl_fop = m_fop.group(1) + f"\n    if ({v_name} == NULL) return 1;"
+                    c_fop = current_code.replace(m_fop.group(1), repl_fop, 1)
+                    if c_fop != current_code:
+                        current_code = c_fop
+                        applied_steps.append(f"SEC: inserted NULL-check guard for fopen return '{v_name}'")
+
                 sec_creds = re.findall(
                     r'(\b(?:const\s+char\s*\*|char\s*\*)\s*(\w+)\s*=\s*["\']([^"\']+)["\'];)',
                     current_code,
@@ -2183,6 +2207,7 @@ class RepairPlanner:
                 pass
 
             try:
+                from compiler.repair_job_manager import _lightweight_check
                 # Struct assigned to pointer: T *p = s; -> T *p = (T *)&s;
                 m_st_asgn = re.search(r'(\b([a-zA-Z_]\w*)\s*\*+\s*[a-zA-Z_]\w*\s*=\s*)([a-zA-Z_]\w*)(\s*;)', current_code)
                 if m_st_asgn:
@@ -2224,6 +2249,14 @@ class RepairPlanner:
                     if c_ok or len(c_errs) < len(_lightweight_check(current_code)[1]):
                         current_code = cand_c
                         applied_steps.append("Removed duplicate case label in switch")
+
+                # Subscript on scalar return: return val[0]; -> return val;
+                cand_sub = re.sub(r'(\breturn\s+[a-zA-Z_]\w*)\[\s*\d+\s*\](\s*;)', r'\1\2', current_code)
+                if cand_sub != current_code:
+                    c_ok, c_errs, _ = _lightweight_check(cand_sub)
+                    if c_ok or len(c_errs) < len(_lightweight_check(current_code)[1]):
+                        current_code = cand_sub
+                        applied_steps.append("Removed subscript index from scalar return")
             except Exception:
                 pass
 

@@ -459,6 +459,29 @@ class SecurityChecker:
                         stable_id=stable_id,
                     )
                 )
+
+        # ------------------------------------------------
+        # 12. Unchecked return value of fopen (CWE-252)
+        # ------------------------------------------------
+        m_fop = re.search(r'\bFILE\s*\*\s*([A-Za-z_]\w*)\s*=\s*fopen\s*\(', clean_code_no_strings)
+        if m_fop:
+            v_name = m_fop.group(1)
+            if f"{v_name} == NULL" not in clean_code_no_strings and f"!{v_name}" not in clean_code_no_strings:
+                line_no = clean_code_no_strings.count("\n", 0, m_fop.start()) + 1
+                stable_id = f"unchecked_fopen:{v_name}:{line_no}"
+                if stable_id not in seen_ids:
+                    seen_ids.add(stable_id)
+                    issues.append(
+                        SecurityIssue(
+                            severity="WARNING",
+                            message=f"Return value of fopen() for '{v_name}' not checked for NULL (CWE-252)",
+                            suggestion="Check if pointer is NULL before using it.",
+                            score=2,
+                            line=line_no,
+                            stable_id=stable_id,
+                            is_confirmed=True,
+                        )
+                    )
         # Remove duplicate identical findings (Step 3c)
         unique_issues = []
         seen_findings = set()

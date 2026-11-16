@@ -200,7 +200,8 @@ DECL_TYPE_KEYWORDS = [
 
 ALL_C_KEYWORDS = {
     "return", "if", "else", "while", "for", "break", "continue",
-    "int", "float", "char", "void", "double", "unsigned", "signed", "short", "long", "struct", "main"
+    "int", "float", "char", "void", "double", "unsigned", "signed", "short", "long", "struct", "main",
+    "FILE", "size_t", "sqlite3", "sqlite3_stmt"
 }
 
 
