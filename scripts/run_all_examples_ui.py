@@ -107,6 +107,9 @@ def run_project_parser(source_path: Path, is_c: bool) -> Dict[str, Any]:
             code_for_parser = re.sub(r'^\s*typedef\s+[^;]+;', '', code_for_parser, flags=re.MULTILINE)
             for td in typedef_names:
                 code_for_parser = re.sub(rf'\b{re.escape(td)}\b', 'int', code_for_parser)
+            code_for_parser = re.sub(r'\b(FILE|size_t|ssize_t|time_t|uint8_t|uint16_t|uint32_t|uint64_t|int8_t|int16_t|int32_t|int64_t|sqlite3|sqlite3_stmt|va_list)\b', 'int', code_for_parser)
+            code_for_parser = re.sub(r',\s*\.\.\.', '', code_for_parser)
+            code_for_parser = re.sub(r'\b(va_start|va_end|va_copy)\s*\([^)]*\)\s*;', ';', code_for_parser)
             code_for_parser = re.sub(r'\benum\s+[a-zA-Z0-9_]*\s*\{[^}]*\}\s*;?', '', code_for_parser)
             code_for_parser = re.sub(r'\benum\s+[a-zA-Z0-9_]+', 'int', code_for_parser)
             code_for_parser = re.sub(r'\bunion\s+([a-zA-Z0-9_]+)', r'struct \1', code_for_parser)
@@ -770,7 +773,12 @@ async def main() -> None:
 
     # Load already processed files from CSV for resumption
     processed_files = set()
-    if not args.single_file and not args.no_resume and csv_path.exists():
+    if not args.single_file and args.no_resume:
+        if csv_path.exists():
+            csv_path.unlink()
+        if json_path.exists():
+            json_path.unlink()
+    elif not args.single_file and not args.no_resume and csv_path.exists():
         with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:

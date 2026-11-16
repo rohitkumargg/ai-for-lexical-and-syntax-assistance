@@ -1759,8 +1759,8 @@ class RepairPlanner:
                     from compiler.security_checker import SecurityChecker
                     sec_checker = SecurityChecker()
                     sec_iss = sec_checker.check(source_code)
-                    sec_lines = [getattr(iss, "line", None) for iss in sec_iss if getattr(iss, "line", None)]
-                    if (is_clean or not err_lines) and not sec_lines:
+                    sec_lines = [getattr(iss, "line", None) or 1 for iss in sec_iss]
+                    if (is_clean or not err_lines) and not sec_iss:
                         return source_code, []
                     flagged_lines = set(err_lines) | set(sec_lines)
 
@@ -2154,6 +2154,54 @@ class RepairPlanner:
                         if "#include <stdlib.h>" not in current_code:
                             current_code = "#include <stdlib.h>\n" + current_code
                         applied_steps.append(f"SEC: read credential '{var_name}' from environment via getenv")
+            except Exception:
+                pass
+
+            # 4c. Extended deterministic security remediations (use-after-free, vsprintf, realloc, bounded buffer copy, file creation mode)
+            try:
+                s_cand, s_rat, _ = self.remediation_engine._retrieve_deterministic_repair(current_code, 1, 'SECURITY', '', 'c')
+                if s_cand and s_cand.strip() != current_code.strip():
+                    from compiler.repair_job_manager import _lightweight_check
+                    c_ok, c_errs, _ = _lightweight_check(s_cand, 'c')
+                    if c_ok:
+                        current_code = s_cand
+                        applied_steps.append(f"SEC: {s_rat}")
+            except Exception:
+                pass
+
+            # 4d. Struct field access on scalar assignment & negative array dimension
+            try:
+                # Negative array dimension: int arr[-N] -> int arr[N]
+                m_neg_arr = re.search(r'\b([a-zA-Z_]\w*)\s*\[\s*-\s*(\d+)\s*\]', current_code)
+                if m_neg_arr:
+                    c_neg = re.sub(r'\b([a-zA-Z_]\w*)\s*\[\s*-\s*(\d+)\s*\]', r'\1[\2]', current_code)
+                    from compiler.repair_job_manager import _lightweight_check
+                    ok_neg, _, _ = _lightweight_check(c_neg, 'c')
+                    if ok_neg:
+                        current_code = c_neg
+                        applied_steps.append("SEM: fixed negative array dimension to positive size")
+
+                # Struct field access on scalar assignment
+                structs = {}
+                for m in re.finditer(r'struct\s+([a-zA-Z_]\w*)\s*\{([^}]+)\}', current_code):
+                    s_name, body = m.group(1), m.group(2)
+                    fields = re.findall(r'(?:int|char|float|double)\s+([a-zA-Z_]\w*)\s*;', body)
+                    if fields:
+                        structs[s_name] = fields
+                if structs:
+                    struct_vars = {}
+                    for s_name, fields in structs.items():
+                        for m in re.finditer(rf'struct\s+{s_name}\s+([a-zA-Z_]\w*)', current_code):
+                            struct_vars[m.group(1)] = (s_name, fields)
+                    for v_name, (s_name, fields) in struct_vars.items():
+                        pattern = rf'(=\s*)\b{re.escape(v_name)}\b\s*;'
+                        c_st = re.sub(pattern, rf'\1{v_name}.{fields[0]};', current_code)
+                        if c_st != current_code:
+                            from compiler.repair_job_manager import _lightweight_check
+                            ok_st, _, _ = _lightweight_check(c_st, 'c')
+                            if ok_st:
+                                current_code = c_st
+                                applied_steps.append(f"SEM: accessed field '{fields[0]}' on struct '{v_name}'")
             except Exception:
                 pass
 
