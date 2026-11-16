@@ -83,11 +83,13 @@ def compile_with_gcc(source_path: Path) -> Dict[str, Any]:
 
 
 def check_python_compilation(source_path: Path) -> Dict[str, Any]:
-    """Check Python code compilation with py_compile."""
-    cmd = [sys.executable, "-m", "py_compile", str(source_path)]
+    """Check Python code compilation with py_compile directly in-process."""
+    import py_compile
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        return {"rc": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
+        py_compile.compile(str(source_path), doraise=True)
+        return {"rc": 0, "stdout": "Compilation clean", "stderr": ""}
+    except py_compile.PyCompileError as ex:
+        return {"rc": 1, "stdout": "", "stderr": str(ex)}
     except Exception as ex:
         return {"rc": -1, "stdout": "", "stderr": str(ex)}
 

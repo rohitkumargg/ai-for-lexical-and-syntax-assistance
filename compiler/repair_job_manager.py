@@ -1400,7 +1400,7 @@ class RepairJobManager:
 
                             # Execute Qwen repair with per-window timeout
                             q_res = planner.ollama.generate_repair(
-                                win_src, dummy_f, model_name=getattr(planner.ollama, "default_model", "qwen2.5-coder:3b"), language=job.language
+                                win_src, dummy_f, model_name=getattr(planner.ollama, "default_model", "qwen2.5-coder:3b"), language=job.language, timeout=min(6.0, PER_WINDOW_CAP_S)
                             )
                             q_raw = q_res[0] if isinstance(q_res, tuple) else q_res
                             win_elapsed = time.perf_counter() - t_win_start

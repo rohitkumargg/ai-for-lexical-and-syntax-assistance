@@ -444,6 +444,7 @@ class OllamaClient:
         context: Optional[Dict[str, Any]] = None,
         keep_alive: str = "5m",
         language: Optional[str] = None,
+        timeout: Optional[float] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Generate a candidate code repair using Qwen2.5-Coder via local Ollama.
@@ -553,7 +554,8 @@ class OllamaClient:
                 method="POST",
             )
             t0_call = time.perf_counter()
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            timeout_to_use = timeout or self.timeout
+            with urllib.request.urlopen(req, timeout=timeout_to_use) as resp:
                 elapsed_s = time.perf_counter() - t0_call
                 end_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
                 print(f"[{end_str}] [Ollama End] generate_fix model={target_model} status={resp.status} elapsed_s={elapsed_s:.2f}")

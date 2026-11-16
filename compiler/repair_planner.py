@@ -2202,6 +2202,42 @@ class RepairPlanner:
                             if ok_st:
                                 current_code = c_st
                                 applied_steps.append(f"SEM: accessed field '{fields[0]}' on struct '{v_name}'")
+
+                # Function argument count mismatch (too few / too many arguments)
+                from compiler.repair_job_manager import _lightweight_check
+                _, _, c_diag = _lightweight_check(current_code, 'c')
+                m_few = re.search(r"too few arguments to function ['\"]?(\w+)['\"]?", c_diag)
+                m_many = re.search(r"too many arguments to function ['\"]?(\w+)['\"]?", c_diag)
+                fn_match = m_few or m_many
+                if fn_match:
+                    fn_name = fn_match.group(1)
+                    m_def = re.search(r'\b' + re.escape(fn_name) + r'\s*\(([^)]*)\)\s*\{', current_code)
+                    if m_def:
+                        expected_params = [p.strip() for p in m_def.group(1).split(',') if p.strip() and p.strip() != 'void']
+                        target_calls = list(re.finditer(r'\b' + re.escape(fn_name) + r'\s*\(([^)]*)\)', current_code))
+                        for mc in target_calls:
+                            if mc.start() == m_def.start():
+                                continue
+                            args = [a.strip() for a in mc.group(1).split(',') if a.strip()]
+                            if len(args) < len(expected_params):
+                                missing = len(expected_params) - len(args)
+                                new_args = args + ['0'] * missing
+                                new_call = f"{fn_name}(" + ', '.join(new_args) + ")"
+                                c_cand = current_code[:mc.start()] + new_call + current_code[mc.end():]
+                                ok, _, _ = _lightweight_check(c_cand, 'c')
+                                if ok:
+                                    current_code = c_cand
+                                    applied_steps.append(f"SEM: added missing argument(s) to call '{fn_name}'")
+                                    break
+                            elif len(args) > len(expected_params):
+                                new_args = args[:len(expected_params)]
+                                new_call = f"{fn_name}(" + ', '.join(new_args) + ")"
+                                c_cand = current_code[:mc.start()] + new_call + current_code[mc.end():]
+                                ok, _, _ = _lightweight_check(c_cand, 'c')
+                                if ok:
+                                    current_code = c_cand
+                                    applied_steps.append(f"SEM: trimmed extraneous argument(s) from call '{fn_name}'")
+                                    break
             except Exception:
                 pass
 
