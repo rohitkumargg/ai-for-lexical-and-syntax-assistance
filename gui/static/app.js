@@ -120,117 +120,49 @@ function toggleTheme() {
     applyTheme(next);
 }
 
-require.config({
-    paths: {
-        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs"
-    }
-});
-
-require(["vs/editor/editor.main"], function () {
-    monaco.editor.defineTheme("simplec-light", {
-        base: "vs",
-        inherit: true,
-        rules: [
-            { token: "keyword", foreground: "cf222e", fontStyle: "bold" },
-            { token: "type", foreground: "0969da" },
-            { token: "number", foreground: "0550ae" },
-            { token: "comment", foreground: "6e7781", fontStyle: "italic" },
-            { token: "string", foreground: "0a3069" },
-            { token: "identifier", foreground: "1f2328" }
-        ],
-        colors: {
-            "editor.background": "#ffffff",
-            "editor.foreground": "#1f2328",
-            "editorLineNumber.foreground": "#8c959f",
-            "editorLineNumber.activeForeground": "#1f2328",
-            "editor.selectionBackground": "#b6e3ff",
-            "editor.inactiveSelectionBackground": "#e8f0fe",
-            "editorCursor.foreground": "#0969da",
-            "editorGutter.background": "#ffffff",
-            "editor.lineHighlightBackground": "#f8fafc"
-        }
-    });
-
-    monaco.editor.defineTheme("simplec-dark", {
-        base: "vs-dark",
-        inherit: true,
-        rules: [
-            { token: "keyword", foreground: "ff7b72", fontStyle: "bold" },
-            { token: "type", foreground: "79c0ff" },
-            { token: "number", foreground: "a5d6ff" },
-            { token: "comment", foreground: "8b949e", fontStyle: "italic" },
-            { token: "string", foreground: "a5d6ff" }
-        ],
-        colors: {
-            "editor.background": "#0d1117",
-            "editor.foreground": "#e6edf3",
-            "editorLineNumber.foreground": "#6e7681",
-            "editorLineNumber.activeForeground": "#f0f6fc",
-            "editor.selectionBackground": "#264f78",
-            "editor.inactiveSelectionBackground": "#1f3b5c",
-            "editorCursor.foreground": "#58a6ff",
-            "editorGutter.background": "#0d1117"
-        }
-    });
-
-    const activeLang = getActiveLanguage();
-    const activeTheme = getStoredTheme();
-
-    editor = monaco.editor.create(document.getElementById("editor"), {
-        value: openFiles[currentFilename] || "",
-        language: activeLang.monaco || activeLang.id,
-        theme: activeTheme === "dark" ? "simplec-dark" : "simplec-light",
-        automaticLayout: true,
-        minimap: { enabled: false },
-        fontSize: 14,
-        fontFamily: "'JetBrains Mono', Consolas, monospace",
-        lineNumbers: "on",
-        roundedSelection: false,
-        scrollBeyondLastLine: false,
-        glyphMargin: true
-    });
-    window.editor = editor;
-
+function setupEditorApp(activeTheme) {
     renderTabs();
 
-let suppressInvalidateOnContinuation = false;
+    let suppressInvalidateOnContinuation = false;
 
-function invalidateStaleMetrics() {
-    if (suppressInvalidateOnContinuation) return;
-    currentCoordinatedPlan = null;
-    if (typeof activePatchReview !== "undefined") activePatchReview = null;
-    repairOriginalCode = null;
+    function invalidateStaleMetrics() {
+        if (suppressInvalidateOnContinuation) return;
+        currentCoordinatedPlan = null;
+        if (typeof activePatchReview !== "undefined") activePatchReview = null;
+        repairOriginalCode = null;
 
-    const baCard = document.getElementById("beforeAfterCard");
-    if (baCard) baCard.style.display = "none";
-    const baTbody = document.getElementById("before-after-tbody");
-    if (baTbody) baTbody.innerHTML = "";
+        const baCard = document.getElementById("beforeAfterCard");
+        if (baCard) baCard.style.display = "none";
+        const baTbody = document.getElementById("before-after-tbody");
+        if (baTbody) baTbody.innerHTML = "";
 
-    const recCard = document.getElementById("recommendedProgramCard");
-    if (recCard) recCard.style.display = "none";
+        const recCard = document.getElementById("recommendedProgramCard");
+        if (recCard) recCard.style.display = "none";
 
-    cachedQualityReport = null;
-    cachedOptimizationReport = null;
-    cachedSecurityRiskReport = null;
-    cachedGreenReport = null;
-    window._currentSecurityRecommendations = null;
+        cachedQualityReport = null;
+        cachedOptimizationReport = null;
+        cachedSecurityRiskReport = null;
+        cachedGreenReport = null;
+        window._currentSecurityRecommendations = null;
 
-    renderPrimaryIndicators();
-}
+        renderPrimaryIndicators();
+    }
 
-    editor.onDidChangeModelContent(() => {
-        openFiles[currentFilename] = editor.getValue();
-        showUnsavedDot(true);
+    if (editor && editor.onDidChangeModelContent) {
+        editor.onDidChangeModelContent(() => {
+            openFiles[currentFilename] = editor.getValue();
+            showUnsavedDot(true);
 
-        if (suppressHighlightClearOnce || suppressInvalidateOnContinuation || isRepairRunning) {
-            suppressHighlightClearOnce = false;
-            return;
-        }
+            if (suppressHighlightClearOnce || suppressInvalidateOnContinuation || isRepairRunning) {
+                suppressHighlightClearOnce = false;
+                return;
+            }
 
-        clearChangedLineHighlights();
-        invalidateStaleMetrics();
-        triggerLiveQualityScore();
-    });
+            clearChangedLineHighlights();
+            invalidateStaleMetrics();
+            triggerLiveQualityScore();
+        });
+    }
 
     // Global keyboard shortcuts
     window.addEventListener("keydown", (e) => {
@@ -258,7 +190,122 @@ function invalidateStaleMetrics() {
     initTestcaseResize();
     initProgStdinResize();
     fetchCandidateRulesCount();
-});
+}
+
+if (typeof require !== "undefined") {
+    require.config({
+        paths: {
+            vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs"
+        }
+    });
+
+    require(["vs/editor/editor.main"], function () {
+        monaco.editor.defineTheme("simplec-light", {
+            base: "vs",
+            inherit: true,
+            rules: [
+                { token: "keyword", foreground: "cf222e", fontStyle: "bold" },
+                { token: "type", foreground: "0969da" },
+                { token: "number", foreground: "0550ae" },
+                { token: "comment", foreground: "6e7781", fontStyle: "italic" },
+                { token: "string", foreground: "0a3069" },
+                { token: "identifier", foreground: "1f2328" }
+            ],
+            colors: {
+                "editor.background": "#ffffff",
+                "editor.foreground": "#1f2328",
+                "editorLineNumber.foreground": "#8c959f",
+                "editorLineNumber.activeForeground": "#1f2328",
+                "editor.selectionBackground": "#b6e3ff",
+                "editor.inactiveSelectionBackground": "#e8f0fe",
+                "editorCursor.foreground": "#0969da",
+                "editorGutter.background": "#ffffff",
+                "editor.lineHighlightBackground": "#f8fafc"
+            }
+        });
+
+        monaco.editor.defineTheme("simplec-dark", {
+            base: "vs-dark",
+            inherit: true,
+            rules: [
+                { token: "keyword", foreground: "ff7b72", fontStyle: "bold" },
+                { token: "type", foreground: "79c0ff" },
+                { token: "number", foreground: "a5d6ff" },
+                { token: "comment", foreground: "8b949e", fontStyle: "italic" },
+                { token: "string", foreground: "a5d6ff" }
+            ],
+            colors: {
+                "editor.background": "#0d1117",
+                "editor.foreground": "#e6edf3",
+                "editorLineNumber.foreground": "#6e7681",
+                "editorLineNumber.activeForeground": "#f0f6fc",
+                "editor.selectionBackground": "#264f78",
+                "editor.inactiveSelectionBackground": "#1f3b5c",
+                "editorCursor.foreground": "#58a6ff",
+                "editorGutter.background": "#0d1117"
+            }
+        });
+
+        const activeLang = getActiveLanguage();
+        const activeTheme = getStoredTheme();
+
+        editor = monaco.editor.create(document.getElementById("editor"), {
+            value: openFiles[currentFilename] || "",
+            language: activeLang.monaco || activeLang.id,
+            theme: activeTheme === "dark" ? "simplec-dark" : "simplec-light",
+            automaticLayout: true,
+            minimap: { enabled: false },
+            fontSize: 14,
+            fontFamily: "'JetBrains Mono', Consolas, monospace",
+            lineNumbers: "on",
+            roundedSelection: false,
+            scrollBeyondLastLine: false,
+            glyphMargin: true
+        });
+        window.editor = editor;
+
+        setupEditorApp(activeTheme);
+    });
+} else {
+    // Offline / fallback editor when CDN is unreachable
+    console.warn("Monaco loader unavailable, using local editor fallback");
+    function initFallbackEditor() {
+        const editorContainer = document.getElementById("editor");
+        const activeTheme = getStoredTheme();
+        if (editorContainer) {
+            editorContainer.innerHTML = '<textarea id="fallback-editor-ta" style="width:100%; height:100%; border:none; resize:none; font-family:\'JetBrains Mono\', Consolas, monospace; font-size:14px; padding:12px; box-sizing:border-box; background:transparent; color:inherit; outline:none;" spellcheck="false"></textarea>';
+            const ta = document.getElementById("fallback-editor-ta");
+            ta.value = openFiles[currentFilename] || "";
+            const changeListeners = [];
+            ta.addEventListener("input", () => {
+                changeListeners.forEach(cb => { try { cb(); } catch(e){} });
+            });
+            editor = {
+                getValue: () => ta.value,
+                setValue: (val) => {
+                    ta.value = val;
+                    changeListeners.forEach(cb => { try { cb(); } catch(e){} });
+                },
+                onDidChangeModelContent: (cb) => { changeListeners.push(cb); },
+                deltaDecorations: () => [],
+                revealLineInCenter: () => {},
+                layout: () => {},
+                getModel: () => ({
+                    getLineCount: () => (ta.value.split("\n").length)
+                }),
+                focus: () => ta.focus()
+            };
+            window.editor = editor;
+        }
+        setupEditorApp(activeTheme);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initFallbackEditor);
+    } else {
+        initFallbackEditor();
+    }
+}
 
 /* -------------------------------------------------- */
 /* TOAST NOTIFICATIONS                                */
@@ -2758,7 +2805,8 @@ function openFileInTab(filename, code) {
     workspaces[currentLanguageId].currentFilename = filename;
 
     suppressHighlightClearOnce = true;
-    editor.setValue(code);
+    const ed = window.editor || editor;
+    if (ed && ed.setValue) ed.setValue(code);
     renderTabs();
     resetPanels();
     showUnsavedDot(false);
@@ -6824,22 +6872,78 @@ function openFullscreenResults(plan) {
         }
     }
 
-    // 2. Render Telemetry Gauges (Left Column)
+    // 2. Render Telemetry Gauges (Baseline Left + Target Right)
     renderFsTelemetryGauges(data);
 
-    // 3. Render Code Comparison (Right Column)
+    // 3. Render Code Comparison (Centre Column)
     renderFsCodeComparison(data);
 
     // Show Modal
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
 
-    // Bind Esc key
+    // Bind Esc key & skip animations
     window.removeEventListener("keydown", handleFsResultsKeydown);
     window.addEventListener("keydown", handleFsResultsKeydown);
+    setupFsSkipListeners();
+}
+
+let _fsAnimTimers = [];
+let _fsAnimRafs = [];
+let _fsGaugeControllers = [];
+let _fsIsAnimating = false;
+
+function skipAllResultsAnimations() {
+    if (!_fsIsAnimating) return;
+    _fsIsAnimating = false;
+    _fsAnimTimers.forEach(clearTimeout);
+    _fsAnimTimers = [];
+    _fsAnimRafs.forEach(cancelAnimationFrame);
+    _fsAnimRafs = [];
+
+    const modal = document.getElementById("fullscreen-results-modal");
+    if (modal) {
+        modal.querySelectorAll('.results-pop-card, .fs-comparison-col').forEach(el => {
+            el.style.animation = 'none';
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+
+        modal.querySelectorAll('.fs-diff-line').forEach(el => {
+            el.style.animation = 'none';
+            el.style.opacity = '1';
+        });
+    }
+
+    _fsGaugeControllers.forEach(ctrl => {
+        if (ctrl && typeof ctrl.finish === 'function') {
+            ctrl.finish();
+        }
+    });
+}
+
+function setupFsSkipListeners() {
+    const modal = document.getElementById("fullscreen-results-modal");
+    if (!modal) return;
+
+    function onSkipClick(e) {
+        if (e.target.closest('.fs-results-close-btn') || e.target.closest('#fs-btn-apply-fix') || e.target.closest('#fs-btn-reject-patch')) {
+            return;
+        }
+        skipAllResultsAnimations();
+    }
+
+    function onSkipKey(e) {
+        if (e.key === "Escape") return;
+        skipAllResultsAnimations();
+    }
+
+    modal.addEventListener("click", onSkipClick, { once: true });
+    window.addEventListener("keydown", onSkipKey, { once: true });
 }
 
 function closeFullscreenResults() {
+    skipAllResultsAnimations();
     const modal = document.getElementById("fullscreen-results-modal");
     if (modal) modal.style.display = "none";
     document.body.style.overflow = "";
@@ -6858,145 +6962,408 @@ function handleFsResultsKeydown(event) {
     }
 }
 
-function animateGaugeNumber(element, targetVal, durationMs = 700) {
-    if (!element || targetVal == null || isNaN(targetVal)) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        element.textContent = `${Math.round(targetVal)}%`;
-        return;
+function extract4Metrics(assess) {
+    if (!assess) return { overall: null, optimal: null, vuln: null, memSafety: null };
+    const qScore = assess.quality_score != null ? Number(assess.quality_score)
+        : (assess.code_quality_score != null ? Number(assess.code_quality_score) : null);
+    const optScore = assess.optimization_potential != null ? Number(assess.optimization_potential) : null;
+    const vulnScore = assess.vulnerability_risk != null ? Number(assess.vulnerability_risk)
+        : (assess.security_risk_score != null ? Number(assess.security_risk_score)
+        : (assess.security_risk != null ? Number(assess.security_risk) : null));
+
+    let overall = assess.overall_code_quality != null
+        ? Number(assess.overall_code_quality)
+        : ((qScore != null && optScore != null && vulnScore != null)
+            ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore))))
+            : qScore);
+
+    let optimal = assess.optimal_code != null
+        ? Number(assess.optimal_code)
+        : (optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null);
+
+    let vuln = vulnScore != null ? Number(vulnScore) : null;
+
+    const poor = (overall != null) ? Math.max(0, Math.min(100, Math.round(100 - overall)))
+        : (assess.poor_code != null ? Number(assess.poor_code) : null);
+
+    let memSafety = assess.memory_safety != null
+        ? Number(assess.memory_safety)
+        : (assess.repair_validation_success != null ? Number(assess.repair_validation_success)
+        : (poor != null ? Math.max(0, 100 - poor) : (vuln != null ? Math.max(0, 100 - vuln) : 95)));
+
+    return { overall, optimal, vuln, memSafety };
+}
+
+function computeDeltaInfo(targetVal, baselineVal, isInverted) {
+    if (targetVal == null || baselineVal == null || isNaN(targetVal) || isNaN(baselineVal)) {
+        return null;
     }
-    const start = 0;
-    const startTime = performance.now();
-    function step(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / durationMs);
-        const current = Math.round(start + (targetVal - start) * (1 - Math.pow(1 - progress, 3)));
-        element.textContent = `${current}%`;
-        if (progress < 1) {
-            requestAnimationFrame(step);
+    const diff = Math.round(targetVal) - Math.round(baselineVal);
+    if (isInverted) {
+        if (diff < 0) {
+            return { text: `${diff}% REDUCTION`, inline: `${diff}%`, type: "positive" };
+        } else if (diff > 0) {
+            return { text: `+${diff}% INCREASE`, inline: `+${diff}%`, type: "negative" };
         } else {
-            element.textContent = `${Math.round(targetVal)}%`;
+            return { text: `0%`, inline: `0%`, type: "neutral" };
+        }
+    } else {
+        if (diff > 0) {
+            return { text: `+${diff}% BOOST`, inline: `+${diff}%`, type: "positive" };
+        } else if (diff < 0) {
+            return { text: `${diff}%`, inline: `${diff}%`, type: "negative" };
+        } else {
+            return { text: `0%`, inline: `0%`, type: "neutral" };
         }
     }
-    requestAnimationFrame(step);
+}
+
+function createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, deltaChipEl, targetVal, durationMs = 1000) {
+    let rafId = null;
+    let isFinished = false;
+
+    function applyP(p) {
+        if (targetVal == null || isNaN(targetVal)) {
+            if (numEl) numEl.textContent = "n/a";
+            if (pctLabelEl) pctLabelEl.textContent = "n/a";
+            if (barFillEl) barFillEl.style.height = "0%";
+            return;
+        }
+        const curNum = Math.round(targetVal * p);
+        if (numEl) numEl.textContent = `${curNum}%`;
+        if (pctLabelEl) pctLabelEl.textContent = `${curNum}%`;
+        if (barFillEl) barFillEl.style.height = `${targetVal * p}%`;
+    }
+
+    function onComplete() {
+        if (isFinished) return;
+        isFinished = true;
+        applyP(1.0);
+        if (targetVal != null && !isNaN(targetVal)) {
+            if (barFillEl) barFillEl.classList.add("bar-shine-active");
+            if (cardEl) {
+                cardEl.classList.add("card-glow-active");
+                setTimeout(() => cardEl.classList.remove("card-glow-active"), 800);
+            }
+            if (deltaChipEl) deltaChipEl.classList.add("delta-pop-active");
+        }
+    }
+
+    function run() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            onComplete();
+            return;
+        }
+        if (targetVal == null || isNaN(targetVal)) {
+            applyP(1.0);
+            return;
+        }
+        const t0 = performance.now();
+        function loop(now) {
+            const elapsed = now - t0;
+            const t = Math.min(1.0, elapsed / durationMs);
+            const p = 1.0 - Math.pow(1.0 - t, 3.0); // easeOutCubic
+            applyP(p);
+            if (t < 1.0) {
+                rafId = requestAnimationFrame(loop);
+                _fsAnimRafs.push(rafId);
+            } else {
+                onComplete();
+            }
+        }
+        rafId = requestAnimationFrame(loop);
+        _fsAnimRafs.push(rafId);
+    }
+
+    function finish() {
+        if (rafId) cancelAnimationFrame(rafId);
+        onComplete();
+    }
+
+    return { run, finish };
 }
 
 function renderFsTelemetryGauges(data) {
-    const container = document.getElementById("fs-gauges-container");
-    if (!container) return;
+    const baseContainer = document.getElementById("fs-baseline-gauges-container");
+    const targetContainer = document.getElementById("fs-target-gauges-container");
+    if (!baseContainer || !targetContainer) return;
 
-    const assessment = (data.candidate_id && data.proposed_scores) ? data.proposed_scores : (data.original_assessment || data.baseline_scores || {});
-    const deltas = data.deltas || {};
+    // Reset previous animation state
+    skipAllResultsAnimations();
+    _fsGaugeControllers = [];
+    _fsIsAnimating = true;
+
     const doesNotCompile = data.status === "COMPILATION_FAILED" || (data.validation_report && data.validation_report.compilation_passed === false);
+    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN";
+    const hasCandidate = !!(data.candidate_id || (data.candidate && data.candidate.id) || (data.proposed_code && data.status !== "COMPILATION_FAILED" && data.status !== "REPAIR_UNAVAILABLE" && data.status !== "ERROR"));
+    const isFailure = !isClean && (!hasCandidate || data.status === "COMPILATION_FAILED" || data.status === "REPAIR_UNAVAILABLE" || data.status === "ERROR");
 
-    // 1. Overall Quality
-    const qScore = assessment.quality_score != null ? Number(assessment.quality_score) : (assessment.code_quality_score != null ? Number(assessment.code_quality_score) : null);
-    const optScore = assessment.optimization_potential != null ? Number(assessment.optimization_potential) : null;
-    const vulnScore = assessment.vulnerability_risk != null ? Number(assessment.vulnerability_risk) : (assessment.security_risk_score != null ? Number(assessment.security_risk_score) : (assessment.security_risk != null ? Number(assessment.security_risk) : null));
-    const overallVal = assessment.overall_code_quality != null
-        ? Number(assessment.overall_code_quality)
-        : ((qScore != null && optScore != null && vulnScore != null) ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore)))) : null);
+    // Baseline scores
+    const baselineAssessment = data.original_assessment || data.baseline_scores || data.before_scores || (data.before_six_metrics ? { ...data.before_six_metrics, overall_code_quality: data.before_six_metrics.code_quality_score } : {});
+    const bM = extract4Metrics(baselineAssessment);
 
-    // 2. Optimal Code
-    const optimalVal = assessment.optimal_code != null ? Number(assessment.optimal_code) : (optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null);
+    // Target scores
+    let targetAssessment = null;
+    if (isClean) {
+        targetAssessment = baselineAssessment;
+    } else if (hasCandidate) {
+        targetAssessment = data.candidate_assessment || data.proposed_scores || data.after_scores || (data.after_six_metrics ? { ...data.after_six_metrics, overall_code_quality: data.after_six_metrics.code_quality_score } : {});
+    }
+    const tM = extract4Metrics(targetAssessment);
 
-    // 3. Vulnerability Risk
-    const vulnVal = vulnScore != null ? Number(vulnScore) : null;
-
-    // 4. Memory Safety Score (or Poor Code / Green Score)
-    const poorVal = (overallVal != null) ? Math.max(0, Math.min(100, Math.round(100 - overallVal))) : (assessment.poor_code != null ? Number(assessment.poor_code) : null);
-    const memSafetyVal = assessment.memory_safety != null ? Number(assessment.memory_safety) : (poorVal != null ? Math.max(0, 100 - poorVal) : 95);
-
-    const gauges = [
+    // Define 4 Baseline Gauges
+    const baselineGauges = [
         {
+            id: "fs-b-gauge-overall",
             title: "Overall Code Quality",
-            subtitle: "Weighted composite rating",
-            value: overallVal,
-            delta: deltas.overall_quality_delta || deltas.quality_delta || (overallVal ? "+14%" : null),
-            status: doesNotCompile ? "STATUS: ESTIMATED" : (overallVal >= 80 ? "STATUS: ROBUST" : "STATUS: MEASURED"),
-            statusClass: doesNotCompile ? "estimated" : "robust",
-            detail: "AST depth & syntax clean",
-            benchmark: "Benchmark: Optimal (A)",
+            subtitle: "Unchecked bounds & raw buffer",
+            value: bM.overall,
+            status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.overall != null && bM.overall < 70 ? "STATUS: UNGUARDED" : "STATUS: MEASURED"),
+            statusClass: doesNotCompile ? "estimated" : (bM.overall != null && bM.overall < 70 ? "unguarded" : "measured"),
+            icon: "⚠",
+            iconClass: "red",
+            sublabel: "BASELINE SCORE",
             isInverted: false,
-            id: "fs-gauge-val-overall"
+            gradientClass: "baseline-red-gradient"
         },
         {
-            title: "Optimal Code Efficiency",
-            subtitle: "Execution & instruction ratio",
-            value: optimalVal,
-            delta: deltas.optimal_code_delta || (optimalVal ? "+22%" : null),
-            status: doesNotCompile ? "STATUS: ESTIMATED" : "STATUS: OPTIMIZED",
-            statusClass: doesNotCompile ? "estimated" : "optimized",
-            detail: "Execution & AST efficiency",
-            benchmark: "Benchmark: Optimal (A)",
+            id: "fs-b-gauge-optimal",
+            title: "Code Efficiency",
+            subtitle: "Unbounded string iteration",
+            value: bM.optimal,
+            status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.optimal != null && bM.optimal < 70 ? "STATUS: UNOPTIMIZED" : "STATUS: HEURISTIC"),
+            statusClass: doesNotCompile ? "estimated" : (bM.optimal != null && bM.optimal < 70 ? "unoptimized" : "heuristic"),
+            icon: "⚡",
+            iconClass: "amber",
+            sublabel: "BASELINE SCORE",
             isInverted: false,
-            id: "fs-gauge-val-optimal"
+            gradientClass: "baseline-red-gradient"
         },
         {
+            id: "fs-b-gauge-risk",
             title: "Vulnerability Risk %",
-            subtitle: "CWE/CVE exploit exposure",
-            value: vulnVal,
-            delta: deltas.vulnerability_risk_delta || (vulnVal != null && vulnVal > 0 ? "-78%" : null),
-            status: (vulnVal != null && vulnVal === 0) ? "STATUS: ZERO RISK" : "STATUS: MITIGATED",
-            statusClass: "mitigated",
-            detail: (vulnVal != null && vulnVal === 0) ? "0 detected vulnerabilities" : `${vulnVal != null ? Math.round(vulnVal) : 0}% potential exposure`,
-            benchmark: "Threat Index: Safe Level",
+            subtitle: "Buffer overflow CWE-120 active",
+            value: bM.vuln,
+            status: (bM.vuln != null && bM.vuln === 0) ? "STATUS: ZERO RISK" : (bM.vuln != null && bM.vuln > 50 ? "STATUS: CRITICAL EXPOSURE" : "STATUS: EXPOSURE RISK"),
+            statusClass: (bM.vuln != null && bM.vuln === 0) ? "zero-risk" : "critical-exposure",
+            icon: "⚠",
+            iconClass: "red",
+            sublabel: "EXPOSURE INDEX",
             isInverted: true,
-            id: "fs-gauge-val-risk"
+            gradientClass: "inverted-gradient"
         },
         {
+            id: "fs-b-gauge-safety",
             title: "Memory Safety Score",
-            subtitle: "Heap/stack integrity guards",
-            value: memSafetyVal,
-            delta: deltas.memory_safety_delta || "+45%",
-            status: "STATUS: BOUNDS VERIFIED",
-            statusClass: "bounds",
-            detail: "0 buffer overflows detected",
-            benchmark: "Guards: Active",
+            subtitle: "Missing guard & overwrite risk",
+            value: bM.memSafety,
+            status: (bM.memSafety != null && bM.memSafety < 60) ? "STATUS: HAZARDOUS" : (doesNotCompile ? "STATUS: ESTIMATED" : "STATUS: MEASURED"),
+            statusClass: (bM.memSafety != null && bM.memSafety < 60) ? "hazardous" : (doesNotCompile ? "estimated" : "measured"),
+            icon: "🛡",
+            iconClass: "amber",
+            sublabel: "BASELINE SCORE",
             isInverted: false,
-            id: "fs-gauge-val-safety"
+            gradientClass: "baseline-red-gradient"
         }
     ];
 
-    container.innerHTML = gauges.map((g, idx) => {
-        const valStr = g.value != null ? `${Math.round(g.value)}%` : "n/a";
-        const fillHeight = g.value != null ? Math.max(0, Math.min(100, g.value)) : 0;
-        const gradClass = g.isInverted ? "inverted-gradient" : "standard-gradient";
-        const deltaHtml = g.delta ? `<span class="fs-gc-delta">${escapeHtml(g.delta)}</span>` : "";
+    // Define 4 Target Gauges
+    const targetGauges = [
+        {
+            id: "fs-t-gauge-overall",
+            title: "Overall Code Quality",
+            subtitle: "Optimal (A) & clean guarantees",
+            value: isFailure ? null : tM.overall,
+            baselineVal: bM.overall,
+            status: isFailure ? "" : (tM.overall != null && tM.overall >= 80 ? "STATUS: ROBUST" : "STATUS: VERIFIED"),
+            statusClass: "robust",
+            icon: "✓",
+            iconClass: "green",
+            sublabel: "TARGET SCORE",
+            isInverted: false,
+            gradientClass: "target-cyan-gradient"
+        },
+        {
+            id: "fs-t-gauge-optimal",
+            title: "Optimal Code Efficiency",
+            subtitle: "Execution & instruction ratio",
+            value: isFailure ? null : tM.optimal,
+            baselineVal: bM.optimal,
+            status: isFailure ? "" : "STATUS: OPTIMIZED",
+            statusClass: "optimized",
+            icon: "⚡",
+            iconClass: "purple",
+            sublabel: "TARGET SCORE",
+            isInverted: false,
+            gradientClass: "target-purple-gradient"
+        },
+        {
+            id: "fs-t-gauge-risk",
+            title: "Vulnerability Risk %",
+            subtitle: "Ultra-Safe bounded guarantee",
+            value: isFailure ? null : tM.vuln,
+            baselineVal: bM.vuln,
+            status: isFailure ? "" : ((tM.vuln != null && tM.vuln === 0) ? "STATUS: ZERO RISK" : "STATUS: MITIGATED"),
+            statusClass: (tM.vuln != null && tM.vuln === 0) ? "zero-risk" : "mitigated",
+            icon: "🛡",
+            iconClass: "green",
+            sublabel: "TARGET EXPOSURE",
+            isInverted: true,
+            gradientClass: "inverted-gradient"
+        },
+        {
+            id: "fs-t-gauge-safety",
+            title: "Memory Safety Score",
+            subtitle: "Heap/stack integrity guards",
+            value: isFailure ? null : tM.memSafety,
+            baselineVal: bM.memSafety,
+            status: isFailure ? "" : "STATUS: VERIFIED",
+            statusClass: "verified",
+            icon: "🛡",
+            iconClass: "green",
+            sublabel: "TARGET SCORE",
+            isInverted: false,
+            gradientClass: "standard-gradient"
+        }
+    ];
 
+    // Render Baseline Cards
+    baseContainer.innerHTML = baselineGauges.map(g => {
+        const valStr = g.value != null ? `${Math.round(g.value)}%` : "n/a";
         return `
-            <div class="fs-gauge-card results-pop-card" style="animation-delay: ${(idx + 1) * 140}ms;">
+            <div class="fs-gauge-card results-pop-card" id="${g.id}-card" style="opacity: 0;">
                 <div class="fs-gc-top">
                     <span class="fs-gc-status-pill ${g.statusClass}">${escapeHtml(g.status)}</span>
-                    <span style="font-size:12px; color:var(--text-muted);">◎</span>
+                    <div class="fs-gc-icon-badge ${g.iconClass}">${g.icon}</div>
                 </div>
                 <div class="fs-gc-title">${escapeHtml(g.title)}</div>
                 <div class="fs-gc-subtitle">${escapeHtml(g.subtitle)}</div>
                 <div class="fs-gc-body">
-                    <div style="flex:1;">
+                    <div class="fs-gc-left-data">
+                        <span class="fs-gc-sublabel baseline">${g.sublabel}</span>
                         <div class="fs-gc-num-wrap">
-                            <span class="fs-gc-big-val" id="${g.id}">${valStr}</span>
-                            ${deltaHtml}
+                            <span class="fs-gc-big-val baseline" id="${g.id}-num">${valStr}</span>
                         </div>
-                        <div class="fs-gc-detail">${escapeHtml(g.detail)}</div>
-                        <div class="fs-gc-benchmark-tag">${escapeHtml(g.benchmark)}</div>
                     </div>
                     <div>
                         <div class="fs-battery-track" title="${valStr}">
-                            <div class="fs-battery-fill ${gradClass}" style="height: ${fillHeight}%;"></div>
+                            <div class="fs-battery-fill ${g.gradientClass}" id="${g.id}-bar" style="height: 0%;"></div>
                         </div>
-                        <div class="fs-battery-pct-label">${valStr}</div>
+                        <div class="fs-battery-pct-label" id="${g.id}-pct">${valStr}</div>
                     </div>
                 </div>
             </div>
         `;
     }).join("");
 
-    // Number counting animation (< 800 ms)
-    gauges.forEach(g => {
-        if (g.value != null) {
-            const el = document.getElementById(g.id);
-            if (el) animateGaugeNumber(el, g.value, 700);
-        }
+    // Render Target Cards
+    targetContainer.innerHTML = targetGauges.map(g => {
+        const deltaInfo = computeDeltaInfo(g.value, g.baselineVal, g.isInverted);
+        const valStr = g.value != null ? `${Math.round(g.value)}%` : "n/a";
+        return `
+            <div class="fs-gauge-card results-pop-card" id="${g.id}-card" style="opacity: 0;">
+                <div class="fs-gc-top">
+                    <div style="display: flex; align-items: center;">
+                        ${g.status ? `<span class="fs-gc-status-pill ${g.statusClass}">${escapeHtml(g.status)}</span>` : ''}
+                        ${deltaInfo ? `<span class="fs-gc-delta-chip ${deltaInfo.type}" id="${g.id}-delta-chip">${escapeHtml(deltaInfo.text)}</span>` : ''}
+                    </div>
+                    <div class="fs-gc-icon-badge ${g.iconClass}">${g.icon}</div>
+                </div>
+                <div class="fs-gc-title">${escapeHtml(g.title)}</div>
+                <div class="fs-gc-subtitle">${escapeHtml(g.subtitle)}</div>
+                <div class="fs-gc-body">
+                    <div class="fs-gc-left-data">
+                        <span class="fs-gc-sublabel target">${g.sublabel}</span>
+                        <div class="fs-gc-num-wrap">
+                            <span class="fs-gc-big-val target" id="${g.id}-num">${valStr}</span>
+                            ${deltaInfo ? `<span class="fs-gc-inline-delta ${deltaInfo.type}">${escapeHtml(deltaInfo.inline)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="fs-battery-track" title="${valStr}">
+                            <div class="fs-battery-fill ${g.gradientClass}" id="${g.id}-bar" style="height: 0%;"></div>
+                        </div>
+                        <div class="fs-battery-pct-label" id="${g.id}-pct">${valStr}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    // Create Controllers for each gauge
+    const controllers = {};
+    baselineGauges.forEach(g => {
+        const cardEl = document.getElementById(`${g.id}-card`);
+        const numEl = document.getElementById(`${g.id}-num`);
+        const barFillEl = document.getElementById(`${g.id}-bar`);
+        const pctLabelEl = document.getElementById(`${g.id}-pct`);
+        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, null, g.value, 1000);
+        controllers[g.id] = ctrl;
+        _fsGaugeControllers.push(ctrl);
+    });
+
+    targetGauges.forEach(g => {
+        const cardEl = document.getElementById(`${g.id}-card`);
+        const numEl = document.getElementById(`${g.id}-num`);
+        const barFillEl = document.getElementById(`${g.id}-bar`);
+        const pctLabelEl = document.getElementById(`${g.id}-pct`);
+        const deltaChipEl = document.getElementById(`${g.id}-delta-chip`);
+        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, deltaChipEl, g.value, 1000);
+        controllers[g.id] = ctrl;
+        _fsGaugeControllers.push(ctrl);
+    });
+
+    // Check reduced motion
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+        skipAllResultsAnimations();
+        return;
+    }
+
+    // Orchestrate Staggered Entrance:
+    // 1. Baseline Cards top to bottom (120ms apart)
+    baselineGauges.forEach((g, idx) => {
+        const cardEl = document.getElementById(`${g.id}-card`);
+        const ctrl = controllers[g.id];
+        const timer = setTimeout(() => {
+            if (cardEl) {
+                cardEl.style.animation = 'cardPopIn 380ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+            }
+            if (ctrl) ctrl.run();
+        }, idx * 120);
+        _fsAnimTimers.push(timer);
+    });
+
+    // 2. Centre Panel fades and slides in (~480ms)
+    const centrePanel = document.getElementById("fs-comparison-card");
+    if (centrePanel) {
+        centrePanel.style.opacity = '0';
+        const centreTimer = setTimeout(() => {
+            centrePanel.style.animation = 'fsCenterSlideIn 400ms ease-out forwards';
+            // Sequence diff lines
+            const diffLines = document.querySelectorAll('#fullscreen-results-modal .fs-diff-line.deletion, #fullscreen-results-modal .fs-diff-line.addition');
+            diffLines.forEach((line, lIdx) => {
+                line.style.opacity = '0';
+                const lTimer = setTimeout(() => {
+                    line.style.animation = 'diffLineFadeIn 250ms ease-out forwards';
+                }, Math.min(1400, lIdx * 40));
+                _fsAnimTimers.push(lTimer);
+            });
+        }, 460);
+        _fsAnimTimers.push(centreTimer);
+    }
+
+    // 3. Target Cards top to bottom (starts at 700ms, 120ms apart)
+    targetGauges.forEach((g, idx) => {
+        const cardEl = document.getElementById(`${g.id}-card`);
+        const ctrl = controllers[g.id];
+        const timer = setTimeout(() => {
+            if (cardEl) {
+                cardEl.style.animation = 'cardPopIn 380ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+            }
+            if (ctrl) ctrl.run();
+        }, 700 + idx * 120);
+        _fsAnimTimers.push(timer);
     });
 }
 
@@ -7326,8 +7693,8 @@ async function handleFsApplyFix() {
         return;
     }
     // Call existing Apply path: applyRecommendedPlan(candId)
-    closeFullscreenResults();
     await applyRecommendedPlan(candId);
+    closeFullscreenResults();
 }
 
 function handleFsRejectPatch() {

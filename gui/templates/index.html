@@ -923,26 +923,29 @@
                 <!-- Finding cards injected dynamically here -->
             </div>
 
-            <!-- Bottom Section: Left Telemetry Gauges + Right Code Comparison -->
-            <div class="fs-bottom-layout">
-                <!-- Left Column: Telemetry Gauges -->
-                <div class="fs-gauges-col">
-                    <div class="fs-gauges-header">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10"></line>
-                            <line x1="12" y1="20" x2="12" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg>
-                        <span>Telemetry Gauges</span>
+            <!-- Bottom Section: 3 Columns (Baseline Telemetry, Code Comparison, Target Telemetry) -->
+            <div class="fs-bottom-layout fs-three-cols" id="fs-bottom-three-cols">
+                <!-- Left Column: Baseline Telemetry (Pre-Patch) -->
+                <div class="fs-telemetry-col fs-baseline-col" id="fs-baseline-col">
+                    <div class="fs-telemetry-header">
+                        <div class="fs-th-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            <span class="fs-th-text baseline">BASELINE TELEMETRY</span>
+                        </div>
+                        <span class="fs-th-pill baseline">• Pre-Patch</span>
                     </div>
 
-                    <!-- Gauges Container -->
-                    <div id="fs-gauges-container" style="display:flex; flex-direction:column; gap:10px;">
-                        <!-- Gauge cards injected dynamically -->
+                    <!-- Baseline Gauges Container -->
+                    <div id="fs-baseline-gauges-container" class="fs-gauges-list">
+                        <!-- Baseline gauge cards injected dynamically -->
                     </div>
                 </div>
 
-                <!-- Right Column: Code Comparison -->
+                <!-- Centre Column: Code Comparison -->
                 <div class="fs-comparison-col results-pop-card" id="fs-comparison-card">
                     <div class="fs-comp-header">
                         <div class="fs-comp-title">
@@ -952,7 +955,7 @@
                                 <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
                                 <line x1="6" y1="9" x2="6" y2="21"></line>
                             </svg>
-                            <span id="fs-comp-candidate-id">CODE COMPARISON | Patch Candidate</span>
+                            <span id="fs-comp-candidate-id">CODE COMPARISON | Candidate Patch</span>
                         </div>
                         <div class="fs-comp-tabs">
                             <button id="fs-tab-btn-sbs" class="fs-comp-tab-btn active" onclick="switchFsDiffTab('sbs')">Side-by-Side Diff</button>
@@ -1004,6 +1007,25 @@
                                 <span id="fs-btn-apply-label">Apply Fix</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Target Telemetry (Post-Patch) -->
+                <div class="fs-telemetry-col fs-target-col" id="fs-target-col">
+                    <div class="fs-telemetry-header">
+                        <div class="fs-th-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="fs-th-text target">TARGET TELEMETRY</span>
+                        </div>
+                        <span class="fs-th-pill target">• Post-Patch</span>
+                    </div>
+
+                    <!-- Target Gauges Container -->
+                    <div id="fs-target-gauges-container" class="fs-gauges-list">
+                        <!-- Target gauge cards injected dynamically -->
                     </div>
                 </div>
             </div>
