@@ -3435,6 +3435,14 @@ class RepairPlanner:
                                 break
                             if raw_c5 and raw_c5.strip() != c5_input_code.strip():
                                 from compiler.local_models import FullSourceRepairContract
+                                from compiler.agent_security import check_symbol_and_signature_integrity
+                                sym_ok, sym_reason = check_symbol_and_signature_integrity(source_code, raw_c5, language=lang_id)
+                                if not sym_ok:
+                                    c5_fail_reason = f"cascading_hallucination: {sym_reason}"
+                                    c5_val_msg = f"Hallucinated symbol/signature detected: {sym_reason}"
+                                    logger.warning(f"[CASCADING_HALLUCINATION] rejected proposal from codet5: {sym_reason}")
+                                    continue
+
                                 contract = FullSourceRepairContract.validate_and_create(
                                     raw_code=raw_c5,
                                     strategy="codet5_primary",
@@ -3857,6 +3865,13 @@ class RepairPlanner:
                                 is_improved = True
 
                         if is_improved:
+                            from compiler.agent_security import check_symbol_and_signature_integrity
+                            sym_ok, sym_reason = check_symbol_and_signature_integrity(source_code, batch_code, language=lang_id)
+                            if not sym_ok:
+                                is_improved = False
+                                logger.warning(f"[CASCADING_HALLUCINATION] rejected proposal from qwen: {sym_reason}")
+
+                        if is_improved:
                             # Batch splice succeeded!
                             current_qwen_code = batch_code
                             cand = batch_code
@@ -3890,6 +3905,13 @@ class RepairPlanner:
                                 else:
                                     if s_ok or len(s_errs) == 0:
                                         s_improved = True
+
+                                if s_improved:
+                                    from compiler.agent_security import check_symbol_and_signature_integrity
+                                    sym_ok, sym_reason = check_symbol_and_signature_integrity(source_code, s_cand, language=lang_id)
+                                    if not sym_ok:
+                                        s_improved = False
+                                        logger.warning(f"[CASCADING_HALLUCINATION] rejected proposal from qwen: {sym_reason}")
 
                                 if s_improved:
                                     current_qwen_code = s_cand

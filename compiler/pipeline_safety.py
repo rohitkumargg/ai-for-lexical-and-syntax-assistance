@@ -12,6 +12,19 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from compiler.agent_security import (
+    MAX_FILE_SIZE_BYTES,
+    MAX_LINE_COUNT,
+    MAX_LINE_LENGTH,
+    MAX_NESTING_DEPTH,
+    MAX_FUNCTION_COUNT,
+    PER_WINDOW_TIMEOUT_S,
+    MAX_CONCURRENT_JOBS,
+    MAX_QUEUE_SIZE,
+    MAX_MODEL_TOKENS,
+    MODEL_RESPONSE_TIMEOUT_S,
+    check_input_safety,
+)
 from compiler.semantic_checker import SemanticChecker
 from compiler.security_auto_fixer import SecurityAutoFixer, AutoFixResult, _split_lines
 from test_parser import parse_source, has_any_errors, get_all_error_strings, build_symbols

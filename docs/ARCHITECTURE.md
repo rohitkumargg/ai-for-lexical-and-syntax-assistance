@@ -124,4 +124,48 @@ The pipeline incorporates two foundational security protections with zero modifi
 - **Loopback-Only Model Enforcement**: Local model inference endpoints (CodeT5 / Ollama) strictly enforce loopback addresses (`127.0.0.1`, `localhost`, `::1`), automatically redirecting any non-loopback configuration to prevent accidental data exfiltration.
 - **Telemetry Transparency**: Security operations are recorded in the pipeline log and telemetry summary: `"agent security: N messages checked, M rejected, K values redacted"`.
 
+---
+
+## 7. Pipeline Threat Defences & Fault Injection Hardening
+
+The pipeline incorporates deterministic defences against four principal multi-agent and LLM vulnerability classes, verifiable via in-process simulation (`scripts/simulate_agent_attacks.py`):
+
+### 1. Cascading Hallucination Defence
+- **Deterministic Symbol & Signature Integrity**: Every candidate proposed by local models (CodeT5 / Qwen) is subjected to a deterministic symbol and signature check (`check_symbol_and_signature_integrity`) against the original program before whole-program validation or downstream propagation.
+  - Whitelist of standard C standard library symbols and Python builtins.
+  - Forbids introduction of new top-level functions or altered parameter arity on existing functions.
+- **Circuit Breaker**: If a repair tier generates `CIRCUIT_BREAKER_THRESHOLD = 3` consecutive rejected proposals on a single job, the tier is automatically tripped and disabled for that job, falling back immediately to the next tier without stalling.
+- **Cascade Depth Cap**: Enforces `MAX_CASCADE_DEPTH = 3` cascade rounds to terminate runaway repair continuation loops cleanly.
+- **Audit Logging**: Emits `[CASCADING_HALLUCINATION] rejected proposal from <tier>: <reason>` and `[CIRCUIT_BREAKER] tier '<tier>' tripped after 3 rejections, falling back to next tier`.
+
+### 2. Memory Poisoning & Cache Integrity Defence
+- **Cryptographic Provenance**: Every entry stored in `WindowRepairCache` (`data/repair_cache/window_cache.json`) is signed with HMAC-SHA256 using a persistent 256-bit key (`data/.pipeline_hmac_key`).
+- **Cache Age & Capacity Limits**:
+  - `CACHE_MAX_AGE_SECONDS = 86_400` (24-hour expiration).
+  - `CACHE_MAX_ENTRIES = 500` with FIFO eviction of stale entries.
+- **Integrity Verification & Quarantine**: On cache lookup, entries lacking valid HMAC signatures or carrying corrupt syntax are rejected and quarantined into `data/quarantine_log.jsonl`.
+- **Audit Logging**: Emits `[MEMORY_POISONING] quarantined invalid/tampered entry <key>: <reason>`.
+
+### 3. Agent Identity Compromise Defence
+- **Explicit Sender Binding**: The orchestrator assigns `agent_name` directly from the registered agent role, ignoring unverified `sender` claims in message metadata.
+- **Anti-Replay Nonces & Sequence Tracking**: Each analysis run generates an ephemeral run nonce (`secrets.token_hex(16)`) and monotonic sequence counters. Findings submitted with mismatched nonces or out-of-order sequence numbers are rejected as replay attacks.
+- **Authority Matrix Enforcement**: Strict role-based finding categorization prevents specialized agents (e.g., `SyntaxAgent`) from injecting findings in unauthorized categories (e.g., `SECURITY`).
+- **Audit Logging**: Emits `[IDENTITY_COMPROMISE] rejected message from <agent>: <reason>`.
+
+### 4. Resource Overload & Input Safety Guard
+- **Deterministic Input Safety Bounds**:
+  - `MAX_FILE_SIZE_BYTES = 500 KB`
+  - `MAX_LINE_COUNT = 100,000` lines
+  - `MAX_LINE_LENGTH = 2,000` characters
+  - `MAX_NESTING_DEPTH = 30` block / indentation levels
+  - `MAX_FUNCTION_COUNT = 200` functions
+  - `PER_WINDOW_TIMEOUT_S = 15.0` seconds
+  - `MAX_CONCURRENT_JOBS = 2`
+  - `MAX_QUEUE_SIZE = 10`
+  - `MAX_MODEL_TOKENS = 5,000` tokens
+  - `MODEL_RESPONSE_TIMEOUT_S = 30.0` seconds
+- **Instant Clean Containment**: If any input metric breaches safety bounds, the pipeline returns a clean `REPAIR_UNAVAILABLE` result immediately (< 50ms) without invoking compiler or LLM processes.
+- **Audit Logging**: Emits `[RESOURCE_OVERLOAD] input exceeded <limit>: <value> > <max>; returning clean REPAIR_UNAVAILABLE`.
+
+
 

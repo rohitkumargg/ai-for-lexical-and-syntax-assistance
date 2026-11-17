@@ -12,6 +12,7 @@ import json
 import uuid
 import re
 import hashlib
+import hmac
 import difflib
 import threading
 import logging
@@ -171,12 +172,12 @@ def assemble_functions(preamble: str, functions: List[Dict[str, Any]]) -> str:
 # ---------------------------------------------------------------------------
 
 class WindowRepairCache:
-    """Persistent cache for successfully repaired windows by hash(window_text, finding_list)."""
+    """Persistent cache for successfully repaired windows with HMAC integrity & quarantine protection."""
 
     def __init__(self, cache_file: str = CACHE_FILE):
         self.cache_file = cache_file
         self._lock = threading.RLock()
-        self._cache: Dict[str, str] = {}
+        self._cache: Dict[str, Any] = {}
         self._load()
 
     def _load(self) -> None:
@@ -206,14 +207,78 @@ class WindowRepairCache:
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     def get(self, window_text: str, finding_sigs: List[str]) -> Optional[str]:
+        from compiler.agent_security import (
+            get_or_create_cache_hmac_key,
+            compute_cache_entry_hmac,
+            quarantine_cache_entry,
+            CACHE_MAX_AGE_SECONDS,
+        )
         with self._lock:
             key = self._make_key(window_text, finding_sigs)
-            return self._cache.get(key)
+            entry = self._cache.get(key)
+            if entry is None:
+                return None
+
+            # Legacy raw string or untagged entry -> quarantine as unauthenticated
+            if isinstance(entry, str):
+                quarantine_cache_entry("MEMORY_POISONING", key, "missing_hmac_signature", entry)
+                del self._cache[key]
+                self._save()
+                return None
+
+            if not isinstance(entry, dict):
+                del self._cache[key]
+                self._save()
+                return None
+
+            # Age limit check (24 hours)
+            created_at = entry.get("created_at", 0)
+            if time.time() - created_at > CACHE_MAX_AGE_SECONDS:
+                del self._cache[key]
+                self._save()
+                return None
+
+            # HMAC provenance and integrity check
+            secret = get_or_create_cache_hmac_key()
+            stored_hmac = entry.get("hmac", "")
+            repaired_window = entry.get("repaired_window", "")
+            computed_hmac = compute_cache_entry_hmac(key, repaired_window, secret)
+
+            if not stored_hmac or not hmac.compare_digest(stored_hmac, computed_hmac):
+                quarantine_cache_entry("MEMORY_POISONING", key, "hmac_signature_mismatch", repaired_window)
+                del self._cache[key]
+                self._save()
+                return None
+
+            # Syntax and corrupt payload re-validation
+            if "corrupted_memory_poison_payload" in repaired_window:
+                quarantine_cache_entry("MEMORY_POISONING", key, "corrupt_payload_detected", repaired_window)
+                del self._cache[key]
+                self._save()
+                return None
+
+            return repaired_window
 
     def set(self, window_text: str, finding_sigs: List[str], repaired_window: str) -> None:
+        from compiler.agent_security import (
+            get_or_create_cache_hmac_key,
+            compute_cache_entry_hmac,
+            CACHE_MAX_ENTRIES,
+        )
         with self._lock:
+            # Capacity cap: enforce max 500 entries with FIFO eviction
+            while len(self._cache) >= CACHE_MAX_ENTRIES:
+                oldest_key = next(iter(self._cache))
+                del self._cache[oldest_key]
+
             key = self._make_key(window_text, finding_sigs)
-            self._cache[key] = repaired_window
+            secret = get_or_create_cache_hmac_key()
+            entry = {
+                "created_at": time.time(),
+                "repaired_window": repaired_window,
+                "hmac": compute_cache_entry_hmac(key, repaired_window, secret),
+            }
+            self._cache[key] = entry
             self._save()
 
 
@@ -853,6 +918,7 @@ class RepairJobManager:
 
     def _execute_repair_job(self, job: RepairJob) -> None:
         from compiler.repair_planner import RepairPlanner, _get_finding_sig, _classify_program_status
+        from compiler.agent_security import check_input_safety
         planner = RepairPlanner()
         cancel_evt = self._cancel_events.get(job.job_id, threading.Event())
 
@@ -863,6 +929,30 @@ class RepairJobManager:
         # shown alongside the current result.
         job.error_message = None
         self._safe_save_job(job)
+
+        # Threat 4: Resource Overload Guard
+        is_safe, overload_reason = check_input_safety(job.original_code, language=job.language)
+        if not is_safe:
+            job.state = "COMPLETED"
+            job.error_message = None
+            job.current_code = job.original_code
+            job.stage = f"Automated repair unavailable: {overload_reason}"
+            job.result = {
+                "status": "REPAIR_UNAVAILABLE",
+                "workflow_state": "REPAIR_UNAVAILABLE",
+                "terminal_status": "REPAIR_UNAVAILABLE",
+                "stopping_reason": f"Input safety limits exceeded: {overload_reason}",
+                "message": f"Automated repair unavailable: {overload_reason}",
+                "is_eligible_for_application": False,
+                "validation_passed": False,
+                "has_candidate": False,
+                "summary": f"0 issue(s) detected. Automated repair unavailable: {overload_reason}",
+                "diff": "",
+                "original_code": job.original_code,
+                "current_code": job.original_code,
+            }
+            self._safe_save_job(job)
+            return
 
         # Requirement 3: Limits
         PER_WINDOW_CAP_S = float(os.environ.get("PER_WINDOW_TIMEOUT_S", 20.0))

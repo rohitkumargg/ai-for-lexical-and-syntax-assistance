@@ -1,6 +1,7 @@
 # compiler/orchestrator.py
 from __future__ import annotations
 
+import secrets
 import time
 from enum import Enum
 from dataclasses import dataclass, field, asdict
@@ -148,6 +149,36 @@ class AgentOrchestrator:
         source_line_count = len(working_source.splitlines()) if working_source else 1
 
         lang_id = detect_language(filename, language or (context.get("language") if context else None))
+
+        # Threat 4: Input Safety Guard
+        from compiler.agent_security import check_input_safety
+        is_safe, overload_reason = check_input_safety(working_source, language=lang_id)
+        if not is_safe:
+            return OrchestratorResult(
+                original_source=source_text,
+                working_source=source_text,
+                findings=[
+                    Finding.create(
+                        category=FindingCategory.SYSTEM,
+                        line=1,
+                        col=0,
+                        explanation=f"Input safety limits exceeded: {overload_reason}",
+                        severity=FindingSeverity.WARNING,
+                        status=FindingStatus.CONFIRMED,
+                        file_path=filename,
+                        metadata={"resource_overload": True, "reason": overload_reason},
+                    )
+                ],
+                root_cause_findings=[],
+                cascading_findings=[],
+                confirmed_security_findings=[],
+                possible_security_findings=[],
+                attempted_repairs=[],
+                user_decisions=[],
+                unresolved_findings=[],
+                agent_telemetry={"resource_overload": True, "reason": overload_reason},
+            )
+
         if lang_id == "python":
             active_agents = [
                 PythonSyntaxAgent(),
@@ -156,6 +187,10 @@ class AgentOrchestrator:
             ]
         else:
             active_agents = self.agents
+
+        # Threat 3: Ephemeral Run Nonce & Monotonic Message Sequence Tracking
+        run_nonce = secrets.token_hex(16)
+        msg_seq = 0
 
         # 1. Early Malicious Code Precheck
         t0_pre = time.perf_counter()
@@ -172,6 +207,7 @@ class AgentOrchestrator:
                 "CRITICAL": FindingSeverity.CRITICAL,
             }
             for pf in precheck_rep.findings:
+                msg_seq += 1
                 f_candidate = Finding.create(
                     category=FindingCategory.SECURITY,
                     line=pf.line,
@@ -190,9 +226,21 @@ class AgentOrchestrator:
                         "recommended_mitigation": pf.recommended_mitigation,
                         "snippet": pf.snippet,
                         "is_malicious_intent": pf.is_malicious_intent,
+                        "sender": "MaliciousCodePrecheck",
+                        "run_nonce": run_nonce,
+                        "seq_num": msg_seq,
                     },
                 )
-                valid, _ = validate_agent_finding("MaliciousCodePrecheck", f_candidate, source_line_count, run_secret)
+                valid, _ = validate_agent_finding(
+                    "MaliciousCodePrecheck",
+                    f_candidate,
+                    source_line_count,
+                    run_secret,
+                    seq_num=msg_seq,
+                    run_nonce=run_nonce,
+                    expected_seq_num=msg_seq,
+                    expected_nonce=run_nonce,
+                )
                 if valid:
                     raw_findings.append(f_candidate)
         except Exception as e:
@@ -206,7 +254,21 @@ class AgentOrchestrator:
             try:
                 findings = agent.analyze(working_source, filename=filename, context=context)
                 for f in findings:
-                    valid, _ = validate_agent_finding(agent.name, f, source_line_count, run_secret)
+                    msg_seq += 1
+                    if hasattr(f, "metadata") and isinstance(f.metadata, dict):
+                        f.metadata["sender"] = agent.name
+                        f.metadata["run_nonce"] = run_nonce
+                        f.metadata["seq_num"] = msg_seq
+                    valid, _ = validate_agent_finding(
+                        agent.name,
+                        f,
+                        source_line_count,
+                        run_secret,
+                        seq_num=msg_seq,
+                        run_nonce=run_nonce,
+                        expected_seq_num=msg_seq,
+                        expected_nonce=run_nonce,
+                    )
                     if valid:
                         raw_findings.append(f)
                 telemetry["agent_status"][agent.name] = "SUCCESS"
