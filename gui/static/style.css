@@ -5462,13 +5462,14 @@ body {
     opacity: 0.85;
 }
 
-/* Bottom Layout: 3 Columns (Baseline Telemetry, Code Comparison, Target Telemetry) */
+/* 3 Columns Section: Baseline Telemetry, Code Comparison, Target Telemetry */
 .fs-bottom-layout,
 .fs-bottom-layout.fs-three-cols {
     display: grid;
     grid-template-columns: 290px 1fr 290px;
     gap: 16px;
     align-items: start;
+    margin-bottom: 24px;
 }
 
 /* Telemetry Columns */
