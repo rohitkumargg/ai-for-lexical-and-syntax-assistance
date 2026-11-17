@@ -1,7 +1,8 @@
-def connect()
-    token = "EXAMPLE_NOT_A_REAL_KEY_0006"
-    return token
+"""TEST FIXTURE: file does NOT parse (intentional syntax errors) but still contains a secret.
+Scanners must catch secrets even when parsing fails."""
 
-if __name__ == "__main__":
-    print(connect())
+API_TOKEN = "xoxb-FAKE-1234567890-abcdefghijklmnopqrstuvwx"
 
+def main(:
+    print("token:", API_TOKEN
+    return 0

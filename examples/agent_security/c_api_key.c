@@ -1,8 +1,11 @@
+/* TEST FIXTURE: hardcoded API key (fake value) */
 #include <stdio.h>
 
-int main(void) {
-    const char *api_key = "EXAMPLE_NOT_A_REAL_KEY_0001";
-    printf("Initializing service...\n");
-    return 0;
-}
+#define API_KEY "sk_live_FAKE0123456789abcdefghijklmnop"
+static const char *aws_access_key = "AKIAIOSFODNN7EXAMPLE";
+static const char *aws_secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
 
+int main(void) {
+  printf("Calling API with key %s\n", API_KEY);
+  return 0;
+}

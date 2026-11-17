@@ -1,17 +1,19 @@
+/* NEGATIVE CONTROL: suspicious-looking names, but NO secrets. Should NOT be
+ * flagged. */
 #include <stdio.h>
-#include <string.h>
-
-int check_pass(const char *buf) {
-    int password_len = (int)strlen(buf);
-    int password_buffer_size = 64;
-    if (password_len > password_buffer_size) {
-        return 0;
-    }
-    return 1;
-}
+#include <stdlib.h>
 
 int main(void) {
-    printf("Result: %d\n", check_pass("test"));
-    return 0;
-}
+  const char *api_key = getenv("API_KEY");      /* read from environment */
+  const char *password = getenv("DB_PASSWORD"); /* read from environment */
+  const char *token = NULL;                     /* unset */
+  char private_key_path[] =
+      "/etc/app/keys/id_rsa"; /* path only, not key material */
 
+  if (!api_key || !password) {
+    fprintf(stderr, "missing configuration\n");
+    return 1;
+  }
+  printf("key path: %s, token set: %d\n", private_key_path, token != NULL);
+  return 0;
+}

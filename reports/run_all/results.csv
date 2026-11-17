@@ -28758,3 +28758,746 @@ Tracked hardware telemetry: 1016.06 ms, 2828.16 MB peak RSS, 31.2801 J estimated
 5b. Security Remediation Synthesis
 skipped
 Zero security findings detected; security remediation synthesis skipped."
+examples/agent_security/c_api_key.c,8,c,unspecified,,unspecified,unspecified,True,,UI Tier,1,,0,0,,200,0,"C:\Users\rohit\AppData\Local\Temp\tmp4sddwary.c: In function 'main':
+C:\Users\rohit\AppData\Local\Temp\tmp4sddwary.c:5:17: warning: unused variable 'api_key' [-Wunused-variable]
+     const char *api_key = getenv(""API_KEY"") ? getenv(""API_KEY"") : ""[REDACTED:API_KEY]"";
+                 ^~~~~~~",0,,100%,100%,0%,0%,75.7/100 (5.05 ms | 0.1375 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),5.18,"Status:  | Progress: 
+Card: Budget: 1.7s
+Plan Explanation: Autonomous repair applied 2 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (3):
+Security issue at line 4 (Line 4): Hardcoded secret detected
+Security: General Security (SEC-GENERIC (CWE-699)) (Line 4): Security policy violation 
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: b7738cba5c904916a310e578180a444a
+19 stages recorded
+13:13:56.169
+✓ PASSED
+0. Security gate
+1.95 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+13:13:56.169
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'c_api_key.c' (8 lines, 152 bytes, SHA-256: f9548f0d936e...).
+13:13:56.172
+✓ PASSED
+2. Lexical Analysis
+0.07 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+13:13:56.172
+✓ PASSED
+3. Syntax Analysis
+1.36 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+13:13:56.172
+✗ FAILED
+4. Semantic Analysis
+1.56 ms
+Details ▼
+1 semantic type/scope issue(s) found.
+13:13:56.174
+✗ FAILED
+5. Security Vulnerability Analysis
+1.62 ms
+Details ▼
+2 security vulnerability finding(s) detected.
+13:13:56.174
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 3 finding(s) across 2 categories; identified 1 root causes.
+13:13:56.174
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 58 messages checked, 0 rejected, 703 values redacted
+13:13:56.607
+✓ PASSED
+7. Deterministic Rule Engine
+304.12 ms
+Details ▼
+Deterministic rule engine resolved all findings (1 fixes applied): SEC: read credential 'api_key' from environment via getenv
+13:13:56.607
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+13:13:56.607
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+13:13:56.746
+✓ PASSED
+10. Repair Candidate Generation
+21.39 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+13:13:56.746
+✓ PASSED
+11. Patch Validation
+117.12 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+13:13:56.747
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_0c670d80a0bb). Original source preserved; awaiting user click on Apply.
+13:13:56.747
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+13:13:56.174
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.27 ms
+Details ▼
+Evaluated 5 quality components (89.5%) and 0 optimization opportunity(ies).
+13:13:56.174
+✓ PASSED
+15. Security Risk Scoring
+0.18 ms
+Details ▼
+Assessed security risk score (30.1% / 100) using severity and exposure weights.
+13:13:56.175
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.3 ms
+Details ▼
+Tracked hardware telemetry: 5.05 ms, 1614.04 MB peak RSS, 0.1375 J estimated TDP energy.
+13:13:56.226
+✓ PASSED
+5b. Security Remediation Synthesis
+8.56 ms
+Synthesized 3 remediation recommendation(s) in 8.56 ms."
+examples/00_sim_1_cascading_hallucination.c,20,c,unspecified,,unspecified,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,62.8/100 (85.21 ms | 2.3198 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),6.57,"Status:  | Progress: 
+Card: Budget: 2.2s
+Plan Explanation: Autonomous repair applied 1 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (1):
+Syntax error: Syntax error (missing_semicolon): missing ';' at 'return' (Line 11): Syntax error (missing_semicolon): missing ';' at 'return'
+Propose
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 69256712a5db40ceab10da02f2772fb2
+19 stages recorded
+13:14:27.226
+✓ PASSED
+0. Security gate
+33.31 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+13:14:27.226
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received '00_sim_1_cascading_hallucination.c' (20 lines, 456 bytes, SHA-256: ef8475daf0f9...).
+13:14:27.308
+✓ PASSED
+2. Lexical Analysis
+0.18 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+13:14:27.308
+✗ FAILED
+3. Syntax Analysis
+78.22 ms
+Details ▼
+1 syntax parser error(s) identified.
+13:14:27.308
+⊘ SKIPPED
+4. Semantic Analysis
+2.83 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+13:14:27.312
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+3.75 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+13:14:27.312
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 1 finding(s) across 1 categories; identified 1 root causes.
+13:14:27.312
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 63 messages checked, 0 rejected, 796 values redacted
+13:14:27.819
+✓ PASSED
+7. Deterministic Rule Engine
+390.51 ms
+Details ▼
+Deterministic rule engine resolved all findings (1 fixes applied): Inserted missing semicolon
+13:14:27.819
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+13:14:27.819
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+13:14:27.966
+✓ PASSED
+10. Repair Candidate Generation
+41.32 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+13:14:27.966
+✓ PASSED
+11. Patch Validation
+105.04 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+13:14:27.967
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_9e0844cacce6). Original source preserved; awaiting user click on Apply.
+13:14:27.967
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+13:14:27.312
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.14 ms
+Details ▼
+Evaluated 5 quality components (91.2%) and 0 optimization opportunity(ies).
+13:14:27.312
+⊘ SKIPPED
+15. Security Risk Scoring
+0.09 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+13:14:27.312
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.23 ms
+Details ▼
+Tracked hardware telemetry: 85.21 ms, 1612.23 MB peak RSS, 2.3198 J estimated TDP energy.
+13:14:27.360
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."
+examples/agent_security/py_prompt_injection.py,7,python,unspecified,,unspecified,unspecified,False,,UI Tier,1,,0,0,Apply failed (status=N/A (No Patch Offered)),N/A (No Patch Offered),0,,0,,91%,100%,9%,31%,76/100 (0.47 ms | 1602.5 MB | 0.0272 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),3.68,"Status:  | Progress: 
+Card: ⚠️ Automated Repair Unavailable
+ANALYSIS_ONLY
+Reason: No further automated repairs could be applied.
+Finding Details & Manual Guidance (1):
+Security issue at line 1 (Line 1): Instruction addressed to an automated reviewer or agent detected. Directives attempting to manipulate reasoning or security g
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: a8bcf321917641978312720cbf436abb
+16 stages recorded
+13:54:14.749
+✓ PASSED
+0. Security gate
+1.63 ms
+Details ▼
+1. Scan: Precheck completed: 1 pattern(s) identified. Risk: LOW.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-17T13:54:14.630779)
+3. AI input: 1 manipulation directive(s) stripped from AI input
+13:54:14.749
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'py_prompt_injection.py' (7 lines, 136 bytes, SHA-256: adcdbd524bb8...).
+13:54:14.749
+✓ PASSED
+2. Lexical Analysis
+0.02 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+13:54:14.749
+✓ PASSED
+3. Syntax Analysis
+0.04 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+13:54:14.749
+✓ PASSED
+4. Semantic Analysis
+0.07 ms
+Details ▼
+Scope, identifiers, and types verified.
+13:54:14.749
+✗ FAILED
+5. Security Vulnerability Analysis
+--
+Details ▼
+1 security vulnerability finding(s) detected.
+13:54:14.749
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 1 finding(s) across 1 categories; identified 0 root causes.
+13:54:14.749
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 34 messages checked, 0 rejected, 453 values redacted
+13:54:14.794
+✓ PASSED
+7. Deterministic Rule Engine
+0.91 ms
+Details ▼
+Deterministic rule engine resolved all findings (1 fixes applied): removed AI-manipulation comment
+13:54:14.794
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+13:54:14.794
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+13:54:14.750
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.14 ms
+Details ▼
+Evaluated 5 quality components (96.5%) and 0 optimization opportunity(ies).
+13:54:14.750
+✓ PASSED
+15. Security Risk Scoring
+0.09 ms
+Details ▼
+Assessed security risk score (30.6% / 100) using severity and exposure weights.
+13:54:14.751
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.74 ms
+Details ▼
+Tracked hardware telemetry: 0.47 ms, 1602.5 MB peak RSS, 0.0272 J estimated TDP energy.
+13:54:14.793
+✓ PASSED
+5b. Security Remediation Synthesis
+1.75 ms
+Synthesized 2 remediation recommendation(s) in 1.75 ms.
+13:54:14.796
+✗ FAILED
+7. Repair Synthesis & Validation
+--
+Details ▼
+Automated repair unavailable: name 'budget_s' is not defined
+Reason / Diagnostic:
+name 'budget_s' is not defined"
+examples/agent_security/c_prompt_injection.c,8,c,unspecified,,unspecified,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,76/100 (3.45 ms | 1602.55 MB | 0.0939 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),4.04,"Status:  | Progress: 
+Card: ✓ Program is Clean
+0 Errors / 0 Vulnerabilities
+All syntax, semantic, security, and quality checks passed. No code modifications required.
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 1de5dc270bef4cceb39bdcb64683479e
+18 stages recorded
+13:54:40.417
+✓ PASSED
+0. Security gate
+3.1 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: Approved by user (operation: repair, timestamp: 2026-11-17T13:54:39.930603)
+3. AI input: 2 manipulation directive(s) stripped from AI input
+13:54:40.417
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'c_prompt_injection.c' (8 lines, 196 bytes, SHA-256: e201b90dc178...).
+13:54:40.419
+✓ PASSED
+2. Lexical Analysis
+0.07 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+13:54:40.419
+✓ PASSED
+3. Syntax Analysis
+1.12 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+13:54:40.419
+✓ PASSED
+4. Semantic Analysis
+0.97 ms
+Details ▼
+Scope, identifiers, and types verified.
+13:54:40.421
+✓ PASSED
+5. Security Vulnerability Analysis
+1.13 ms
+Details ▼
+Static security analysis passed; zero detected vulnerabilities.
+13:54:40.421
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 0 finding(s) across 0 categories; identified 0 root causes.
+13:54:40.421
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 34 messages checked, 0 rejected, 453 values redacted
+13:54:40.487
+⊘ SKIPPED
+7. Deterministic Rule Engine
+skipped
+Program has zero errors; deterministic repair skipped.
+13:54:40.487
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Program has zero errors; CodeT5 ML stage skipped.
+13:54:40.487
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Program has zero errors; AI reasoning repair skipped.
+13:54:40.487
+⊘ SKIPPED
+10. Repair Candidate Generation
+skipped
+Zero errors detected; repair candidate generation skipped.
+13:54:40.487
+✓ PASSED
+11. Patch Validation
+0.1 ms
+Original program passed whole-program validation completely clean.
+13:54:40.487
+⊘ SKIPPED
+12. User Approval & Patch Application
+skipped
+No patch pending; program is clean.
+13:54:40.487
+⊘ SKIPPED
+13. Re-analysis after Applying Patch
+skipped
+Program is already verified clean; re-analysis skipped.
+13:54:40.421
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.09 ms
+Details ▼
+Evaluated 5 quality components (100.0%) and 0 optimization opportunity(ies).
+13:54:40.421
+✓ PASSED
+15. Security Risk Scoring
+0.06 ms
+Details ▼
+Assessed security risk score (0.0% / 100) using severity and exposure weights.
+13:54:40.421
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.51 ms
+Details ▼
+Tracked hardware telemetry: 3.45 ms, 1602.55 MB peak RSS, 0.0939 J estimated TDP energy."
+examples/agent_security/py_comment_secret.py,7,python,unspecified,,unspecified,unspecified,True,,UI Tier,1,,0,0,,200,0,,0,,100%,100%,0%,0%,75.7/100 (0.37 ms | 0.0272 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),3.16,"Status:  | Progress: 
+Card: ✓ Program is Clean
+0 Errors / 0 Vulnerabilities
+All syntax, semantic, security, and quality checks passed. No code modifications required.
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: cf69ae92aa6947ff8024340fc31f7b61
+18 stages recorded
+13:58:00.001
+✓ PASSED
+0. Security gate
+2.17 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+13:58:00.001
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'py_comment_secret.py' (7 lines, 151 bytes, SHA-256: a2c7eb85bfb9...).
+13:58:00.001
+✓ PASSED
+2. Lexical Analysis
+0.02 ms
+Details ▼
+Source tokenization clean; 0 lexical errors.
+13:58:00.001
+✓ PASSED
+3. Syntax Analysis
+0.04 ms
+Details ▼
+Grammar parsed cleanly into abstract syntax tree.
+13:58:00.001
+✓ PASSED
+4. Semantic Analysis
+0.08 ms
+Details ▼
+Scope, identifiers, and types verified.
+13:58:00.001
+✓ PASSED
+5. Security Vulnerability Analysis
+--
+Details ▼
+Static security analysis passed; zero detected vulnerabilities.
+13:58:00.001
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 0 finding(s) across 0 categories; identified 0 root causes.
+13:58:00.001
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 34 messages checked, 0 rejected, 465 values redacted
+13:58:00.003
+⊘ SKIPPED
+7. Deterministic Rule Engine
+skipped
+Program has zero errors; deterministic repair skipped.
+13:58:00.003
+⊘ SKIPPED
+8. CodeT5 Model Inference
+skipped
+Program has zero errors; CodeT5 ML stage skipped.
+13:58:00.003
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+skipped
+Program has zero errors; AI reasoning repair skipped.
+13:58:00.003
+⊘ SKIPPED
+10. Repair Candidate Generation
+skipped
+Zero errors detected; repair candidate generation skipped.
+13:58:00.003
+✓ PASSED
+11. Patch Validation
+0.1 ms
+Original program passed whole-program validation completely clean.
+13:58:00.003
+⊘ SKIPPED
+12. User Approval & Patch Application
+skipped
+No patch pending; program is clean.
+13:58:00.003
+⊘ SKIPPED
+13. Re-analysis after Applying Patch
+skipped
+Program is already verified clean; re-analysis skipped.
+13:58:00.002
+✓ PASSED
+14. Code Quality & Optimization Metrics
+0.08 ms
+Details ▼
+Evaluated 5 quality components (100.0%) and 0 optimization opportunity(ies).
+13:58:00.002
+✓ PASSED
+15. Security Risk Scoring
+0.06 ms
+Details ▼
+Assessed security risk score (0.0% / 100) using severity and exposure weights.
+13:58:00.002
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.54 ms
+Details ▼
+Tracked hardware telemetry: 0.37 ms, 1602.66 MB peak RSS, 0.0272 J estimated TDP energy."
+examples/week11_testing/ademo2.c,729,c,unspecified,,unspecified,unspecified,False,,UI Tier,1,,0,0,"Apply failed (status=Error: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(""#recommendedProgramCard button:has-text('Apply Repair'), button[onclick*='applyRecommendedPlan']"").first
+)","Error: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(""#recommendedProgramCard button:has-text('Apply Repair'), button[onclick*='applyRecommendedPlan']"").first
+",0,"C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task02':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:23:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[5];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task06':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:48:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'a';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task32':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:249:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[4];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task36':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:274:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'b';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task62':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:472:9: warning: unused variable 'arr' [-Wunused-variable]
+     int arr[2];
+         ^~~
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task66':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:497:10: warning: unused variable 'x' [-Wunused-variable]
+     char x = 'c';
+          ^
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task24':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:193:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task54':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:419:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c: In function 'task84':
+C:\Users\rohit\AppData\Local\Temp\tmp8glfr2rv.c:642:9: warning: 'a[0]' is used uninitialized in this function [-Wuninitialized]
+     int b = a[0];
+         ^",0,,96%,100%,8%,0%,59.3/100 (1001.84 ms | 24.6094 J),86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen)),53.38,"Status:  | Progress: 
+Card: Budget: 16.8s
+Plan Explanation: Autonomous repair applied 119 fix(es) across 1 window(s) using [deterministic].
+Projected to Resolve Upon Application (125):
+Syntax error: Syntax error (missing_semicolon): missing ';' at 'return' (Line 19): Syntax error (missing_semicolon): missing ';' at 'return'
+Sy
+Steps: No entries
+Errors: No entries
+Logs: RUN ID: 79dedcf192b6401888a8792f97de1294
+19 stages recorded
+14:19:17.019
+✓ PASSED
+0. Security gate
+48.36 ms
+Details ▼
+1. Scan: Malicious Code Precheck clean: 0 dangerous or suspicious patterns detected. Code is safe for execution.
+2. User decision: No findings, no approval needed (operation: repair)
+3. AI input: 0 manipulation directive(s) stripped from AI input
+14:19:17.019
+✓ PASSED
+1. Source Code Received
+0.1 ms
+Details ▼
+Received 'ademo2.c' (729 lines, 9311 bytes, SHA-256: 15995594a3fd...).
+14:19:17.408
+✗ FAILED
+2. Lexical Analysis
+18.44 ms
+Details ▼
+24 lexical issue(s) detected.
+14:19:17.408
+✗ FAILED
+3. Syntax Analysis
+268.14 ms
+Details ▼
+100 syntax parser error(s) identified.
+14:19:17.409
+⊘ SKIPPED
+4. Semantic Analysis
+101.73 ms
+Details ▼
+Skipped: AST could not be generated due to earlier syntax errors.
+Reason / Diagnostic:
+Parser construction failed due to syntax errors; downstream semantic checks skipped to prevent cascading false positives.
+14:19:18.020
+⊘ SKIPPED
+5. Security Vulnerability Analysis
+610.46 ms
+Details ▼
+Pattern-based security checks completed (0 immediate banned APIs detected); AST-based security analysis was blocked by syntax errors (inconclusive).
+14:19:18.020
+✓ PASSED
+6. Finding Consolidation & Classification
+0.5 ms
+Details ▼
+Consolidated 124 finding(s) across 2 categories; identified 81 root causes.
+14:19:18.020
+✓ PASSED
+Agent Pipeline Security
+0.5 ms
+Details ▼
+agent security: 234 messages checked, 0 rejected, 691 values redacted
+14:19:20.532
+✓ PASSED
+7. Deterministic Rule Engine
+2153.84 ms
+Details ▼
+Deterministic rule engine resolved all findings (87 fixes applied): corrected keyword typo 'breka' -> 'break'; corrected keyword typo 'cahr' -> 'char'; corrected keyword typo 'contniue' -> 'continue'
+14:19:20.532
+⊘ SKIPPED
+8. CodeT5 Model Inference
+0.1 ms
+Partitioned multi-function runner active; monolithic CodeT5 inference skipped.
+14:19:20.532
+⊘ SKIPPED
+9. Local Qwen Model through Ollama
+0.1 ms
+Partitioned multi-function runner active; monolithic Qwen inference skipped.
+14:19:27.603
+✓ PASSED
+10. Repair Candidate Generation
+1375.53 ms
+Details ▼
+Synthesized candidate proposal (PROPOSAL_READY). Awaiting user Apply.
+14:19:27.603
+✓ PASSED
+11. Patch Validation
+1079.11 ms
+Details ▼
+Patch candidate pre-validated on candidate copy. Candidate security assessed: 0.0% [ASSESSED].
+14:19:27.701
+⏳ PENDING
+12. User Approval & Patch Application
+--
+Details ▼
+Patch candidate ready (ID: plan_0cb62ae1897a). Original source preserved; awaiting user click on Apply.
+14:19:27.701
+⏳ PENDING
+13. Re-analysis after Applying Patch
+--
+Re-analysis will run automatically upon user clicking Apply.
+14:19:18.023
+✓ PASSED
+14. Code Quality & Optimization Metrics
+1.84 ms
+Details ▼
+Evaluated 5 quality components (75.0%) and 1 optimization opportunity(ies).
+14:19:18.023
+⊘ SKIPPED
+15. Security Risk Scoring
+1.23 ms
+Details ▼
+Security risk scoring skipped (INCONCLUSIVE): Syntax errors in source code prevent reliable AST construction and static security analysis. Zero detected findings cannot certify absence of vulnerabilities while syntax remains invalid.
+14:19:18.024
+✓ PASSED
+16. Green Compiler / Green Metrics Calculation
+0.76 ms
+Details ▼
+Tracked hardware telemetry: 1001.84 ms, 704.6 MB peak RSS, 24.6094 J estimated TDP energy.
+14:19:18.295
+⊘ SKIPPED
+5b. Security Remediation Synthesis
+skipped
+Zero security findings detected; security remediation synthesis skipped."

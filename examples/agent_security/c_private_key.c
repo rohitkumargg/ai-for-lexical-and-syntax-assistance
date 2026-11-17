@@ -1,8 +1,14 @@
+/* TEST FIXTURE: embedded private key (fake, non-functional body) */
 #include <stdio.h>
 
-const char *cert_key = "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7dummykey1234567\n-----END PRIVATE KEY-----\n";
+static const char *private_key =
+    "-----BEGIN RSA PRIVATE KEY-----\n"
+    "MIIEowIBAAKCAQEAFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE\n"
+    "THISISNOTAREALKEYTHISISNOTAREALKEYTHISISNOTAREALKEYTHISISNOTAREAL\n"
+    "FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE\n"
+    "-----END RSA PRIVATE KEY-----\n";
 
 int main(void) {
-    printf("Certificate loaded.\n");
-    return 0;
+  printf("loaded key (%zu bytes)\n", sizeof(private_key));
+  return 0;
 }

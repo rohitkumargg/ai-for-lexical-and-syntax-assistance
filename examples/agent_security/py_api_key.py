@@ -1,7 +1,13 @@
-def get_client():
-    api_key = "EXAMPLE_NOT_A_REAL_KEY_0004"
-    return {"status": "ok", "service": "auth"}
+"""TEST FIXTURE: hardcoded API key (fake values)"""
+import requests
+
+API_KEY = "sk_live_FAKE0123456789abcdefghijklmnop"
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+def call_api():
+    return requests.get("https://api.example.com/v1/data",
+                        headers={"Authorization": f"Bearer {API_KEY}"})
 
 if __name__ == "__main__":
-    print(get_client())
-
+    call_api()

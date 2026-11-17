@@ -1,0 +1,876 @@
+[
+  {
+    "file": "examples/00_sim_1_cascading_hallucination.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "71.6/100 (91.71 ms | 2.1659 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 13.41,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_1_cascading_hallucination.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "65.4/100 (0.81 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 18.15,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_2_memory_poisoning.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "99%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "2%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "64.8/100 (103.77 ms | 2.5366 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 13.21,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_2_memory_poisoning.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "65.3/100 (1.07 ms | 0.0262 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 12.52,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_3_identity_compromise.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "99%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "2%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "64.8/100 (103.7 ms | 2.5352 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 14.22,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_3_identity_compromise.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "65.3/100 (0.73 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 11.97,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_4_resource_overload.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "99%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "2%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "64.8/100 (101.97 ms | 2.4931 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 14.22,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/00_sim_4_resource_overload.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "65.2/100 (1.15 ms | 0.0281 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 11.97,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_api_key.c",
+    "language": "c",
+    "security_finding_detected": "YES",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (5.28 ms | 0.1291 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 13.19,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_comment_secret.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (4.09 ms | 0.0999 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.28,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_conn_str.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "VALID_WITH_WARNINGS",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (5.01 ms | 0.1225 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 4.35,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_neg_ctrl_var.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (11.97 ms | 0.2926 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.31,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_password.c",
+    "language": "c",
+    "security_finding_detected": "YES",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (5.04 ms | 0.1233 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 13.11,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_private_key.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "1%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.8/100 (5.08 ms | 0.1241 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 2.77,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_prompt_injection.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "78/100 (3.73 ms | 661.67 MB | 0.0913 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.9,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/c_syntax_err_secret.c",
+    "language": "c",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "64.8/100 (106.87 ms | 2.6117 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 13.04,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_api_key.py",
+    "language": "python",
+    "security_finding_detected": "YES",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.91 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 12.49,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_comment_secret.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.3 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.13,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_conn_str.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.34 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.13,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_neg_ctrl_var.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "COMPLETED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.42 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 3.13,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_password.py",
+    "language": "python",
+    "security_finding_detected": "YES",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.68 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 11.49,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_prompt_injection.py",
+    "language": "python",
+    "security_finding_detected": "YES",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "PROPOSAL_READY",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "77.9/100 (0.49 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 6.3,
+    "failure_details": "none"
+  },
+  {
+    "file": "examples/agent_security/py_syntax_err_secret.py",
+    "language": "python",
+    "security_finding_detected": "NO",
+    "repair_proposal_generated": "YES",
+    "repair_tier": "deterministic_rules",
+    "qwen_called": "NO",
+    "qwen_rejected_raw": "none",
+    "final_status": "FULLY_REPAIRED",
+    "metrics": {
+      "overall_quality": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "optimal_code": {
+        "value": "100%",
+        "computed_on": "repaired"
+      },
+      "poor_code": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "vulnerability_risk": {
+        "value": "0%",
+        "computed_on": "repaired"
+      },
+      "green_metrics": {
+        "value": "65.4/100 (0.45 ms | 0.0244 J)",
+        "computed_on": "repaired"
+      },
+      "model_accuracy": {
+        "value": "86.7% (Top: Tiered Pipeline (Rules -> CodeT5 -> Qwen))",
+        "computed_on": "repaired"
+      }
+    },
+    "time_s": 9.93,
+    "failure_details": "none"
+  }
+]

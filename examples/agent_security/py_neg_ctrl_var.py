@@ -1,8 +1,15 @@
-def validate_password_length(password_str: str) -> bool:
-    password_len = len(password_str)
-    min_length = 8
-    return password_len >= min_length
+"""NEGATIVE CONTROL: suspicious-looking names, but NO secrets. Should NOT be flagged."""
+import os
+
+api_key = os.environ.get("API_KEY")            # read from environment
+password = os.environ["DB_PASSWORD"]           # read from environment
+token = None                                   # unset
+private_key_path = "/etc/app/keys/id_rsa"      # path only, not key material
+
+def main():
+    if not api_key:
+        raise SystemExit("missing configuration")
+    print("key path:", private_key_path, "token set:", token is not None)
 
 if __name__ == "__main__":
-    print(validate_password_length("abc12345"))
-
+    main()

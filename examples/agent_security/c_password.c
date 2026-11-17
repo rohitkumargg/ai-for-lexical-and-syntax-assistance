@@ -1,8 +1,14 @@
+/* TEST FIXTURE: hardcoded password (fake value) */
 #include <stdio.h>
+#include <string.h>
 
-int main(void) {
-    const char *password = "my_dummy_secret_pass_99";
-    printf("Connecting...\n");
-    return 0;
+#define ADMIN_PASSWORD "admin123!"
+
+int check_login(const char *user, const char *pass) {
+  return strcmp(user, "admin") == 0 && strcmp(pass, ADMIN_PASSWORD) == 0;
 }
 
+int main(void) {
+  printf("login ok: %d\n", check_login("admin", "guess"));
+  return 0;
+}
