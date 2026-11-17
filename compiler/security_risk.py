@@ -199,13 +199,23 @@ class SecurityRiskScorer:
                     from test_parser import parse_source, has_any_errors
                     tree, listeners, _ = parse_source(source_code, filename)
                     has_syntax_errors = (tree is None) or has_any_errors(listeners)
+                    if has_syntax_errors:
+                        try:
+                            from compiler.patch_validator import gcc_ok
+                            c_clean, _, _ = gcc_ok(source_code)
+                            if c_clean:
+                                has_syntax_errors = False
+                        except Exception:
+                            pass
                 except Exception:
                     has_syntax_errors = False
         if not has_syntax_errors and findings:
             for f in findings:
                 f_cat = getattr(f, "category", "")
                 f_cat_str = f_cat.value if hasattr(f_cat, "value") else str(f_cat)
-                if str(f_cat_str).upper() in ("SYNTAX", "LEXICAL"):
+                f_sev = getattr(f, "severity", "")
+                f_sev_str = f_sev.value if hasattr(f_sev, "value") else str(f_sev)
+                if str(f_cat_str).upper() in ("SYNTAX", "LEXICAL") and str(f_sev_str).upper() not in ("INFO", "FINDINGSEVERITY.INFO"):
                     has_syntax_errors = True
                     break
 

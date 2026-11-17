@@ -1,6 +1,7 @@
 # compiler/agents.py
 from __future__ import annotations
 
+import os
 import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
@@ -155,18 +156,10 @@ class SyntaxAgent(BaseCompilerAgent):
 
             # Requirement 3: If gcc compiles the file but ANTLR reports errors, show them as 'parser limitation (info)', not errors
             gcc_clean = False
-            if all_errors and source_text.strip():
+            if all_errors and source_text.strip() and not (filename and filename.endswith(".py")):
                 try:
-                    import subprocess, tempfile
-                    with tempfile.NamedTemporaryFile(suffix=".c", mode="w", delete=False, encoding="utf-8") as tmp:
-                        tmp.write(source_text)
-                        tmp_path = tmp.name
-                    try:
-                        res = subprocess.run(["gcc", "-fsyntax-only", tmp_path], capture_output=True, text=True, timeout=5)
-                        gcc_clean = (res.returncode == 0)
-                    finally:
-                        if os.path.exists(tmp_path):
-                            os.remove(tmp_path)
+                    from compiler.patch_validator import gcc_ok
+                    gcc_clean, _, _ = gcc_ok(source_text)
                 except Exception:
                     gcc_clean = False
 
@@ -180,20 +173,21 @@ class SyntaxAgent(BaseCompilerAgent):
                 classification = classify_error_message(msg)
                 reason = classification.reason if classification else "unknown_syntax_error"
 
-                # Check if deterministic fix exists
-                from compiler.error_corrector import apply_correction
-                candidate, fix_desc = apply_correction(source_text, raw_line, raw_col, classification, validate=False)
+                # Check if deterministic fix exists (only for genuine syntax errors, not parser limitations)
                 suggestions: List[CorrectionSuggestion] = []
-                if fix_desc and candidate != source_text:
-                    suggestions.append(
-                        CorrectionSuggestion(
-                            description=fix_desc,
-                            replacement_text=candidate,
-                            confidence=0.95,
-                            is_deterministic=True,
-                            rule_id=reason,
+                if not gcc_clean:
+                    from compiler.error_corrector import apply_correction
+                    candidate, fix_desc = apply_correction(source_text, raw_line, raw_col, classification, validate=False)
+                    if fix_desc and candidate != source_text:
+                        suggestions.append(
+                            CorrectionSuggestion(
+                                description=fix_desc,
+                                replacement_text=candidate,
+                                confidence=0.95,
+                                is_deterministic=True,
+                                rule_id=reason,
+                            )
                         )
-                    )
 
                 is_lex = (
                     err.get("_source_type") == "LEXICAL"

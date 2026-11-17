@@ -347,7 +347,10 @@ class AgentOrchestrator:
             key=lambda f: (f.location.line, f.location.col)
         )
 
-        syntax_findings = [f for f in sorted_findings if f.category == FindingCategory.SYNTAX]
+        syntax_findings = [
+            f for f in sorted_findings
+            if f.category == FindingCategory.SYNTAX and f.severity != FindingSeverity.INFO
+        ]
         has_syntax_errors = len(syntax_findings) > 0
 
         # Syntax cascading suppression:
@@ -421,6 +424,8 @@ class AgentOrchestrator:
         def priority_score(f: Finding) -> int:
             if f.status == FindingStatus.SUPPRESSED_CASCADING:
                 return 100
+            if f.severity == FindingSeverity.INFO:
+                return 90
             if f.category == FindingCategory.LEXICAL:
                 return 10
             if f.category == FindingCategory.SYNTAX and f.is_root_cause:
