@@ -331,7 +331,7 @@ function showToast(message, type = "info", duration = 3000) {
 /* -------------------------------------------------- */
 async function loadLanguagesAndInit() {
     try {
-        const res = await fetch("/api/languages");
+        const res = await window.api.getLanguages();
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {
@@ -509,14 +509,7 @@ async function saveActiveFile() {
     let errorMsg = "";
 
     try {
-        const response = await fetch("/api/file/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                filename: filename,
-                code: code
-            })
-        });
+        const response = await window.api.saveFile({ filename: filename, code: code });
 
         const data = await response.json();
         if (data && data.success) {
@@ -1176,12 +1169,7 @@ function triggerLiveQualityScore(requestVersion = ++liveMetricRequestVersion) {
         }
         try {
             if (!window._liveAnalysisAbortController) window._liveAnalysisAbortController = new AbortController();
-            const resp = await fetch("/api/quality/score", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: code, filename: filename }),
-                signal: window._liveAnalysisAbortController.signal
-            });
+            const resp = await window.api.qualityScore({ code: code, filename: filename });
             if (resp.ok) {
                 const rep = await resp.json();
                 if (requestVersion !== liveMetricRequestVersion || code !== editor.getValue() || filename !== currentFilename) return;
@@ -1381,12 +1369,7 @@ function triggerLiveOptimizationPotential(requestVersion = liveMetricRequestVers
         }
         try {
             if (!window._liveAnalysisAbortController) window._liveAnalysisAbortController = new AbortController();
-            const resp = await fetch("/api/optimization/potential", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: code, filename: filename }),
-                signal: window._liveAnalysisAbortController.signal
-            });
+            const resp = await window.api.optimizationPotential({ code: code, filename: filename });
             if (resp.ok) {
                 const rep = await resp.json();
                 if (requestVersion !== liveMetricRequestVersion || code !== editor.getValue() || filename !== currentFilename) return;
@@ -1603,12 +1586,7 @@ function triggerLiveSecurityRisk(requestVersion = liveMetricRequestVersion) {
         }
         try {
             if (!window._liveAnalysisAbortController) window._liveAnalysisAbortController = new AbortController();
-            const resp = await fetch("/api/security/risk", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: code, filename: filename }),
-                signal: window._liveAnalysisAbortController.signal
-            });
+            const resp = await window.api.securityRisk({ code: code, filename: filename });
             if (resp.ok) {
                 const rep = await resp.json();
                 if (requestVersion !== liveMetricRequestVersion || code !== editor.getValue() || filename !== currentFilename) return;
@@ -1813,15 +1791,11 @@ function triggerLiveImprovementAdvisor() {
         }
 
         try {
-            const resp = await fetch("/api/improvement/advise", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+            const resp = await window.api.improvementAdvise({
                     code: code,
                     filename: currentFilename,
                     green_report: cachedGreenReport || {},
-                }),
-            });
+                });
             if (resp.ok) {
                 const rep = await resp.json();
                 renderImprovementAdvisorReport(rep);
@@ -2065,11 +2039,7 @@ async function applyCandidateToEditor(candId, options = {}) {
             filename: currentFilename,
         };
 
-        const resp = await fetch(`/api/improvement/candidate/${encodeURIComponent(candId)}/apply`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+        const resp = await window.api.improvementApply(candId, payload);
 
         const data = await resp.json().catch(() => null);
 
@@ -2146,11 +2116,7 @@ async function applyCandidateToEditor(candId, options = {}) {
         // Roll back candidate on backend so it is not permanently consumed!
         if (backendApplied) {
             try {
-                await fetch(`/api/improvement/candidate/${encodeURIComponent(candId)}/rollback`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ reason: err.message }),
-                });
+                await window.api.improvementRollback(candId, { reason: err.message });
                 console.log(`Candidate ${candId} application rolled back successfully.`);
             } catch (rollbackErr) {
                 console.error("Failed to notify backend of application failure:", rollbackErr);
@@ -2222,10 +2188,7 @@ async function applyImprovementCandidateById(candId) {
 
 async function rejectImprovementCandidateById(candId) {
     try {
-        await fetch(`/api/improvement/candidate/${candId}/reject`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        });
+        await window.api.improvementReject(candId);
         const card = document.getElementById(`imp-card-${candId}`);
         if (card) {
             card.style.opacity = "0.4";
@@ -2279,13 +2242,9 @@ async function renderSecurityPanel(data, sourceCode) {
 
     let report = null;
     try {
-        const resp = await fetch("/api/security/report", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                code: sourceCode || (typeof getEditorValue === "function" ? getEditorValue() : ""),
-                filename: currentFilename || "main.c"
-            })
+        const resp = await window.api.securityReport({
+            code: sourceCode || (typeof getEditorValue === "function" ? getEditorValue() : ""),
+            filename: currentFilename || "main.c"
         });
         if (resp.ok) {
             report = await resp.json();
@@ -2333,15 +2292,11 @@ async function renderSecurityPanel(data, sourceCode) {
     let recommendations = data?.security_recommendations || [];
     if ((!recommendations || recommendations.length === 0) && report.findings && report.findings.length > 0) {
         try {
-            const remResp = await fetch("/api/security/remediation", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    code: sourceCode || (typeof getEditorValue === "function" ? getEditorValue() : ""),
-                    filename: currentFilename || "main.c",
-                    language: currentLanguageId || "c",
-                    findings: report.findings
-                })
+            const remResp = await window.api.securityRemediation({
+                code: sourceCode || (typeof getEditorValue === "function" ? getEditorValue() : ""),
+                filename: currentFilename || "main.c",
+                language: currentLanguageId || "c",
+                findings: report.findings
             });
             if (remResp.ok) {
                 const remData = await remResp.json();
@@ -2498,16 +2453,12 @@ window.applySecurityFix = async function(recId) {
     }
     const currentCode = typeof getEditorValue === "function" ? getEditorValue() : "";
     try {
-        const resp = await fetch("/api/security/apply", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                candidate_id: rec.candidate_id,
-                proposed_code: rec.proposed_code,
-                original_code: currentCode,
-                filename: currentFilename || "main.c",
-                language: currentLanguageId || "c"
-            })
+        const resp = await window.api.securityApply({
+            candidate_id: rec.candidate_id,
+            proposed_code: rec.proposed_code,
+            original_code: currentCode,
+            filename: currentFilename || "main.c",
+            language: currentLanguageId || "c"
         });
         const resData = await resp.json();
         if (resData.success) {
@@ -2849,15 +2800,11 @@ async function renderRepairResult(data) {
         // CRITICAL REQUIREMENT: Never apply an AI-generated patch without explicit user approval!
         // Validate candidate across syntax, compilation, semantic, and security stages first.
         try {
-            const valResp = await fetch("/api/patch/validate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    original_code: beforeCode,
-                    candidate_code: afterCode,
-                    filename: currentFilename,
-                    explanation: (data.applied_steps && data.applied_steps.length > 0) ? data.applied_steps.join("; ") : "Proposed compiler auto-repair patch",
-                })
+            const valResp = await window.api.patchValidate({
+                original_code: beforeCode,
+                candidate_code: afterCode,
+                filename: currentFilename,
+                explanation: (data.applied_steps && data.applied_steps.length > 0) ? data.applied_steps.join("; ") : "Proposed compiler auto-repair patch",
             });
             const valData = await valResp.json();
             showPatchReviewModal(valData, data);
@@ -2892,18 +2839,11 @@ async function cancelActiveRepair() {
     }
     if (activeRepairJobId) {
         try {
-            await fetch(`/api/repair/job/${activeRepairJobId}/cancel`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" }
-            });
+            await window.api.repairJobCancel(activeRepairJobId);
         } catch (e) {}
     }
     try {
-        await fetch("/api/coordinator/cancel", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ run_id: activeRepairJobId || activeRepairRunId })
-        });
+        await window.api.coordinatorCancel({ run_id: activeRepairJobId || activeRepairRunId });
     } catch (e) {
         console.warn("Cancel request error:", e);
     }
@@ -3052,7 +2992,7 @@ async function _runRepairAfterPrescan() {
                 }
 
                 try {
-                    const pollRes = await fetch(`/api/repair/job/${jobId}`);
+                    const pollRes = await window.api.repairJobStatus(jobId);
                     if (!pollRes.ok) {
                         consecutivePollFailures++;
                         console.warn(`Poll returned HTTP ${pollRes.status} (${consecutivePollFailures}/5)`);
@@ -3363,7 +3303,7 @@ function renderPipelineLogs(events, runId) {
 
 async function fetchLatestPipelineLog() {
     try {
-        const resp = await fetch("/api/pipeline/latest");
+        const resp = await window.api.pipelineLatest();
         if (resp.ok) {
             const data = await resp.json();
             if (data.events && data.events.length > 0) {
@@ -4331,21 +4271,16 @@ async function applyRecommendedPlan(candId) {
                 const controller = new AbortController();
                 const timeoutId = null;
 
-                const postResp = await fetch("/api/repair/post_apply", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        source_code: newlyAppliedCode,
-                        filename: currentFilename,
-                        language: currentLanguageId,
-                        applied_from_state: fromState,
-                        original_source_hash: originalHash,
-                        applied_source_hash: appliedHash,
-                        initial_findings: initialFindings,
-                        retry_count: retryCount,
-                        history_hashes: historyHashes,
-                    })
+                const postResp = await window.api.repairPostApply({
+                    source_code: newlyAppliedCode,
+                    filename: currentFilename,
+                    language: currentLanguageId,
+                    applied_from_state: fromState,
+                    original_source_hash: originalHash,
+                    applied_source_hash: appliedHash,
+                    initial_findings: initialFindings,
+                    retry_count: retryCount,
+                    history_hashes: historyHashes,
                 });
 
                 clearTimeout(timeoutId);
@@ -4430,10 +4365,7 @@ async function applyRecommendedPlan(candId) {
 async function rejectRecommendedPlan(candId) {
     if (!candId) return;
     try {
-        await fetch(`/api/improvement/candidate/${encodeURIComponent(candId)}/reject`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        });
+        await window.api.improvementReject(candId);
         const recCard = document.getElementById("recommendedProgramCard");
         if (recCard) recCard.style.display = "none";
         showToast("Repair recommendation dismissed.", "info");
@@ -4756,7 +4688,7 @@ async function callWithGate(url, options = {}, context = {}) {
             body: JSON.stringify(reqBody)
         };
 
-        const resp = await fetch(url, reqOptions);
+        const resp = await window.api.request(url, reqBody);
         if (resp.status !== 409) {
             return resp;
         }
@@ -4791,16 +4723,12 @@ async function callWithGate(url, options = {}, context = {}) {
                         btnApprove.innerText = "Authorizing...";
                     }
                     try {
-                        const apprResp = await fetch("/api/security/approval/approve", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                code: sourceCode,
-                                filename: filename,
-                                language: language,
-                                operation: operation,
-                                force: true
-                            })
+                        const apprResp = await window.api.securityApprovalApprove({
+                            code: sourceCode,
+                            filename: filename,
+                            language: language,
+                            operation: operation,
+                            force: true
                         });
                         const apprData = await apprResp.json();
                         if (!apprResp.ok || !apprData.success || !apprData.approval_token) {
@@ -4862,14 +4790,10 @@ async function callWithGate(url, options = {}, context = {}) {
                 onCancel: async () => {
                     hideSecurityApprovalModal();
                     try {
-                        await fetch("/api/security/approval/cancel", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                code: sourceCode,
-                                filename: filename,
-                                operation: operation
-                            })
+                        await window.api.securityApprovalCancel({
+                            code: sourceCode,
+                            filename: filename,
+                            operation: operation
                         });
                     } catch (e) {}
 
@@ -5231,7 +5155,7 @@ function clearTestCase() {
 async function refreshExamples() {
     try {
         const lang = getActiveLanguage();
-        const listRes = await fetch(`/api/examples?language=${currentLanguageId}`);
+        const listRes = await window.api.getExamples(currentLanguageId);
         allExampleFiles = await listRes.json();
         if (!Array.isArray(allExampleFiles)) allExampleFiles = [];
 
@@ -5311,7 +5235,7 @@ function renderFileTree(query = "") {
 
         item.onclick = async () => {
             resetExecutionStateOnProblemChange();
-            const res = await fetch(`/api/example/${encodeURIComponent(filename)}?language=${currentLanguageId}`);
+            const res = await window.api.getExample(filename, currentLanguageId);
             const data = await res.json();
             openFileInTab(data.filename || filename, data.code || "");
         };
@@ -5679,11 +5603,7 @@ function handlePatchModalBackdropClick(e) {
 async function confirmApplyPatch() {
     if (!activePatchReview || !activePatchReview.patch_id) return;
     try {
-        const resp = await fetch("/api/patch/apply", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ patch_id: activePatchReview.patch_id })
-        });
+        const resp = await window.api.patchApply({ patch_id: activePatchReview.patch_id });
         const data = await resp.json();
         if (!data.success) {
             showToast("Failed to apply patch: " + data.error, "error");
@@ -5708,16 +5628,12 @@ async function confirmApplyPatch() {
 
         // Fetch and display Before vs After Fix Comparison
         try {
-            const deltaResp = await fetch("/api/dashboard/before_after", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    before_code: prevCode,
-                    after_code: data.applied_code,
-                    filename: currentFilename,
-                    green_report: activePatchRepairData?.green_report || cachedGreenReport || {},
-                    applied_steps: activePatchRepairData?.applied_steps || []
-                })
+            const deltaResp = await window.api.dashboardBeforeAfter({
+                before_code: prevCode,
+                after_code: data.applied_code,
+                filename: currentFilename,
+                green_report: activePatchRepairData?.green_report || cachedGreenReport || {},
+                applied_steps: activePatchRepairData?.applied_steps || []
             });
             if (deltaResp.ok) {
                 const deltaData = await deltaResp.json();
@@ -5747,11 +5663,7 @@ async function rejectCandidatePatch() {
         return;
     }
     try {
-        await fetch("/api/patch/reject", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ patch_id: activePatchReview.patch_id })
-        });
+        await window.api.patchReject({ patch_id: activePatchReview.patch_id });
         closePatchReviewModal();
         showToast("Candidate patch rejected by user.", "info");
     } catch (err) {
@@ -5761,11 +5673,7 @@ async function rejectCandidatePatch() {
 
 async function revertLastPatch() {
     try {
-        const resp = await fetch("/api/patch/revert", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({})
-        });
+        const resp = await window.api.patchRevert({});
         const data = await resp.json();
         if (!data.success) {
             showToast("Cannot revert: " + data.error, "warning");
@@ -5840,7 +5748,7 @@ function switchRulesTab(tab) {
 
 async function fetchCandidateRulesCount() {
     try {
-        const resp = await fetch("/api/rules/candidates");
+        const resp = await window.api.rulesCandidates();
         if (resp.ok) {
             const data = await resp.json();
             const count = (data.candidates || []).length;
@@ -5857,8 +5765,8 @@ async function fetchCandidateRulesCount() {
 async function loadRulesModalData() {
     try {
         const [candResp, activeResp] = await Promise.all([
-            fetch("/api/rules/candidates"),
-            fetch("/api/rules/active")
+            window.api.rulesCandidates(),
+            window.api.rulesActive()
         ]);
 
         if (candResp.ok) {
@@ -6046,9 +5954,7 @@ function renderActiveRules(rules) {
 async function validateCandidateRule(ruleId) {
     try {
         showToast("Running candidate test suite, ANTLR parser, and security checks...", "info");
-        const resp = await fetch(`/api/rules/candidate/${encodeURIComponent(ruleId)}/validate`, {
-            method: "POST"
-        });
+        const resp = await window.api.rulesCandidateValidate(ruleId);
         const data = await resp.json();
         if (data.success) {
             showToast(`Rule validation completed! Passed: ${data.passed_tests}/${data.total_tests}`, "success");
@@ -6077,13 +5983,9 @@ async function approveCandidateRule(ruleId) {
     const notes = prompt("Enter approval notes / rationale (optional):") || "";
 
     try {
-        const resp = await fetch(`/api/rules/candidate/${encodeURIComponent(ruleId)}/approve`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                reviewer_name: reviewer.trim(),
-                approval_notes: notes.trim()
-            })
+        const resp = await window.api.rulesCandidateApprove(ruleId, {
+            reviewer_name: reviewer.trim(),
+            approval_notes: notes.trim()
         });
         const data = await resp.json();
         if (data.success) {
@@ -6100,11 +6002,7 @@ async function approveCandidateRule(ruleId) {
 async function rejectCandidateRule(ruleId) {
     const reason = prompt("Enter rejection reason:") || "Rejected by human reviewer";
     try {
-        const resp = await fetch(`/api/rules/candidate/${encodeURIComponent(ruleId)}/reject`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reason })
-        });
+        const resp = await window.api.rulesCandidateReject(ruleId, { reason });
         const data = await resp.json();
         if (data.success) {
             showToast("Candidate rule rejected.", "info");
@@ -6120,11 +6018,7 @@ async function rejectCandidateRule(ruleId) {
 async function disableActiveRule(ruleId) {
     const reason = prompt("Enter reason for disabling this rule (e.g. causes regression):") || "";
     try {
-        const resp = await fetch(`/api/rules/active/${encodeURIComponent(ruleId)}/disable`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reason })
-        });
+        const resp = await window.api.rulesActiveDisable(ruleId, { reason });
         const data = await resp.json();
         if (data.success) {
             showToast("Rule has been disabled from compiler pipeline.", "info");
@@ -6139,9 +6033,7 @@ async function disableActiveRule(ruleId) {
 
 async function enableActiveRule(ruleId) {
     try {
-        const resp = await fetch(`/api/rules/active/${encodeURIComponent(ruleId)}/enable`, {
-            method: "POST"
-        });
+        const resp = await window.api.rulesActiveEnable(ruleId);
         const data = await resp.json();
         if (data.success) {
             showToast("Rule re-enabled.", "success");
@@ -6159,11 +6051,7 @@ async function rollbackActiveRule(ruleId) {
     if (!targetVersion || !targetVersion.trim()) return;
 
     try {
-        const resp = await fetch(`/api/rules/active/${encodeURIComponent(ruleId)}/rollback`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ target_version: targetVersion.trim() })
-        });
+        const resp = await window.api.rulesActiveRollback(ruleId, { target_version: targetVersion.trim() });
         const data = await resp.json();
         if (data.success) {
             showToast(`Rule rolled back to version ${data.rule.version}!`, "success");
@@ -6269,7 +6157,7 @@ function renderBenchmarkPanel(report) {
 
 async function loadBenchmarkPanelData() {
     try {
-        const resp = await fetch("/api/benchmark/status");
+        const resp = await window.api.benchmarkStatus();
         const data = await resp.json();
         cachedBenchmarkReport = data;
         renderBenchmarkPanel(data);
@@ -6299,12 +6187,12 @@ function handleBenchmarkModalBackdropClick(e) {
 async function loadBenchmarkModalData() {
     try {
         // Load dataset
-        const dsResp = await fetch("/api/benchmark/dataset");
+        const dsResp = await window.api.benchmarkDataset();
         const dsData = await dsResp.json();
         cachedBenchmarkDataset = dsData.cases || [];
 
         // Load status/results
-        const stResp = await fetch("/api/benchmark/status");
+        const stResp = await window.api.benchmarkStatus();
         const stData = await stResp.json();
         cachedBenchmarkReport = stData;
 
@@ -6478,11 +6366,7 @@ async function executeBenchmarkRun() {
     showToast("Starting empirical benchmark across all 5 configurations. Please wait...", "info");
 
     try {
-        const resp = await fetch("/api/benchmark/run", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({})
-        });
+        const resp = await window.api.benchmarkRun({});
         const data = await resp.json();
         cachedBenchmarkReport = data;
         renderBenchmarkModal(data);
@@ -6591,18 +6475,14 @@ async function continueRepairFromCandidate() {
     showToast(`Initiating repair continuation (Round ${nextRound})...`, "info");
 
     try {
-        const resp = await fetch("/api/coordinator/analyze_and_plan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                code: candidateCode,
-                filename: currentFilename,
-                language: currentLanguageId,
-                operation: "repair",
-                continuation_id: contId,
-                round: nextRound,
-                approval_token: token,
-            })
+        const resp = await window.api.coordinatorAnalyzeAndPlan({
+            code: candidateCode,
+            filename: currentFilename,
+            language: currentLanguageId,
+            operation: "repair",
+            continuation_id: contId,
+            round: nextRound,
+            approval_token: token,
         });
 
         if (!resp.ok) {
