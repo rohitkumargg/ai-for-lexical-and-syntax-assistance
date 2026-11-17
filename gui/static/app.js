@@ -6891,7 +6891,7 @@ function computeDeltaInfo(targetVal, baselineVal, isInverted) {
         if (diff > 0) {
             return { text: `+${diff}% BOOST`, inline: `+${diff}%`, type: "positive" };
         } else if (diff < 0) {
-            return { text: `${diff}%`, inline: `${diff}%`, type: "negative" };
+            return { text: `${diff}% (Trade-off: Bounds Checks)`, inline: `${diff}% (trade-off)`, type: "negative" };
         } else {
             return { text: `0%`, inline: `0%`, type: "neutral" };
         }
@@ -7273,8 +7273,13 @@ function renderFsCodeComparison(data) {
         dangerBanner.style.display = "none";
     }
 
+    const hasCandidateDiff = Boolean(data.diff && data.diff.trim().length > 0) || (data.proposed_code && data.original_code && data.proposed_code !== data.original_code);
+    const compilesClean = data.validation_report ? (data.validation_report.compilation_passed !== false && data.validation_report.syntax_passed !== false) : (data.status !== "COMPILATION_FAILED" && data.status !== "SYNTAX_ERRORS");
+    const fixesRemaining = (data.fixes_remaining_count != null ? data.fixes_remaining_count : (data.unresolved_findings ? data.unresolved_findings.length : 0));
+    const isCandidateReady = Boolean(data.candidate_id && hasCandidateDiff && compilesClean && (data.status === "FULLY_REPAIRED" || data.status === "PROPOSAL_READY" || (data.status === "PARTIALLY_REPAIRED" && fixesRemaining === 0)));
+
     if (remediationBanner && remediationText) {
-        if (data.candidate || data.proposed_code || (data.fixes_applied && data.fixes_applied.length > 0)) {
+        if (isCandidateReady) {
             const rMsg = (data.fixes_applied && data.fixes_applied.join("; "))
                 || data.candidate?.explanation
                 || data.explanation
@@ -7300,11 +7305,13 @@ function renderFsCodeComparison(data) {
     if (footerStatus) {
         footerStatus.textContent = data.status === "CLEAN"
             ? "✓ Clean source code — ready to execute"
-            : (data.candidate_id ? `Ready to apply validated patch to ${fname}` : (data.status || ""));
+            : (isCandidateReady
+                ? `Ready to apply validated patch to ${fname}`
+                : (fixesRemaining > 0 ? `Unresolved: ${fixesRemaining} actionable issue(s) remain` : (data.status === "REPAIR_UNAVAILABLE" ? "Automated repair unavailable" : (data.status || ""))));
     }
 
     if (btnApply && btnApplyLabel) {
-        if (data.candidate_id && (data.proposed_code || data.candidate?.proposed_code)) {
+        if (isCandidateReady) {
             btnApply.style.display = "inline-flex";
             btnApplyLabel.textContent = `Apply Fix to ${fname}`;
         } else {
@@ -7313,7 +7320,7 @@ function renderFsCodeComparison(data) {
     }
 
     if (btnReject) {
-        btnReject.textContent = data.candidate_id ? "Reject Patch" : "Close";
+        btnReject.textContent = isCandidateReady ? "Reject Patch" : "Close";
     }
 
     // Render active tab diff view
