@@ -23,3 +23,6 @@ data/
 logs/
 scratch/
 reports/diffs/
+dist/
+desktop/bin/
+*.blockmap

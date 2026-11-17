@@ -1,0 +1,9 @@
+{
+  "name": "simplec-desktop",
+  "version": "1.0.0",
+  "description": "SimpleC AI-Assisted Compiler IDE",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  }
+}

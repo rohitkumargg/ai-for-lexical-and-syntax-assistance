@@ -1,26 +1,69 @@
 {
-  "name": "implementation",
+  "name": "simplec-compiler-ide",
   "version": "1.0.0",
-  "description": "This engine provides intelligent lexical, syntactic, semantic, and security analysis and automated repair for C and Python source code.",
+  "description": "SimpleC AI-Assisted Compiler IDE",
   "main": "desktop/main.js",
   "scripts": {
     "start": "electron desktop/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "electron-builder --win --x64"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Google DeepMind",
   "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance/issues"
-  },
-  "homepage": "https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance#readme",
   "devDependencies": {
     "electron": "^45.3.3",
+    "electron-builder": "^26.18.0",
     "playwright": "^1.65.1"
+  },
+  "build": {
+    "appId": "com.simplec.compileride",
+    "productName": "SimpleC AI-Assisted Compiler IDE",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SimpleC AI-Assisted Compiler IDE",
+      "deleteAppDataOnUninstall": false
+    },
+    "extraResources": [
+      {
+        "from": "desktop/bin/backend_ipc",
+        "to": "backend_ipc",
+        "filter": [
+          "**/*",
+          "!**/models/**"
+        ]
+      },
+      {
+        "from": "examples",
+        "to": "examples"
+      },
+      {
+        "from": "gui",
+        "to": "gui"
+      }
+    ],
+    "files": [
+      "desktop/main.js",
+      "desktop/preload.js",
+      "preload.js",
+      "gui/**/*",
+      "!models/**",
+      "!**/*.pyc",
+      "!**/__pycache__"
+    ],
+    "directories": {
+      "output": "dist"
+    }
   }
 }
