@@ -1,0 +1,26 @@
+{
+  "name": "implementation",
+  "version": "1.0.0",
+  "description": "This engine provides intelligent lexical, syntactic, semantic, and security analysis and automated repair for C and Python source code.",
+  "main": "desktop/main.js",
+  "scripts": {
+    "start": "electron desktop/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance/issues"
+  },
+  "homepage": "https://github.com/rohitkumargg/ai-for-lexical-and-syntax-assistance#readme",
+  "devDependencies": {
+    "electron": "^45.3.3",
+    "playwright": "^1.65.1"
+  }
+}

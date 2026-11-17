@@ -9,12 +9,16 @@ venv/
 
 # Old/large artifacts
 ai_artifacts/
-ai_data/
+ai_node_modules/
+package-lock.json
+data/
 *.pt
 *.bin
 *.safetensors
 
 # Transient and generated directories
+node_modules/
+package-lock.json
 data/
 logs/
 scratch/
