@@ -557,7 +557,7 @@ class PatchIntegrityInspector:
                             depth -= 1
                         pos += 1
                     body = source[brace + 1:pos - 1]
-                    result[name] = re.findall(r"\breturn\s+([^;]+);", body)
+                    result[name] = [m.strip() for m in re.findall(r"\breturn\s+([^\n;]+?)(?:;|\n|$)", body) if m.strip()]
                 return result
 
             findings_are_syntax_only = not original_findings or all(

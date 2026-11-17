@@ -100,6 +100,38 @@ class PipelineRunLogger:
         self._stage_starts: Dict[str, float] = {}
         self._created_at_iso, self._created_at_disp = _now_timestamps()
 
+    def warning(self, msg: str, *args) -> None:
+        import logging
+        try:
+            formatted = msg % args if args else msg
+        except Exception:
+            formatted = str(msg)
+        logging.getLogger("PipelineLogger").warning(formatted)
+
+    def info(self, msg: str, *args) -> None:
+        import logging
+        try:
+            formatted = msg % args if args else msg
+        except Exception:
+            formatted = str(msg)
+        logging.getLogger("PipelineLogger").info(formatted)
+
+    def error(self, msg: str, *args) -> None:
+        import logging
+        try:
+            formatted = msg % args if args else msg
+        except Exception:
+            formatted = str(msg)
+        logging.getLogger("PipelineLogger").error(formatted)
+
+    def debug(self, msg: str, *args) -> None:
+        import logging
+        try:
+            formatted = msg % args if args else msg
+        except Exception:
+            formatted = str(msg)
+        logging.getLogger("PipelineLogger").debug(formatted)
+
     @property
     def ordered_events(self) -> List[PipelineEvent]:
         """Returns events sorted in canonical 16-stage pipeline execution order."""

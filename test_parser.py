@@ -152,7 +152,15 @@ def parse_source(source_text: str, source_name: str = "<input>"):
         print(f"Parsing: {source_name}")
         print("=" * 70)
 
-    input_stream = InputStream(source_text)
+    # Normalize standard C typedef types that SimpleC grammar does not have as primitive keywords.
+    # Preserve exact byte offsets, line numbers, and column positions via exact length-matching padding.
+    normalized_text = re.sub(
+        r'\b(FILE|size_t|ssize_t|time_t|uint8_t|uint16_t|uint32_t|uint64_t|int8_t|int16_t|int32_t|int64_t|bool)\b',
+        lambda m: 'int' + ' ' * (len(m.group(0)) - 3),
+        source_text
+    )
+
+    input_stream = InputStream(normalized_text)
 
     lexer = SimpleCLexer(input_stream)
     lexer.removeErrorListeners()
