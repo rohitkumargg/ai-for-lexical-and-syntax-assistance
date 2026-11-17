@@ -23,12 +23,12 @@ function killProcessTree(pid) {
   if (process.platform === 'win32') {
     try {
       execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
-    } catch (e) {}
+    } catch (e) { }
   } else {
     try {
       process.kill(-pid, 'SIGKILL');
     } catch (e) {
-      try { process.kill(pid, 'SIGKILL'); } catch (e2) {}
+      try { process.kill(pid, 'SIGKILL'); } catch (e2) { }
     }
   }
 }
