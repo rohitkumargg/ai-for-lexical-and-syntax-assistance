@@ -1616,6 +1616,10 @@ class RepairJobManager:
             )
 
             # Update proposed candidate with the verified multi-function result
+            if final_adopted_code.strip() == job.original_code.strip() and plan_res.get("proposed_code") and plan_res.get("proposed_code").strip() != job.original_code.strip():
+                final_adopted_code = plan_res["proposed_code"]
+                job.windows_done = max(job.windows_done, 1)
+
             if final_adopted_code.strip() != job.original_code.strip():
                 final_ok, final_errs, _ = _lightweight_check(final_adopted_code)
                 # The standard planner creates the review candidate before the job manager

@@ -791,19 +791,152 @@ def is_manipulation_line(line: str) -> bool:
     return False
 
 
+COMMENT_TOKEN_PATTERN = re.compile(
+    r'(?P<STRING>"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')|'
+    r'(?P<BLOCK_COMMENT>/\*[\s\S]*?\*/)|'
+    r'(?P<LINE_COMMENT>(?://|#)[^\n]*)'
+)
+
+
 def remove_manipulation_comments_from_source(source_code: str) -> str:
     """
     Removes agent manipulation directives, gate tampering comments, and prompt injection markers
     from source code for producing the fixed candidate program.
-    Completely removes flagged lines without any '[REMOVED]' or placeholder text.
+    Identifies the comment block containing any manipulative directive and removes the entire
+    contiguous comment block (or the comment span if inline on a code line), preventing residual
+    lines (such as sensitive file paths) from leaking or re-triggering findings.
     """
     if not source_code:
         return ""
-    lines = source_code.splitlines()
-    clean_lines = [line for line in lines if not is_manipulation_line(line)]
-    result = "\n".join(clean_lines)
-    if source_code.endswith("\n") and not result.endswith("\n"):
-        result += "\n"
+
+    lines = source_code.splitlines(keepends=True)
+    if not lines:
+        return ""
+
+    line_offsets = []
+    curr = 0
+    for l in lines:
+        line_offsets.append((curr, curr + len(l)))
+        curr += len(l)
+
+    def char_to_line_idx(pos: int) -> int:
+        for idx, (start, end) in enumerate(line_offsets):
+            if start <= pos < end:
+                return idx
+        return len(lines) - 1
+
+    comment_blocks = []
+    current_line_block = None
+
+    for match in COMMENT_TOKEN_PATTERN.finditer(source_code):
+        if match.group("STRING"):
+            current_line_block = None
+            continue
+
+        start_char, end_char = match.span()
+        start_line = char_to_line_idx(start_char)
+        end_line = char_to_line_idx(end_char)
+
+        if match.group("BLOCK_COMMENT"):
+            current_line_block = None
+            block_text = match.group("BLOCK_COMMENT")
+            block_lines = block_text.splitlines()
+            has_manip = is_manipulation_line(block_text) or any(is_manipulation_line(l) for l in block_lines)
+            comment_blocks.append({
+                "type": "block",
+                "start_char": start_char,
+                "end_char": end_char,
+                "start_line": start_line,
+                "end_line": end_line,
+                "has_manip": has_manip,
+            })
+        elif match.group("LINE_COMMENT"):
+            comment_text = match.group("LINE_COMMENT")
+            has_manip = is_manipulation_line(comment_text)
+
+            # Check if this line comment continues the previous line comment block
+            if current_line_block is not None and start_line == current_line_block["end_line"] + 1:
+                prev_end_pos = current_line_block["end_char"]
+                between = source_code[prev_end_pos:start_char]
+                if between.strip() == "":
+                    current_line_block["end_char"] = end_char
+                    current_line_block["end_line"] = end_line
+                    if has_manip:
+                        current_line_block["has_manip"] = True
+                    continue
+
+            new_block = {
+                "type": "line",
+                "start_char": start_char,
+                "end_char": end_char,
+                "start_line": start_line,
+                "end_line": end_line,
+                "has_manip": has_manip,
+            }
+            comment_blocks.append(new_block)
+            current_line_block = new_block
+
+    lines_to_delete = set()
+    line_substitutions = {}
+
+    for cb in comment_blocks:
+        if not cb["has_manip"]:
+            continue
+
+        sl = cb["start_line"]
+        el = cb["end_line"]
+
+        line_start_char = line_offsets[sl][0]
+        code_before = source_code[line_start_char:cb["start_char"]].strip()
+
+        line_end_char = line_offsets[el][1]
+        code_after = source_code[cb["end_char"]:line_end_char].strip()
+
+        if not code_before and not code_after:
+            # Standalone comment block: delete all lines in range
+            for li in range(sl, el + 1):
+                lines_to_delete.add(li)
+        else:
+            # Inline comment or comment sharing line with code
+            if sl == el:
+                orig_line = lines[sl]
+                c_start_in_line = cb["start_char"] - line_start_char
+                c_end_in_line = cb["end_char"] - line_start_char
+                new_l = orig_line[:c_start_in_line].rstrip() + orig_line[c_end_in_line:]
+                if not new_l.endswith("\n") and orig_line.endswith("\n"):
+                    new_l += "\n"
+                if new_l.strip():
+                    line_substitutions[sl] = new_l
+                else:
+                    lines_to_delete.add(sl)
+            else:
+                if code_before:
+                    c_start_in_line = cb["start_char"] - line_start_char
+                    new_l = lines[sl][:c_start_in_line].rstrip() + "\n"
+                    line_substitutions[sl] = new_l
+                else:
+                    lines_to_delete.add(sl)
+
+                for li in range(sl + 1, el):
+                    lines_to_delete.add(li)
+
+                if code_after:
+                    c_end_in_line = cb["end_char"] - line_offsets[el][0]
+                    new_l = lines[el][c_end_in_line:]
+                    line_substitutions[el] = new_l
+                else:
+                    lines_to_delete.add(el)
+
+    output_lines = []
+    for idx, line in enumerate(lines):
+        if idx in lines_to_delete:
+            continue
+        if idx in line_substitutions:
+            output_lines.append(line_substitutions[idx])
+        else:
+            output_lines.append(line)
+
+    result = "".join(output_lines)
     return result
 
 
