@@ -15,6 +15,20 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+# Read writable base directory passed by Electron via DATA_DIR or APP_DATA_DIR.
+# Defaults strictly to project_root (today's exact behavior) when unset.
+APP_DATA_DIR = os.environ.get("DATA_DIR") or os.environ.get("APP_DATA_DIR") or project_root
+if APP_DATA_DIR != project_root:
+    os.makedirs(APP_DATA_DIR, exist_ok=True)
+    for sub in ("data", "logs", "benchmarks"):
+        os.makedirs(os.path.join(APP_DATA_DIR, sub), exist_ok=True)
+    try:
+        import compiler.repair_job_manager
+        compiler.repair_job_manager.JOBS_DIR = os.path.join(APP_DATA_DIR, "data", "repair_jobs")
+        os.makedirs(compiler.repair_job_manager.JOBS_DIR, exist_ok=True)
+    except Exception:
+        pass
+
 import backend_logic
 
 # Map route names to handler functions
