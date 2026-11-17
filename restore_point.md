@@ -1,6 +1,6 @@
 # Restore Point
 
-- **Commit Hash**: `17b246759995e733341212f3a3e95f277c228934` (`17b2467`)
+- **Commit Hash**: `08cb3deccbde5793cba2441341add5f275a377e0` (`08cb3de`)
 - **Tag**: `restore-before-electron`
 - **Date**: `2026-11-17`
 
