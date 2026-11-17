@@ -1793,7 +1793,10 @@ class RepairJobManager:
             plan_res["skipped_windows"] = job.skipped_windows
             plan_res["total_wall_time_s"] = round(time.perf_counter() - t_job_start, 2)
             final_stat = plan_res.get("status") or plan_res.get("terminal_status") or "COMPLETED"
-            if job.windows_done > 0 and plan_res.get("status") == "FULLY_REPAIRED":
+            if final_stat in ("CLEAN", "VALID_NO_FINDINGS"):
+                plan_res["stopping_reason"] = "Source code verified clean with zero compiler errors."
+                job.stage = "Repair job finished: program is clean with zero syntax errors."
+            elif job.windows_done > 0 and plan_res.get("status") == "FULLY_REPAIRED":
                 plan_res["stopping_reason"] = f"All actionable issues passed validation after {job.windows_done} repair steps."
                 job.stage = f"Full repair validated after {job.windows_done} repair steps."
             elif plan_res.get("fixes_remaining_count", 0) > 0:

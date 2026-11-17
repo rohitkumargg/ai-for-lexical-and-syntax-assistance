@@ -221,8 +221,12 @@ def calculate_six_metrics(
         sec_scorer = SecurityRiskScorer()
         s_findings = findings if findings is not None else sec_reporter.analyze_source(source_code, filename).findings
         has_syntax = any(
-            str(getattr(f, "category", "")).upper() in ("SYNTAX", "LEXICAL")
-            or (hasattr(f, "category") and hasattr(f.category, "name") and f.category.name in ("SYNTAX", "LEXICAL"))
+            (
+                str(getattr(f, "category", "")).upper() in ("SYNTAX", "LEXICAL")
+                or (hasattr(f, "category") and hasattr(f.category, "name") and f.category.name in ("SYNTAX", "LEXICAL"))
+            )
+            and str(getattr(f, "severity", "")).upper() not in ("INFO", "FINDINGSEVERITY.INFO")
+            and getattr(getattr(f, "severity", None), "name", "").upper() != "INFO"
             for f in (findings or [])
         )
         risk_rep = sec_scorer.assess(
@@ -262,7 +266,7 @@ def calculate_six_metrics(
                 cat = (cat_raw.value if hasattr(cat_raw, "value") else str(cat_raw)).upper()
                 sev_raw = getattr(f, "severity", "")
                 sev = (sev_raw.value if hasattr(sev_raw, "value") else str(sev_raw)).upper()
-                if cat in ("LEXICAL", "SYNTAX"):
+                if cat in ("LEXICAL", "SYNTAX") and sev != "INFO":
                     has_syntax_errors = True
                 elif cat == "SEMANTIC" and sev in ("CRITICAL", "HIGH"):
                     has_semantic_errors = True
@@ -286,7 +290,7 @@ def calculate_six_metrics(
             cat = (cat_raw.value if hasattr(cat_raw, "value") else str(cat_raw)).upper()
             sev_raw = getattr(f, "severity", "")
             sev = (sev_raw.value if hasattr(sev_raw, "value") else str(sev_raw)).upper()
-            if cat in ("LEXICAL", "SYNTAX"):
+            if cat in ("LEXICAL", "SYNTAX") and sev != "INFO":
                 s_count += 1
             elif cat == "SEMANTIC" and sev in ("CRITICAL", "HIGH"):
                 m_count += 1
@@ -486,12 +490,18 @@ def _classify_program_status(
         err_msg = default_reason or "Source code fails GCC compiler syntax check."
         return "COMPILATION_FAILED", "Compilation Failed", err_msg
 
-    if not findings:
+    non_info_findings = [
+        f for f in (findings or [])
+        if str(getattr(f, "severity", "")).upper() not in ("INFO", "FINDINGSEVERITY.INFO")
+        and getattr(getattr(f, "severity", None), "name", "").upper() != "INFO"
+    ]
+
+    if not non_info_findings:
         assert is_clean_gcc, f"Contradiction: program cannot be classified as CLEAN while gcc compilation fails (gcc output: {gcc_out if 'gcc_out' in locals() else 'error'})"
         return "CLEAN", "Program is Clean, 0 Errors / 0 Vulnerabilities", "Source code has zero compiler errors or security issues."
 
     sec_findings = [
-        f for f in findings
+        f for f in non_info_findings
         if str(getattr(f, "category", "")).upper() in ("SECURITY", "PRECHECK", "COMMAND_INJECTION")
         or getattr(getattr(f, "category", None), "value", "").upper() in ("SECURITY", "PRECHECK", "COMMAND_INJECTION")
         or "SEC-" in str(getattr(f, "rule_id", "") or (getattr(f, "metadata", {}) or {}).get("rule_id", ""))
@@ -499,20 +509,24 @@ def _classify_program_status(
         or "CWE-" in str(getattr(f, "rule_id", "") or (getattr(f, "metadata", {}) or {}).get("rule_id", ""))
     ]
     has_high_crit_or_report_only = any(
-        str(getattr(f, "severity", "")).upper() in ("HIGH", "CRITICAL")
-        or getattr(getattr(f, "severity", None), "name", "").upper() in ("HIGH", "CRITICAL")
-        or str(getattr(f, "policy", "")).lower() == "report-only"
-        or str((getattr(f, "metadata", {}) or {}).get("policy", "")).lower() == "report-only"
+        (
+            str(getattr(f, "severity", "")).upper() in ("HIGH", "CRITICAL")
+            or getattr(getattr(f, "severity", None), "name", "").upper() in ("HIGH", "CRITICAL")
+        )
+        and (
+            str(getattr(f, "category", "")).upper() in ("SECURITY", "PRECHECK", "COMMAND_INJECTION")
+            or str(getattr(f, "policy", "")).lower() == "report-only"
+            or str((getattr(f, "metadata", {}) or {}).get("policy", "")).lower() == "report-only"
+        )
         or any(kw in str(getattr(f, "explanation", "")).lower() or kw in str(getattr(f, "evidence", "")).lower() or kw in str(getattr(f, "rule_id", "") or (getattr(f, "metadata", {}) or {}).get("rule_id", "")).lower() for kw in ("system(", "'system'", "popen(", "'popen'", "exec", "subprocess."))
-        for f in findings
+        for f in non_info_findings
     )
 
-    if has_high_crit_or_report_only:
-        sec_count = len(sec_findings) if sec_findings else len(findings)
-        lbl = f"Compiles, but {sec_count} security issue(s) need manual review"
+    if sec_findings and (has_high_crit_or_report_only or len(sec_findings) > 0):
+        lbl = f"Compiles, but {len(sec_findings)} security issue(s) need manual review"
         return "VALID_WITH_SECURITY_ISSUES", lbl, lbl
     else:
-        lbl = f"Compiles with {len(findings)} warning(s)"
+        lbl = f"Compiles with {len(non_info_findings)} warning(s)"
         return "VALID_WITH_WARNINGS", lbl, lbl
 
 
@@ -610,11 +624,11 @@ class RepairPlanner:
                 sem_blocked = True
                 continue
 
-            if cat_name == "LEXICAL":
+            if cat_name == "LEXICAL" and sev_name != "INFO":
                 lex_count += 1
-            elif cat_name == "SYNTAX":
+            elif cat_name == "SYNTAX" and sev_name != "INFO":
                 syn_count += 1
-            elif cat_name == "SEMANTIC":
+            elif cat_name == "SEMANTIC" and sev_name != "INFO":
                 sem_count += 1
 
             consequence, how_to_fix = self._explain_finding_impact(f)
@@ -907,8 +921,8 @@ class RepairPlanner:
         green_engine.start_stage("optimization_and_quality")
         t0_opt = time.perf_counter()
         if lang_id == "python":
-            syn_errs = [f for f in orch_res.findings if f.category == FindingCategory.SYNTAX]
-            sem_errs = [f for f in orch_res.findings if f.category == FindingCategory.SEMANTIC]
+            syn_errs = [f for f in orch_res.findings if f.category == FindingCategory.SYNTAX and f.severity != FindingSeverity.INFO]
+            sem_errs = [f for f in orch_res.findings if f.category == FindingCategory.SEMANTIC and f.severity != FindingSeverity.INFO]
             sec_errs = [f for f in orch_res.findings if f.category == FindingCategory.SECURITY]
             q_rep = self.quality_scorer.analyze_source(
                 source_code,
@@ -918,8 +932,8 @@ class RepairPlanner:
                 security_findings=sec_errs,
             )
         else:
-            syn_errs = [f for f in coordinated_findings if getattr(f, "category", "") in ("SYNTAX", FindingCategory.SYNTAX)]
-            sem_errs = [f for f in coordinated_findings if getattr(f, "category", "") in ("SEMANTIC", FindingCategory.SEMANTIC)]
+            syn_errs = [f for f in coordinated_findings if getattr(f, "category", "") in ("SYNTAX", FindingCategory.SYNTAX) and getattr(f, "severity", "") != "INFO"]
+            sem_errs = [f for f in coordinated_findings if getattr(f, "category", "") in ("SEMANTIC", FindingCategory.SEMANTIC) and getattr(f, "severity", "") != "INFO"]
             sec_errs = [f for f in coordinated_findings if getattr(f, "category", "") in ("SECURITY", FindingCategory.SECURITY)]
             q_rep = self.quality_scorer.analyze_source(
                 source_code,
@@ -1296,6 +1310,8 @@ class RepairPlanner:
                     return False
 
         if cat in ("LEXICAL", "SYNTAX"):
+            if sev == "INFO":
+                return False
             return True
         if cat == "SECURITY" and sev in ("CRITICAL", "HIGH", "WARNING"):
             return True
@@ -4225,13 +4241,13 @@ class RepairPlanner:
                 manual_alts = ContinuationManager.generate_manual_alternatives(
                     source_code, actionable, filename=filename
                 )
-                f_cnt = len(findings)
+                f_cnt = len([f for f in findings if self.is_repair_objective_finding(f)])
                 st_fail, lbl_fail, msg_fail = _classify_program_status(
                     source_code, findings, lang_id=lang_id,
                     default_status=terminal_status if terminal_status in ("UNRESOLVED", "VALIDATION_FAILED") else "REPAIR_UNAVAILABLE",
                     default_reason=stopping_reason or "Automated repair unavailable: no further automated repairs can be applied."
                 )
-                if st_fail in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS"):
+                if st_fail in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS", "CLEAN"):
                     stopping_reason = msg_fail
                 return {
                     "analysis_mode": ("REGEX" if syn_count > 10 else "AST") if lang_id == "c" else "AST",
