@@ -2402,6 +2402,128 @@ class RepairPlanner:
         except Exception:
             pass
 
+    def _evaluate_and_select_candidate(
+        self,
+        cand_a: Optional[str],
+        tier_a: str,
+        strat_a: str,
+        original_code: str,
+        filename: str,
+        language: str,
+        findings: List[Any],
+        remaining_budget_s: float,
+        logger: PipelineRunLogger,
+    ) -> Tuple[Optional[str], str, str]:
+        """
+        Internal comparison step (dual-generation) between Candidate A (pipeline proposal)
+        and Candidate B (separate full Qwen-generated repair proposal).
+        Picks the best candidate using whole-program compiler validation and quality scoring.
+        Completely internal: the user sees only the winning proposal.
+        """
+        lang = (language or "c").lower()
+        if cand_a and lang == "c":
+            from compiler.patch_validator import ensure_c_libc_headers
+            cand_a = ensure_c_libc_headers(cand_a, original_code)
+
+        # 1. Check if Candidate B generation is feasible within budget
+        cand_b = None
+        tier_b = "qwen_dual_gen"
+        strat_b = "qwen_whole_program_comparison"
+
+        can_attempt_b = (
+            getattr(self, "ollama", None) is not None
+            and getattr(self.ollama, "is_available", lambda: True)()
+            and remaining_budget_s > 6.0
+        )
+
+        if can_attempt_b:
+            try:
+                timeout_b = min(15.0, remaining_budget_s - 2.0)
+                q_b_dec = self.ollama.coordinate_repair_decision(
+                    source_text=original_code,
+                    findings=findings,
+                    filename=filename,
+                    language=lang,
+                    timeout=timeout_b,
+                )
+                if isinstance(q_b_dec, dict):
+                    raw_b = q_b_dec.get("candidate_code")
+                    if raw_b and isinstance(raw_b, str) and raw_b.strip() != original_code.strip():
+                        from compiler.security_approval_gate import remove_manipulation_comments_from_source
+                        raw_b = remove_manipulation_comments_from_source(raw_b)
+                        if lang == "c":
+                            from compiler.patch_validator import ensure_c_libc_headers
+                            raw_b = ensure_c_libc_headers(raw_b, original_code)
+                        cand_b = raw_b
+            except Exception as ex:
+                logger.info(f"[DUAL_GENERATION] Candidate B generation skipped: {ex}")
+
+        # If Candidate B was not produced, retain Candidate A
+        if not cand_b:
+            return cand_a, tier_a, strat_a
+
+        # 2. Whole-program validation of both candidates
+        val_a = None
+        is_a_valid = False
+        if cand_a:
+            try:
+                val_a = self.validator.validate_patch(
+                    original_code=original_code,
+                    candidate_code=cand_a,
+                    filename=filename,
+                    language=lang,
+                    original_findings=findings,
+                )
+                is_a_valid = getattr(val_a, "is_valid", False)
+            except Exception:
+                is_a_valid = False
+
+        val_b = None
+        is_b_valid = False
+        try:
+            val_b = self.validator.validate_patch(
+                original_code=original_code,
+                candidate_code=cand_b,
+                filename=filename,
+                language=lang,
+                original_findings=findings,
+            )
+            is_b_valid = getattr(val_b, "is_valid", False)
+        except Exception:
+            is_b_valid = False
+
+        # 3. Decision Matrix
+        if is_b_valid and not is_a_valid:
+            logger.info(f"[DUAL_GENERATION] Selected Candidate B (Qwen): Cand A invalid.")
+            return cand_b, tier_b, strat_b
+
+        if is_a_valid and not is_b_valid:
+            logger.info(f"[DUAL_GENERATION] Selected Candidate A ({tier_a}): Cand B invalid.")
+            return cand_a, tier_a, strat_a
+
+        if is_a_valid and is_b_valid:
+            rem_a = len(getattr(val_a, "remaining_findings", []) or [])
+            rem_b = len(getattr(val_b, "remaining_findings", []) or [])
+            if rem_b < rem_a:
+                logger.info(f"[DUAL_GENERATION] Selected Candidate B (Qwen): fewer remaining findings ({rem_b} vs {rem_a}).")
+                return cand_b, tier_b, strat_b
+            elif rem_a < rem_b:
+                logger.info(f"[DUAL_GENERATION] Selected Candidate A ({tier_a}): fewer remaining findings ({rem_a} vs {rem_b}).")
+                return cand_a, tier_a, strat_a
+
+            # Tie-break: smaller unified diff
+            diff_a = len(list(difflib.unified_diff(original_code.splitlines(), cand_a.splitlines())))
+            diff_b = len(list(difflib.unified_diff(original_code.splitlines(), cand_b.splitlines())))
+            if diff_b < diff_a:
+                logger.info(f"[DUAL_GENERATION] Selected Candidate B (Qwen): smaller diff ({diff_b} vs {diff_a} lines).")
+                return cand_b, tier_b, strat_b
+            else:
+                logger.info(f"[DUAL_GENERATION] Selected Candidate A ({tier_a}): smaller or equal diff ({diff_a} vs {diff_b} lines).")
+                return cand_a, tier_a, strat_a
+
+        # Neither valid: return Candidate A as best-effort if available, else Candidate B
+        return (cand_a or cand_b), tier_a, strat_a
+
     def plan_and_repair(
         self,
         source_code: str,
@@ -4050,6 +4172,20 @@ class RepairPlanner:
                         workflow_state = "REPAIR_FAILED"
     
             if not cand:
+                rem_budget = time_budget_s - (time.perf_counter() - t0)
+                cand, repair_provider, repair_strategy = self._evaluate_and_select_candidate(
+                    cand_a=None,
+                    tier_a="none",
+                    strat_a="none",
+                    original_code=original_code,
+                    filename=filename,
+                    language=lang_id,
+                    findings=findings,
+                    remaining_budget_s=rem_budget,
+                    logger=logger,
+                )
+
+            if not cand:
                 if is_budget_exceeded(headroom_s=1.0):
                     return _build_budget_exceeded_response("neural_repair")
                 logger.record_stage(
@@ -4168,6 +4304,20 @@ class RepairPlanner:
             elif repair_strategy != "qwen_fallback":
                 repair_strategy = strat or repair_strategy or ("qwen_repair" if repair_provider == "qwen2.5-coder" else "deterministic_rules")
             agent_explanation = desc or stopping_reason
+
+            # Dual-generation internal comparison step: evaluate Cand A vs Cand B
+            rem_budget = time_budget_s - (time.perf_counter() - t0)
+            cand, repair_provider, repair_strategy = self._evaluate_and_select_candidate(
+                cand_a=cand,
+                tier_a=repair_provider or "deterministic_rules",
+                strat_a=repair_strategy or "none",
+                original_code=original_code,
+                filename=filename,
+                language=lang_id,
+                findings=findings,
+                remaining_budget_s=rem_budget,
+                logger=logger,
+            )
 
             # Enforce header invariant BEFORE analyzing, diffing, hashing, or storing candidate
             if lang_id == "c" and cand:
