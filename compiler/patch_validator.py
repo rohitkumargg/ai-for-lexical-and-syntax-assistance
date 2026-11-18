@@ -431,6 +431,13 @@ class PatchIntegrityInspector:
             )
             return False, reasons
 
+        # 1b. Unsafe API introduction (Criterion 3: Candidate must never introduce banned functions like gets())
+        import re
+        banned_calls = re.findall(r'\bgets\s*\(', candidate_code)
+        if banned_calls and not re.search(r'\bgets\s*\(', original_code):
+            reasons.append("Integrity rejection: Candidate introduced unsafe/banned function 'gets()'")
+            return False, reasons
+
         # 2. Diff-size budget check
         orig_lines = [l for l in original_code.splitlines() if l.strip()]
         cand_lines = [l for l in candidate_code.splitlines() if l.strip()]

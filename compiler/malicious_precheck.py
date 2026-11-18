@@ -195,7 +195,9 @@ class MaliciousCodePrecheck:
         re.compile(r"do\s+not\s+report\s+any\s+security\s+findings", re.IGNORECASE),
         re.compile(r"introduce\s+an\s+unsafe\s+function", re.IGNORECASE),
         re.compile(r"claim\s+that\s+validation\s+passed", re.IGNORECASE),
-        re.compile(r"you\s+are\s+now\s+in\s+(?:unrestricted|developer|dan|jailbreak)\s+mode", re.IGNORECASE),
+        re.compile(r"you\s+are\s+now\s+in\s+[a-zA-Z_\-]+\s+mode", re.IGNORECASE),
+        re.compile(r"disable\s+(?:safety|security|checks|guardrails|filters)", re.IGNORECASE),
+        re.compile(r"\bSYSTEM\s*:", re.IGNORECASE),
         re.compile(r"ANTIGRAVITY_OVERRIDE_SECURITY\s*[:=]\s*(?:true|1|enable)", re.IGNORECASE),
     ]
 
@@ -214,6 +216,7 @@ class MaliciousCodePrecheck:
         re.compile(r"\bghp_[A-Za-z0-9_]{16,}\b", re.IGNORECASE),
         re.compile(r"\b(?:prod\s+DB\s+password|password\s+is)\b", re.IGNORECASE),
         re.compile(r"\b(?:AKIA[0-9A-Z]{16}|sk_live_[A-Za-z0-9_]{16,}|xoxb-[A-Za-z0-9_\-]{20,})\b", re.IGNORECASE),
+        re.compile(r"""#define\s+[A-Za-z0-9_]*(?:PASSWORD|PASSWD|SECRET|TOKEN|API_KEY)\s+["'][^"']+["']""", re.IGNORECASE),
     ]
 
     @classmethod

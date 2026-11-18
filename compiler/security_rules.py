@@ -1163,8 +1163,10 @@ class SecurityRulesCollector(SimpleCVisitor):
                                     arg_t = "char*"
 
                                 # Canonical target specifier
-                                target_spec = "d"
                                 c_t = _canonical_type(arg_t) if arg_t else ""
+                                if not c_t and not arg_t:
+                                    continue
+                                target_spec = "d"
                                 if arg_t == "string" or "char*" in c_t:
                                     target_spec = "s"
                                 elif c_t in ("char", "signed char", "unsigned char") and not c_t.endswith("*"):

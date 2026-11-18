@@ -48,7 +48,7 @@ DANGEROUS_COMMAND_PATTERNS = [
 SENSITIVE_PATH_PATTERNS = [
     r"C:\\Windows",
     r"C:\\System32",
-    r"/etc/",
+    r"/etc/(?:shadow|passwd|sudoers|master\.passwd|security/)",
     r"/bin/",
     r"/usr/bin/",
 ]
@@ -347,9 +347,9 @@ class SecurityChecker:
         # 7. Hardcoded secrets (comments stripped)
         # ------------------------------------------------
         secret_patterns = [
-            r"(password|passwd|pwd)\s*=\s*\".*\"",
+            r"(password|passwd|pwd)\s*=\s*\"[^\"]+\"",
             r"(password|passwd|pwd)\s*=\s*\d+",
-            r"(api_key|apikey|token|secret)\s*=\s*\".*\"",
+            r"(api_key|apikey|token|secret)\s*=\s*\"[^\"]+\"",
             r"(api_key|apikey|token|secret)\s*=\s*\d+",
         ]
 

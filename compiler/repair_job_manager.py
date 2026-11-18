@@ -511,7 +511,9 @@ def _fix_unambiguous_syntax_delimiters_once(src: str, flagged_lines: Optional[Se
                          or (re.match(r"^(?:return\b|for\b|while\b|if\b|switch\b|break\b|continue\b|[a-zA-Z_]\w*)", curr_stripped)
                              and (re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|long|short|unsigned|signed|void|struct\s+\w+)\b[\w\s*\[\]]*?\b\w+\s*=|([A-Za-z_]\w*\s*=))", prev_stripped)
                                   or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*\s*\([^;{}]*\)$", prev_stripped)
-                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*$", prev_stripped))))
+                                  or re.match(r"^(?:(?:const\s+|static\s+|volatile\s+)?(?:int|char|float|double|void|long|short|unsigned|signed|struct\b[\w\s*]+))\s+[A-Za-z_]\w*$", prev_stripped)
+                                  or re.match(r"^[A-Za-z_]\w*\s*\(.*?\)$", prev_stripped)
+                                  or re.match(r"^return\b.*", prev_stripped))))
                     and not re.search(r"\b(?:if|while|for|switch)\b", prev_stripped)):
                 ending = "\r\n" if prev.endswith("\r\n") else ("\n" if prev.endswith("\n") else "")
                 new_lines[-1] = prev_no_comment.rstrip() + ";" + prev_comment + ending

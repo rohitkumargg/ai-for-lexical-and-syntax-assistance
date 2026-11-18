@@ -1780,9 +1780,12 @@ class RepairPlanner:
                     sec_checker = SecurityChecker()
                     sec_iss = sec_checker.check(source_code)
                     sec_lines = [getattr(iss, "line", None) for iss in sec_iss if getattr(iss, "line", None)]
-                    if (is_clean or not err_lines) and not sec_lines:
+                    from compiler.malicious_precheck import MaliciousCodePrecheck
+                    pre_rep, _ = MaliciousCodePrecheck.get_cached_or_analyze(source_code, filename=filename, language=language)
+                    pre_lines = [f.line for f in getattr(pre_rep, "findings", []) if getattr(f, "line", None)]
+                    if (is_clean or not err_lines) and not sec_lines and not pre_lines:
                         return source_code, []
-                    flagged_lines = set(err_lines) | set(sec_lines)
+                    flagged_lines = set(err_lines) | set(sec_lines) | set(pre_lines)
 
             if not flagged_lines:
                 return source_code, []
@@ -1836,16 +1839,42 @@ class RepairPlanner:
             except Exception:
                 pass
 
+            # 2A. Malformed function headers & unmatched braces
+            try:
+                pat_hdr = re.compile(r'\b(void|int|char|float|double|long|short|unsigned|signed|bool)\s+([A-Za-z_]\w*)\s*\(\s*\{')
+                if pat_hdr.search(current_code):
+                    current_code = pat_hdr.sub(r'\1 \2(void) {', current_code)
+                    applied_steps.append("Fixed malformed function parameter list in header")
+                open_cnt = current_code.count('{')
+                close_cnt = current_code.count('}')
+                if close_cnt > open_cnt:
+                    lines = current_code.splitlines(keepends=True)
+                    new_lines = []
+                    rem = close_cnt - open_cnt
+                    for line in reversed(lines):
+                        if rem > 0 and line.strip() == '}':
+                            rem -= 1
+                            continue
+                        new_lines.append(line)
+                    new_lines.reverse()
+                    current_code = "".join(new_lines)
+                    applied_steps.append("Removed unmatched closing brace")
+            except Exception:
+                pass
+
             # 2B. Unambiguous syntax delimiters & missing semicolons / array dimensions / commas
             try:
                 from compiler.repair_job_manager import _fix_unambiguous_syntax_delimiters
-                delim_code, delim_steps = _fix_unambiguous_syntax_delimiters(current_code, flagged_lines=flagged_lines)
-                if delim_steps and delim_code != current_code:
-                    current_code = delim_code
-                    applied_steps.extend(delim_steps)
-                elif delim_code != current_code:
-                    current_code = delim_code
-                    applied_steps.append("Fixed unambiguous syntax delimiters and missing semicolons")
+                for _ in range(3):
+                    delim_code, delim_steps = _fix_unambiguous_syntax_delimiters(current_code)
+                    if delim_steps and delim_code != current_code:
+                        current_code = delim_code
+                        applied_steps.extend(delim_steps)
+                    elif delim_code != current_code:
+                        current_code = delim_code
+                        applied_steps.append("Fixed unambiguous syntax delimiters and missing semicolons")
+                    else:
+                        break
             except Exception:
                 pass
 
@@ -2098,6 +2127,25 @@ class RepairPlanner:
             except Exception:
                 pass
 
+            # 3b. Adversarial manipulation & secret comment sanitization
+            try:
+                from compiler.security_approval_gate import remove_manipulation_comments_from_source
+                clean_comment_code = remove_manipulation_comments_from_source(current_code)
+                if clean_comment_code != current_code:
+                    current_code = clean_comment_code
+                    applied_steps.append("removed AI-manipulation comment")
+            except Exception:
+                pass
+
+            # 3c. Connection string credential sanitization (URIs with user:pass)
+            try:
+                uri_pat = re.compile(r'([a-zA-Z][a-zA-Z0-9+\-.]*://)[^/\s]+@')
+                if uri_pat.search(current_code):
+                    current_code = uri_pat.sub(r'\1', current_code)
+                    applied_steps.append("SEC: sanitized embedded credentials from connection URI")
+            except Exception:
+                pass
+
             # 4. Security deterministic auto-fixes (gets, scanf bounds, strcpy, etc.)
             try:
                 from compiler.security_auto_fixer import SecurityAutoFixer
@@ -2119,20 +2167,36 @@ class RepairPlanner:
             except Exception:
                 pass
 
-            # 4b. Hardcoded credential remediation (C equivalent of PY-SEC-07)
+            # 4b. Hardcoded credential remediation (macros & string variables)
             try:
-                sec_creds = re.findall(
-                    r'(\b(?:const\s+char\s*\*|char\s*\*)\s*(\w+)\s*=\s*["\']([^"\']+)["\'];)',
-                    current_code,
-                )
-                for full_stmt, var_name, default_val in sec_creds:
-                    if re.match(r'^(api[_-]?key|password|passwd|pwd|token|secret)$', var_name, re.IGNORECASE):
-                        env_key = var_name.upper()
-                        replacement = f'const char *{var_name} = getenv("{env_key}") ? getenv("{env_key}") : "{default_val}";'
-                        current_code = current_code.replace(full_stmt, replacement, 1)
-                        if "#include <stdlib.h>" not in current_code:
-                            current_code = "#include <stdlib.h>\n" + current_code
-                        applied_steps.append(f"SEC: read credential '{var_name}' from environment via getenv")
+                # Macros: #define API_KEY "..." or #define ADMIN_PASSWORD "..."
+                def _sub_macro_cred(m):
+                    mname = m.group(1)
+                    if re.search(r'(?:api[_-]?key|password|passwd|pwd|token|secret)', mname, re.IGNORECASE):
+                        applied_steps.append(f"SEC: read macro credential '{mname}' from environment via getenv")
+                        return f'#define {mname} (getenv("{mname.upper()}") ? getenv("{mname.upper()}") : "")'
+                    return m.group(0)
+                macro_code = re.sub(r'#define\s+([A-Za-z0-9_]+)\s+["\']([^"\']+)["\']', _sub_macro_cred, current_code)
+                if macro_code != current_code:
+                    current_code = macro_code
+                    if "#include <stdlib.h>" not in current_code:
+                        current_code = "#include <stdlib.h>\n" + current_code
+
+                # Variables: static const char *aws_access_key = "..."; or const char *token = "...";
+                def _sub_var_cred(m):
+                    full_p = m.group(1)
+                    vname = m.group(2)
+                    val = m.group(3)
+                    ending = m.group(4)
+                    is_cred_name = bool(re.search(r'(?:api[_-]?key|password|passwd|pwd|token|secret|access_key|private_key)', vname, re.IGNORECASE))
+                    is_cred_val = ("PRIVATE KEY" in val or "AKIA" in val or "sk_live_" in val or "xoxb-" in val)
+                    if is_cred_name or is_cred_val:
+                        applied_steps.append(f"SEC: sanitized credential variable '{vname}' to NULL")
+                        return f"{full_p}NULL{ending}"
+                    return m.group(0)
+                var_code = re.sub(r'((?:static\s+)?(?:const\s+)?char\s*\*?\s*\*?\s*([A-Za-z0-9_]+)\s*=\s*)((?:\s*"(?:[^"\\]|\\.)*")+)(\s*;)', _sub_var_cred, current_code)
+                if var_code != current_code:
+                    current_code = var_code
             except Exception:
                 pass
 
