@@ -1160,6 +1160,7 @@ class RepairJobManager:
                 fn_windows_done = 0
                 fn_skipped_windows = []
                 fn_tier_counts = {"rules": 0, "codet5": 0, "qwen": 0}
+                function_qwen_budget_deadline = time.perf_counter() + FUNCTION_QWEN_BUDGET_S
 
                 # Context-aware lightweight check on function
                 fn_ok, fn_err_lines, _ = _check_fn(fn_src)
@@ -1598,6 +1599,158 @@ class RepairJobManager:
                         job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + (len(py_rule_steps) or 1)
 
             # ---------------------------------------------------------------
+            # Whole-File Deterministic Sanitization & Qwen Escalation
+            # ---------------------------------------------------------------
+            # 1. Strip leaked secrets and manipulation comment blocks
+            try:
+                from compiler.security_approval_gate import remove_manipulation_comments_from_source
+                sanitized_c = remove_manipulation_comments_from_source(final_adopted_code)
+                if sanitized_c and sanitized_c.strip() != final_adopted_code.strip():
+                    s_ok, s_errs, _ = _lightweight_check(sanitized_c)
+                    if s_ok or (len(s_errs) <= len(_lightweight_check(final_adopted_code)[1])):
+                        final_adopted_code = sanitized_c
+                        job.windows_done += 1
+                        job.windows_by_tier["rules"] = job.windows_by_tier.get("rules", 0) + 1
+            except Exception:
+                pass
+
+            # 2. Apply general comment sanitization for manipulative or attack directives
+            from compiler.security_approval_gate import remove_manipulation_comments_from_source
+            cleaned_comments_code = remove_manipulation_comments_from_source(final_adopted_code)
+            if cleaned_comments_code != final_adopted_code:
+                c_ok, c_errs, _ = _lightweight_check(cleaned_comments_code)
+                if c_ok:
+                    final_adopted_code = cleaned_comments_code
+                    job.windows_done = max(job.windows_done, 1)
+
+            # 3. Check if rules path provably cannot resolve remaining actionable findings
+            curr_ok, curr_err_lines, curr_compiler_out = _lightweight_check(final_adopted_code)
+            from compiler.malicious_precheck import MaliciousCodePrecheck
+            pre_rep = MaliciousCodePrecheck.analyze(final_adopted_code, filename=job.filename, language=job.language)
+            sec_issues = [f for f in pre_rep.findings if f.severity in ("CRITICAL", "HIGH", "MEDIUM")]
+            if job.language == "c":
+                try:
+                    from compiler.agents import SecurityAgent
+                    for sf in SecurityAgent().analyze(final_adopted_code, filename=job.filename):
+                        if getattr(sf, "severity", None) and sf.severity.name in ("CRITICAL", "HIGH", "MEDIUM"):
+                            sec_issues.append(sf)
+                except Exception:
+                    pass
+
+            sem_issues = []
+            if job.language == "c" and curr_ok:
+                try:
+                    from compiler.agents import SemanticAgent
+                    sem_fnds = SemanticAgent().analyze(final_adopted_code, filename=job.filename)
+                    sem_issues = [f for f in sem_fnds if getattr(f, "severity", "") != "INFO"]
+                except Exception:
+                    pass
+
+            needs_qwen_escalation = bool(sec_issues)
+            print(f"[REPAIR JOB DEBUG] {job.filename}: curr_ok={curr_ok}, sec_issues={len(sec_issues)}, sem_issues={len(sem_issues)}, needs_qwen={needs_qwen_escalation}")
+            qwen_used = False
+
+            if needs_qwen_escalation and planner.ollama.is_available():
+                logger.info("Deterministic rules cannot resolve remaining findings; escalating to Qwen whole-file repair.")
+                job.stage = "Deterministic rules exhausted; routing unresolved issues to Qwen (qwen2.5-coder)..."
+                self._safe_save_job(job)
+
+                qwen_working_code = final_adopted_code
+                qwen_feedback = ""
+
+                for qwen_attempt in range(1, 4):
+                    if cancel_evt.is_set():
+                        break
+
+                    unresolved_desc = []
+                    if not curr_ok:
+                        unresolved_desc.append(f"Compiler syntax/build error(s) at line(s) {curr_err_lines[:10]}:\n{curr_compiler_out[:300]}")
+                    for sf in sec_issues:
+                        sf_line = sf.location.line if hasattr(sf, "location") and sf.location else getattr(sf, "line", "?")
+                        unresolved_desc.append(f"Security finding ({getattr(sf, 'category', 'SECURITY')}): line {sf_line}: {sf.explanation}")
+                    for sm in sem_issues:
+                        sm_line = sm.location.line if hasattr(sm, "location") and sm.location else "?"
+                        unresolved_desc.append(f"Semantic issue ({sm.rule_id if hasattr(sm, 'rule_id') else 'UNDECLARED'}): line {sm_line}: {sm.explanation}")
+
+                    q_instruct = (
+                        f"You are repairing a {job.language.upper()} source file. "
+                        f"Deterministic rules cannot resolve these findings. "
+                        f"Return ONLY the full, complete corrected {job.language.upper()} source code. "
+                        f"Do not truncate or omit any functions. Ensure all necessary standard headers are included, "
+                        f"all identifiers are properly declared, hardcoded secrets/passwords are safely handled, and the code compiles cleanly.\n"
+                        f"Target File: {job.filename}\n"
+                        f"Unresolved Findings:\n" + "\n".join(f"- {d}" for d in unresolved_desc)
+                    )
+                    if qwen_feedback:
+                        q_instruct += f"\nPrevious attempt rejected by compiler/safety validator:\n{qwen_feedback}\nFix these issues in the complete code.\n"
+
+                    try:
+                        raw_cand = None
+                        if hasattr(planner.ollama, "generate_whole_file_repair"):
+                            raw_cand = planner.ollama.generate_whole_file_repair(
+                                source_text=qwen_working_code,
+                                filename=job.filename,
+                                language=job.language,
+                                issues=unresolved_desc,
+                                feedback=qwen_feedback,
+                                timeout=60.0,
+                            )
+                        print(f"[REPAIR JOB DEBUG] Qwen attempt {qwen_attempt}: raw_cand len={len(raw_cand) if raw_cand else 0}")
+                        if not raw_cand:
+                            q_dec = planner.ollama.coordinate_repair_decision(
+                                source_text=qwen_working_code,
+                                findings=list(all_initial_findings),
+                                filename=job.filename,
+                                language=job.language,
+                                previous_feedback=q_instruct,
+                                retry_index=qwen_attempt,
+                                model_name=getattr(planner.ollama, "default_model", "qwen2.5-coder:3b"),
+                                timeout=60.0,
+                            )
+                            raw_cand = q_dec.get("candidate_code") if isinstance(q_dec, dict) else None
+                        if raw_cand and isinstance(raw_cand, str):
+                            raw_cand = raw_cand.strip()
+                            m_block = re.search(r"```(?:c|cpp|python)?\s*([\s\S]*?)\s*```", raw_cand)
+                            if m_block:
+                                raw_cand = m_block.group(1).strip()
+
+                            if job.language == "c":
+                                raw_cand = ensure_c_libc_headers(raw_cand, job.original_code)
+
+                            cand_ok, cand_errs, cand_out = _lightweight_check(raw_cand)
+                            cand_pre = MaliciousCodePrecheck.analyze(raw_cand, filename=job.filename, language=job.language)
+                            cand_sec = [f for f in cand_pre.findings if f.severity in ("CRITICAL", "HIGH", "MEDIUM")]
+                            if job.language == "c":
+                                try:
+                                    from compiler.agents import SecurityAgent
+                                    for sf in SecurityAgent().analyze(raw_cand, filename=job.filename):
+                                        if getattr(sf, "severity", None) and sf.severity.name in ("CRITICAL", "HIGH", "MEDIUM"):
+                                            cand_sec.append(sf)
+                                except Exception:
+                                    pass
+                            print(f"[REPAIR JOB DEBUG] attempt {qwen_attempt}: cand_ok={cand_ok}, cand_sec={len(cand_sec)}, err_out: {cand_out[:200] if not cand_ok else 'OK'}")
+                            if not cand_ok:
+                                qwen_feedback = f"Compilation failed with error(s): {cand_out[:250]}"
+                                continue
+                            if cand_sec:
+                                print(f"[REPAIR JOB DEBUG] attempt {qwen_attempt} rejected for sec: {[f.explanation for f in cand_sec]}")
+                                qwen_feedback = f"Remaining security findings: {[f.explanation for f in cand_sec]}"
+                                continue
+
+                            final_adopted_code = raw_cand
+                            curr_ok, curr_err_lines = True, []
+                            sec_issues = []
+                            sem_issues = []
+                            job.windows_done += 1
+                            job.windows_by_tier["qwen"] = job.windows_by_tier.get("qwen", 0) + 1
+                            qwen_used = True
+                            logger.info(f"Qwen whole-file repair passed validation on attempt {qwen_attempt}!")
+                            break
+                    except Exception as q_err:
+                        logger.warning(f"Qwen whole-file repair attempt {qwen_attempt} failed: {q_err}")
+                        qwen_feedback = f"Execution error: {type(q_err).__name__}"
+
+            # ---------------------------------------------------------------
             # Final Analysis & Plan Packaging
             # ---------------------------------------------------------------
             job.stage = "Running final orchestrator & quality analysis..."
@@ -1700,6 +1853,17 @@ class RepairJobManager:
                         validation_report=final_validation.to_dict(),
                     )
                     final_scores["repair_validation_success"] = final_scores["six_metrics"].get("repair_validation_success")
+                    if not final_actionable:
+                        final_scores["vulnerability_risk"] = 0.0
+                        final_scores["security_risk_score"] = 0.0
+                        final_scores["security_risk"] = 0.0
+                        final_scores["confirmed_security_count"] = 0
+                        final_scores["possible_security_count"] = 0
+                        if "six_metrics" in final_scores and isinstance(final_scores["six_metrics"], dict):
+                            final_scores["six_metrics"]["security_risk"] = 0.0
+                        q_sc = final_scores.get("code_quality_score") or (final_scores["six_metrics"].get("code_quality_score") if "six_metrics" in final_scores else 90.0)
+                        o_sc = final_scores.get("optimization_potential") or (final_scores["six_metrics"].get("optimization_potential") if "six_metrics" in final_scores else 0.0)
+                        final_scores["overall_code_quality"] = round(0.50 * float(q_sc) + 0.25 * (100.0 - float(o_sc)) + 0.25 * (100.0 - 0.0), 1)
                     plan_res["proposed_scores"] = final_scores
                     plan_res["candidate_assessment"] = final_scores
                 except Exception as metrics_err:
@@ -1712,6 +1876,10 @@ class RepairJobManager:
                     stat = "PARTIALLY_REPAIRED"
                 elif not final_ok or not final_validation.is_valid:
                     stat = "VALIDATION_FAILED"
+                if qwen_used:
+                    plan_res["candidate_provider"] = "qwen2.5-coder"
+                    plan_res["candidate_tier"] = "qwen"
+                    plan_res["repair_tier"] = "qwen"
                 plan_res["status"] = stat
                 plan_res["workflow_state"] = stat
                 plan_res["terminal_status"] = stat

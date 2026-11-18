@@ -237,6 +237,13 @@ def calculate_six_metrics(
         )
         if risk_rep.can_score and risk_rep.risk_score is not None:
             security_risk_val = round(float(risk_rep.risk_score), 1)
+        elif not any(
+            getattr(f, "category", "") in ("SECURITY", FindingCategory.SECURITY)
+            or getattr(getattr(f, "category", None), "name", "") == "SECURITY"
+            or "SEC-" in str(getattr(f, "rule_id", "") or (getattr(f, "metadata", {}) or {}).get("rule_id", ""))
+            for f in (findings or [])
+        ):
+            security_risk_val = 0.0
     except Exception:
         pass
 

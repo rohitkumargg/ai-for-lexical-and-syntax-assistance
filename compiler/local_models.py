@@ -8,7 +8,10 @@ import time
 import hashlib
 import urllib.request
 import urllib.error
+import logging
 from dataclasses import dataclass, field, asdict
+
+logger = logging.getLogger("LocalModels")
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -572,6 +575,70 @@ class OllamaClient:
             err_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
             print(f"[{err_str}] [Ollama Abort/Error] generate_fix model={target_model} error={e}")
             return None, f"Ollama inference failed: {str(e)}"
+
+    def generate_whole_file_repair(
+        self,
+        source_text: str,
+        filename: str = "main.c",
+        language: str = "c",
+        issues: Optional[List[str]] = None,
+        feedback: str = "",
+        model_name: Optional[str] = None,
+        timeout: float = 35.0,
+    ) -> Optional[str]:
+        """Generates a complete whole-file repair via local Qwen returning clean markdown-fenced code."""
+        target_model = self.resolve_model_name(model_name)
+        lang = (language or "c").lower()
+        system = (
+            f"You are an expert {lang.upper()} systems security programmer and compiler repair agent. "
+            f"You repair compiler syntax errors, undeclared identifiers, hardcoded secrets/credentials, and security issues. "
+            f"Never hardcode credentials, API keys, passwords, private keys, connection strings, or attack payloads in source code. "
+            f"Replace all secret values with safe environment variable lookups (e.g. getenv()) or safe configuration. "
+            f"DO NOT include any hardcoded fallback or default values containing the secret! If an environment variable is NULL, exit with an error code or handle gracefully. The secret strings, passwords, private keys, connection strings, and API keys must be completely eliminated from the repaired source code (never kept as default, fallback, or comments). "
+            f"In C, getenv() calls must be made INSIDE functions (such as main()), NEVER as initializers for global/static file-scope variables (which causes 'initializer element is not constant' compiler errors). At file scope, declare pointers initialized to NULL and assign them via getenv() inside main(). "
+            f"Return ONLY the complete, corrected {lang.upper()} source code enclosed in ```{lang}\n...\n```. "
+            f"Never omit functions or truncate code. Ensure all required standard library headers are included."
+        )
+        prompt = f"Target File: {filename}\nIssues to resolve:\n"
+        for iss in (issues or []):
+            prompt += f"- {iss}\n"
+        if feedback:
+            prompt += f"\nPrevious attempt rejected with error:\n{feedback}\nPlease fix these errors.\n"
+        prompt += f"\nOriginal Source Code:\n```{lang}\n{source_text}\n```\n"
+
+        payload = {
+            "model": target_model,
+            "prompt": prompt,
+            "system": system,
+            "stream": False,
+            "options": {
+                "temperature": 0.0,
+                "top_p": 0.9,
+                "num_predict": 4096,
+            }
+        }
+        try:
+            req = urllib.request.Request(
+                f"{self.base_url}/api/generate",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            t0 = time.perf_counter()
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                elapsed_s = time.perf_counter() - t0
+                if resp.status != 200:
+                    return None
+                data = json.loads(resp.read().decode("utf-8"))
+                raw = data.get("response", "")
+            cand = self._extract_code(raw, language=lang)
+            if not cand:
+                m = re.search(rf"```{lang}?\s*([\s\S]*?)\s*```", raw, re.IGNORECASE)
+                cand = m.group(1).strip() if m else raw.strip()
+            return cand if cand else None
+        except Exception as e:
+            logger.warning(f"generate_whole_file_repair failed: {e}")
+            return None
 
     def coordinate_repair_decision(
         self,

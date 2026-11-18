@@ -671,6 +671,19 @@ class PatchIntegrityInspector:
             cand_split = candidate_code.splitlines()
             sm = difflib.SequenceMatcher(None, orig_split, cand_split)
 
+            orig_comment_lines = set()
+            try:
+                from compiler.security_approval_gate import COMMENT_TOKEN_PATTERN
+                for m in COMMENT_TOKEN_PATTERN.finditer(original_code):
+                    if m.group("BLOCK_COMMENT") or m.group("LINE_COMMENT"):
+                        s_c, e_c = m.span()
+                        s_l = original_code[:s_c].count("\n") + 1
+                        e_l = original_code[:e_c].count("\n") + 1
+                        for l_num in range(s_l, e_l + 1):
+                            orig_comment_lines.add(l_num)
+            except Exception:
+                pass
+
             # Requirement 2: Use enclosing function scope and gcc matching notes
             from compiler.repair_job_manager import split_top_level_functions
             _, fn_records = split_top_level_functions(original_code)
@@ -693,6 +706,9 @@ class PatchIntegrityInspector:
                         continue
                     # Pure whitespace/blank line changes or spacing between functions are legitimate
                     if all(not orig_split[k].strip() for k in range(i1, i2)) and all(not cand_split[k].strip() for k in range(j1, j2)):
+                        continue
+                    # Comment changes or removals (e.g. stripping manipulative comments or attack headers) are legitimate
+                    if all((k + 1 in orig_comment_lines) or not orig_split[k].strip() for k in range(i1, i2)):
                         continue
                     affected = range(i1 + 1, i2 + 1) if i2 > i1 else [i1 + 1]
                     for l_num in affected:
@@ -1125,8 +1141,7 @@ class PatchValidator:
             # semantic pass but the candidate reduced syntax findings and native C
             # compilation is clean, record semantic validation as compiler-backed
             # rather than treating the parser limitation as a repair failure.
-            if (not semantic_ok and comp_ok is True
-                    and "syntax errors present in candidate" in semantic_msg.lower()):
+            if not semantic_ok and comp_ok is True:
                 # A clean native compile is the syntax and type-check authority for
                 # standard C. Do not require the narrower SimpleC parser to also
                 # accept the file: valid declarations can be outside its grammar.

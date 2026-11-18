@@ -50,6 +50,8 @@ def collect_semantic_issues(tree, source_text: Optional[str] = None) -> List[Dic
 
     if source_text:
         import re
+        for m in re.finditer(r'#define\s+([a-zA-Z_]\w*)', source_text):
+            typedef_names.add(m.group(1))
         for m in re.finditer(r'\b(?:sqlite3|sqlite3_stmt|FILE|size_t)\s*\*+\s*([a-zA-Z_]\w*)\b', source_text):
             typedef_vars.add(m.group(1))
 

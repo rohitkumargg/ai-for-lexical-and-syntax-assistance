@@ -199,6 +199,23 @@ class MaliciousCodePrecheck:
         re.compile(r"ANTIGRAVITY_OVERRIDE_SECURITY\s*[:=]\s*(?:true|1|enable)", re.IGNORECASE),
     ]
 
+    AGENT_TAMPER_PATTERNS = [
+        re.compile(r"\b(?:SESSION_TIMEOUT\s*=\s*0|EXPIRY\s*=\s*OFF|AUDIT\s*=\s*OFF|POISON_VALUE|POISON_SEED|memory\s+poisoning)\b", re.IGNORECASE),
+    ]
+    IDENTITY_SPOOF_PATTERNS = [
+        re.compile(r"\b(?:stolen\s+(?:bearer\s+)?token|IMPERSONATION|REVOKED-TOKEN|EXPIRED-TOKEN|CONFUSED-DEPUTY|AUDIT-SPOOF|NAME-TRUST)\b", re.IGNORECASE),
+    ]
+    RESOURCE_EXHAUSTION_PATTERNS = [
+        re.compile(r"\b(?:resource\s+overload|cost\s+amplification|denial\s+of\s+service|unbounded\s+recursion|NO-DEPTH-CAP|SHARED-QUEUE|NO-QUOTA)\b", re.IGNORECASE),
+    ]
+    SECRET_CREDENTIAL_PATTERNS = [
+        re.compile(r"-----BEGIN\s+(?:[A-Z\s]+)?PRIVATE\s+KEY-----", re.IGNORECASE),
+        re.compile(r"\b(?:postgres|postgresql|mysql|mongodb|redis|amqp|mssql)://[^\s:@/]+:[^\s@/]+@[^\s/\'\"]+", re.IGNORECASE),
+        re.compile(r"\bghp_[A-Za-z0-9_]{16,}\b", re.IGNORECASE),
+        re.compile(r"\b(?:prod\s+DB\s+password|password\s+is)\b", re.IGNORECASE),
+        re.compile(r"\b(?:AKIA[0-9A-Z]{16}|sk_live_[A-Za-z0-9_]{16,}|xoxb-[A-Za-z0-9_\-]{20,})\b", re.IGNORECASE),
+    ]
+
     @classmethod
     def get_cached_or_analyze(
         cls,
@@ -540,6 +557,115 @@ class MaliciousCodePrecheck:
                         is_malicious_intent=False,
                     )
                 )
+
+        # 2b. Agent Tampering, Identity Spoofing, Resource Exhaustion & Hardcoded Secrets (C/C++)
+        if language in ("c", "cpp", "c++"):
+            from compiler.security_approval_gate import COMMENT_TOKEN_PATTERN
+            comment_line_numbers = set()
+            for m in COMMENT_TOKEN_PATTERN.finditer(source_code):
+                if m.group("BLOCK_COMMENT") or m.group("LINE_COMMENT"):
+                    s_c, e_c = m.span()
+                    s_l = source_code[:s_c].count("\n") + 1
+                    e_l = source_code[:e_c].count("\n") + 1
+                    for l_num in range(s_l, e_l + 1):
+                        comment_line_numbers.add(l_num)
+
+            for idx, line in enumerate(lines, 1):
+                line_str = line.strip()
+                is_cmt = idx in comment_line_numbers
+                # Agent Tampering / Policy Suppression (comments / directives)
+                if is_cmt:
+                    for p_reg in cls.AGENT_TAMPER_PATTERNS:
+                        m = p_reg.search(line_str)
+                        if m and not any(f.line == idx and f.rule_id == "PRECHECK-AGENT-TAMPER-001" for f in findings):
+                            findings.append(
+                                PrecheckFinding(
+                                    rule_id="PRECHECK-AGENT-TAMPER-001",
+                                    category="AGENT_TAMPERING",
+                                    severity="HIGH",
+                                    risk_level=RiskLevel.HIGH_RISK,
+                                    file_path=filename,
+                                    line=idx,
+                                    column=m.start(),
+                                    snippet=line_str,
+                                    explanation=f"Agent memory poisoning or security policy suppression directive detected: '{m.group(0)}'.",
+                                    recommended_mitigation="Enforce memory provenance verification and keep default security policies active.",
+                                    confidence=0.95,
+                                    evidence=m.group(0),
+                                    blocks_execution=active_policy.block_execution_on_high_risk,
+                                    requires_review=True,
+                                    is_malicious_intent=True,
+                                )
+                            )
+                    # Identity Compromise / Fabricated Trust (comments / directives)
+                    for p_reg in cls.IDENTITY_SPOOF_PATTERNS:
+                        m = p_reg.search(line_str)
+                        if m and not any(f.line == idx and f.rule_id == "PRECHECK-IDENTITY-001" for f in findings):
+                            findings.append(
+                                PrecheckFinding(
+                                    rule_id="PRECHECK-IDENTITY-001",
+                                    category="IDENTITY_COMPROMISE",
+                                    severity="HIGH",
+                                    risk_level=RiskLevel.HIGH_RISK,
+                                    file_path=filename,
+                                    line=idx,
+                                    column=m.start(),
+                                    snippet=line_str,
+                                    explanation=f"Fabricated trust or identity compromise pattern detected: '{m.group(0)}'.",
+                                    recommended_mitigation="Validate bearer token identity ownership, scope attenuation, and check revocation/expiry.",
+                                    confidence=0.95,
+                                    evidence=m.group(0),
+                                    blocks_execution=active_policy.block_execution_on_high_risk,
+                                    requires_review=True,
+                                    is_malicious_intent=True,
+                                )
+                            )
+                    # Resource Exhaustion / Denial of Service (comments / directives)
+                    for p_reg in cls.RESOURCE_EXHAUSTION_PATTERNS:
+                        m = p_reg.search(line_str)
+                        if m and not any(f.line == idx and f.rule_id == "PRECHECK-RESOURCE-001" for f in findings):
+                            findings.append(
+                                PrecheckFinding(
+                                    rule_id="PRECHECK-RESOURCE-001",
+                                    category="RESOURCE_EXHAUSTION",
+                                    severity="HIGH",
+                                    risk_level=RiskLevel.HIGH_RISK,
+                                    file_path=filename,
+                                    line=idx,
+                                    column=m.start(),
+                                    snippet=line_str,
+                                    explanation=f"Resource exhaustion or cost amplification pattern detected: '{m.group(0)}'.",
+                                    recommended_mitigation="Enforce task recursion depth limits, per-client quotas, and bounded queue capacity.",
+                                    confidence=0.95,
+                                    evidence=m.group(0),
+                                    blocks_execution=active_policy.block_execution_on_high_risk,
+                                    requires_review=True,
+                                    is_malicious_intent=True,
+                                )
+                            )
+                # Hardcoded Credentials / Secrets (comments or code)
+                for p_reg in cls.SECRET_CREDENTIAL_PATTERNS:
+                    m = p_reg.search(line_str)
+                    if m and not any(f.line == idx and f.rule_id == "PRECHECK-SECRET-001" for f in findings):
+                        findings.append(
+                            PrecheckFinding(
+                                rule_id="PRECHECK-SECRET-001",
+                                category="HARDCODED_SECRET",
+                                severity="HIGH",
+                                risk_level=RiskLevel.HIGH_RISK,
+                                file_path=filename,
+                                line=idx,
+                                column=m.start(),
+                                snippet=line_str,
+                                explanation=f"Hardcoded credential, private key, or connection secret detected: '{m.group(0)}'.",
+                                recommended_mitigation="Retrieve sensitive credentials from environment variables or secure key vaults.",
+                                confidence=0.95,
+                                evidence=m.group(0),
+                                blocks_execution=active_policy.block_execution_on_high_risk,
+                                requires_review=True,
+                                is_malicious_intent=True,
+                            )
+                        )
 
         # 3. Suspicious Combinations of Operations (Multi-site analysis)
         call_names = {c.fn_name for c in calls}

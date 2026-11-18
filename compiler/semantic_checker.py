@@ -60,6 +60,7 @@ BUILTIN_LIBRARY_SIGNATURES: Dict[str, _FuncSig] = {
     "sprintf": _FuncSig("sprintf", "int", ["char*", "char*"], 0, 0),
     "fgets": _FuncSig("fgets", "char*", ["char*", "int", "void*"], 0, 0),
     "printf": _FuncSig("printf", "int", ["char*"], 0, 0),
+    "fprintf": _FuncSig("fprintf", "int", ["void*", "char*"], 0, 0),
     "scanf": _FuncSig("scanf", "int", ["char*"], 0, 0),
     "getenv": _FuncSig("getenv", "char*", ["char*"], 0, 0),
     "malloc": _FuncSig("malloc", "void*", ["int"], 0, 0),
@@ -83,6 +84,11 @@ BUILTIN_LIBRARY_SIGNATURES: Dict[str, _FuncSig] = {
     "execv": _FuncSig("execv", "int", ["char*", "char**"], 0, 0),
     "execvp": _FuncSig("execvp", "int", ["char*", "char**"], 0, 0),
     "fork": _FuncSig("fork", "int", [], 0, 0),
+    "exit": _FuncSig("exit", "void", ["int"], 0, 0),
+    "abort": _FuncSig("abort", "void", [], 0, 0),
+    "perror": _FuncSig("perror", "void", ["char*"], 0, 0),
+    "fopen": _FuncSig("fopen", "void*", ["char*", "char*"], 0, 0),
+    "fclose": _FuncSig("fclose", "int", ["void*"], 0, 0),
     "waitpid": _FuncSig("waitpid", "int", ["int", "int*", "int"], 0, 0),
     "exit": _FuncSig("exit", "void", ["int"], 0, 0),
     "_exit": _FuncSig("_exit", "void", ["int"], 0, 0),
@@ -1646,7 +1652,7 @@ class SemanticChecker(_VISITOR_BASE):
                     except Exception:
                         pass
 
-                is_variadic = fname in ("printf", "scanf", "sprintf", "snprintf", "vsnprintf")
+                is_variadic = fname in ("printf", "fprintf", "scanf", "sprintf", "snprintf", "vsnprintf")
                 # arity check
                 if (is_variadic and len(arg_types) < len(sig.param_types)) or (not is_variadic and len(arg_types) != len(sig.param_types)):
                     line, col = _tok_line_col(prim.IDENTIFIER())

@@ -783,9 +783,16 @@ def is_manipulation_line(line: str) -> bool:
             return True
     try:
         from compiler.malicious_precheck import MaliciousCodePrecheck
-        for pat in MaliciousCodePrecheck.PROMPT_INJECTION_PATTERNS:
-            if pat.search(s):
-                return True
+        for pat_list in (
+            MaliciousCodePrecheck.PROMPT_INJECTION_PATTERNS,
+            getattr(MaliciousCodePrecheck, "AGENT_TAMPER_PATTERNS", []),
+            getattr(MaliciousCodePrecheck, "IDENTITY_SPOOF_PATTERNS", []),
+            getattr(MaliciousCodePrecheck, "RESOURCE_EXHAUSTION_PATTERNS", []),
+            getattr(MaliciousCodePrecheck, "SECRET_CREDENTIAL_PATTERNS", []),
+        ):
+            for pat in pat_list:
+                if pat.search(s):
+                    return True
     except Exception:
         pass
     return False
@@ -794,7 +801,7 @@ def is_manipulation_line(line: str) -> bool:
 COMMENT_TOKEN_PATTERN = re.compile(
     r'(?P<STRING>"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')|'
     r'(?P<BLOCK_COMMENT>/\*[\s\S]*?\*/)|'
-    r'(?P<LINE_COMMENT>(?://|#)[^\n]*)'
+    r'(?P<LINE_COMMENT>//[^\n]*|#(?! *(?:include|define|ifdef|ifndef|endif|pragma|undef|if|else|elif)\b)[^\n]*)'
 )
 
 

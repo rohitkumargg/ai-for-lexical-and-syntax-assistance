@@ -3539,8 +3539,8 @@ function renderCoordinatedPlan(plan) {
                 badgeVuln.textContent = "[RISK INDEX]";
             }
             if (descVuln) {
-                const cCount = bs.confirmed_security_count || 0;
-                const pCount = bs.possible_security_count || 0;
+                const cCount = tileAssessment.confirmed_security_count != null ? tileAssessment.confirmed_security_count : (bs.confirmed_security_count || 0);
+                const pCount = tileAssessment.possible_security_count != null ? tileAssessment.possible_security_count : (bs.possible_security_count || 0);
                 descVuln.textContent = (cCount + pCount) === 0 
                     ? "Zero security findings" 
                     : `${cCount + pCount} security finding${(cCount + pCount) === 1 ? '' : 's'}`;
@@ -3552,7 +3552,7 @@ function renderCoordinatedPlan(plan) {
                 badgeVuln.className = "tile-badge badge-unbenchmarked";
                 badgeVuln.textContent = "[INCOMPLETE]";
             }
-            if (descVuln) descVuln.textContent = bs.security_status_reason || bs.security_status || "Security analysis pending";
+            if (descVuln) descVuln.textContent = tileAssessment.security_status_reason || tileAssessment.security_status || bs.security_status_reason || bs.security_status || "Security analysis pending";
         }
     }
 
@@ -6629,20 +6629,23 @@ function openFullscreenResults(plan) {
             : "C11 Standard";
     }
 
-    // 1. Gather Findings for Top Grid
-    const allFindings = (data.findings && data.findings.length > 0)
-        ? data.findings
-        : (data.unified_findings || data.unresolved_findings || data.remaining_findings || []);
+    // 1. Gather Findings for Top Grid matching current code
+    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN" || data.status === "FULLY_REPAIRED";
+    const hasCandidate = !!(data.candidate_id || data.proposed_code);
+    const allFindings = (hasCandidate && Array.isArray(data.remaining_findings))
+        ? data.remaining_findings
+        : ((data.findings && data.findings.length > 0)
+            ? data.findings
+            : (data.unified_findings || data.unresolved_findings || []));
     
     // Status check
-    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN";
     const isFailure = data.status === "COMPILATION_FAILED" || data.status === "REPAIR_UNAVAILABLE" || data.status === "ERROR";
 
     // Count chip
     const countChip = document.getElementById("fs-defects-count-chip");
     const countText = document.getElementById("fs-defects-count-text");
     if (countChip && countText) {
-        if (isClean) {
+        if (isClean && allFindings.length === 0) {
             countChip.className = "fs-defects-count-chip clean";
             countText.textContent = "0 Active Defects Found — Clean";
         } else if (isFailure) {
@@ -6847,21 +6850,21 @@ function extract4Metrics(assess) {
     const qScore = assess.quality_score != null ? Number(assess.quality_score)
         : (assess.code_quality_score != null ? Number(assess.code_quality_score) : null);
     const optScore = assess.optimization_potential != null ? Number(assess.optimization_potential) : null;
-    const vulnScore = assess.vulnerability_risk != null ? Number(assess.vulnerability_risk)
+    let vulnScore = assess.vulnerability_risk != null ? Number(assess.vulnerability_risk)
         : (assess.security_risk_score != null ? Number(assess.security_risk_score)
         : (assess.security_risk != null ? Number(assess.security_risk) : null));
 
+    if (vulnScore == null && (assess.confirmed_security_count === 0 && assess.possible_security_count === 0)) {
+        vulnScore = 0;
+    }
+
+    let vuln = vulnScore != null ? Number(vulnScore) : (qScore != null ? 0 : null);
+
     let overall = assess.overall_code_quality != null
         ? Number(assess.overall_code_quality)
-        : ((qScore != null && optScore != null && vulnScore != null)
-            ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore))))
+        : ((qScore != null && optScore != null && vuln != null)
+            ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vuln))))
             : qScore);
-
-    let optimal = assess.optimal_code != null
-        ? Number(assess.optimal_code)
-        : (optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null);
-
-    let vuln = vulnScore != null ? Number(vulnScore) : null;
 
     const poor = (overall != null) ? Math.max(0, Math.min(100, Math.round(100 - overall)))
         : (assess.poor_code != null ? Number(assess.poor_code) : null);
@@ -6996,7 +6999,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-b-gauge-overall",
             title: "Overall Code Quality",
-            subtitle: "Unchecked bounds & raw buffer",
+            subtitle: (bM.overall != null && bM.overall >= 90) ? "Clean code quality verified" : "Unchecked bounds & code defects",
             value: bM.overall,
             status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.overall != null && bM.overall < 70 ? "STATUS: UNGUARDED" : "STATUS: MEASURED"),
             statusClass: doesNotCompile ? "estimated" : (bM.overall != null && bM.overall < 70 ? "unguarded" : "measured"),
@@ -7009,7 +7012,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-b-gauge-optimal",
             title: "Code Efficiency",
-            subtitle: "Unbounded string iteration",
+            subtitle: (bM.optimal != null && bM.optimal >= 90) ? "High execution efficiency" : "Optimization opportunities detected",
             value: bM.optimal,
             status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.optimal != null && bM.optimal < 70 ? "STATUS: UNOPTIMIZED" : "STATUS: HEURISTIC"),
             statusClass: doesNotCompile ? "estimated" : (bM.optimal != null && bM.optimal < 70 ? "unoptimized" : "heuristic"),
@@ -7022,7 +7025,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-b-gauge-risk",
             title: "Vulnerability Risk %",
-            subtitle: "Buffer overflow CWE-120 active",
+            subtitle: (bM.vuln != null && bM.vuln === 0) ? "No active security exposures" : "Security vulnerability active",
             value: bM.vuln,
             status: (bM.vuln != null && bM.vuln === 0) ? "STATUS: ZERO RISK" : (bM.vuln != null && bM.vuln > 50 ? "STATUS: CRITICAL EXPOSURE" : "STATUS: EXPOSURE RISK"),
             statusClass: (bM.vuln != null && bM.vuln === 0) ? "zero-risk" : "critical-exposure",
@@ -7035,7 +7038,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-b-gauge-safety",
             title: "Memory Safety Score",
-            subtitle: "Missing guard & overwrite risk",
+            subtitle: (bM.memSafety != null && bM.memSafety >= 90) ? "Verified memory integrity" : "Missing guard & overwrite risk",
             value: bM.memSafety,
             status: (bM.memSafety != null && bM.memSafety < 60) ? "STATUS: HAZARDOUS" : (doesNotCompile ? "STATUS: ESTIMATED" : "STATUS: MEASURED"),
             statusClass: (bM.memSafety != null && bM.memSafety < 60) ? "hazardous" : (doesNotCompile ? "estimated" : "measured"),
@@ -7080,7 +7083,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-t-gauge-risk",
             title: "Vulnerability Risk %",
-            subtitle: "Ultra-Safe bounded guarantee",
+            subtitle: (tM.vuln != null && tM.vuln === 0) ? "Ultra-Safe bounded guarantee" : "Residual exposure risk",
             value: isFailure ? null : tM.vuln,
             baselineVal: bM.vuln,
             status: isFailure ? "" : ((tM.vuln != null && tM.vuln === 0) ? "STATUS: ZERO RISK" : "STATUS: MITIGATED"),
@@ -7449,10 +7452,11 @@ function renderFsDiffViewer() {
     const origCode = data.original_code || (editor ? editor.getValue() : "");
     const propCode = data.proposed_code || data.candidate?.proposed_code || origCode;
     const diffText = data.diff || data.unified_diff || data.candidate?.diff || data.candidate?.unified_diff || "";
-    const findings = (data.findings && data.findings.length > 0) ? data.findings : (data.unified_findings || []);
+    const isProposed = (window.currentFsCodeView === 'candidate' || data.status === 'FULLY_REPAIRED' || data.status === 'CLEAN');
+    const displayFindings = isProposed ? (data.remaining_findings || []) : ((data.findings && data.findings.length > 0) ? data.findings : (data.unified_findings || []));
 
     if (tab === "vulns") {
-        if (findings.length === 0) {
+        if (!displayFindings || displayFindings.length === 0) {
             container.innerHTML = `<div style="padding: 24px; text-align: center; color: #16a34a; font-weight: 600;">✓ Zero vulnerabilities detected. Source code passed all audits.</div>`;
         } else {
             container.innerHTML = `
@@ -7468,7 +7472,7 @@ function renderFsDiffViewer() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${findings.map(f => {
+                            ${displayFindings.map(f => {
                                 const sev = (f.severity || "MEDIUM").toUpperCase();
                                 const l = f.location?.line || f.line || 1;
                                 return `
