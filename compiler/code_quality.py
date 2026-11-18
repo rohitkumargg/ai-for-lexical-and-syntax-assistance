@@ -725,9 +725,17 @@ class CodeQualityScorer:
             lis_list = listeners.values() if isinstance(listeners, dict) else listeners
             for lis in lis_list:
                 if hasattr(lis, "errors"):
-                    syntax_errs.extend(lis.errors)
+                    syntax_errs.extend([e for e in lis.errors if getattr(e, "severity", "") != "INFO"])
                 elif hasattr(lis, "syntax_errors"):
-                    syntax_errs.extend(lis.syntax_errors)
+                    syntax_errs.extend([e for e in lis.syntax_errors if getattr(e, "severity", "") != "INFO"])
+            if syntax_errs and (filename.endswith(".c") or not filename.endswith(".py")):
+                try:
+                    from compiler.patch_validator import gcc_ok
+                    c_clean, _, _ = gcc_ok(source_code)
+                    if c_clean:
+                        syntax_errs = []
+                except Exception:
+                    pass
         except Exception:
             pass
 

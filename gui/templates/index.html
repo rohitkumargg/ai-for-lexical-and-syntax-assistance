@@ -232,40 +232,40 @@
                                                         <div class="tile-desc" id="pi-desc-overall">50% Q + 25% (100-O) + 25% (100-V)</div>
                                                     </div>
 
-                                                    <!-- 2. Optimal Code % -->
-                                                    <div class="primary-tile tile-optimal" id="tile-optimal" title="Optimal Code % = clamp(100 - O, 0, 100). Higher means fewer detected optimization opportunities. Note: 0% optimization potential does not prove code is mathematically optimal.">
+                                                    <!-- 2. Optimization Potential -->
+                                                    <div class="primary-tile tile-optimal" id="tile-optimal" title="Optimization Potential (0-100%, lower is better after repair). Static optimization headroom detected across loops, branches, and dead stores.">
                                                         <div class="tile-top">
-                                                            <span class="tile-title">Optimal Code %</span>
+                                                            <span class="tile-title">Optimization Potential</span>
                                                             <span class="tile-badge badge-estimate" id="pi-badge-optimal">[HEURISTIC]</span>
                                                         </div>
                                                         <div class="tile-value-wrap">
                                                             <span class="tile-value" id="pi-val-optimal">--%</span>
                                                         </div>
-                                                        <div class="tile-desc" id="pi-desc-optimal">100 - Optimization Potential (O)</div>
+                                                        <div class="tile-desc" id="pi-desc-optimal">Static optimization headroom</div>
                                                     </div>
 
-                                                    <!-- 3. Poor Code % -->
-                                                    <div class="primary-tile tile-poor" id="tile-poor" title="Poor Code % = clamp(100 - Q, 0, 100). Higher means more detected quality problems. Defined as the inverse of Code Quality (100 - Q), not an independent measurement.">
+                                                    <!-- 3. Vulnerability Risk -->
+                                                    <div class="primary-tile tile-vulnerability" id="tile-vulnerability" title="Vulnerability Risk (0-100%, lower is better after repair). Normalized static security risk indicator based on detected findings and exposure.">
                                                         <div class="tile-top">
-                                                            <span class="tile-title">Poor Code %</span>
-                                                            <span class="tile-badge badge-risk" id="pi-badge-poor">[INVERSE Q]</span>
-                                                        </div>
-                                                        <div class="tile-value-wrap">
-                                                            <span class="tile-value" id="pi-val-poor">--%</span>
-                                                        </div>
-                                                        <div class="tile-desc" id="pi-desc-poor">100 - Code Quality (Q)</div>
-                                                    </div>
-
-                                                    <!-- 4. Vulnerability Risk % (Renamed from Security Risk Score) -->
-                                                    <div class="primary-tile tile-vulnerability" id="tile-vulnerability" title="Vulnerability Risk %: Normalized static security risk indicator based on detected findings and exposure, NOT a probability of attack exploitation.">
-                                                        <div class="tile-top">
-                                                            <span class="tile-title">Vulnerability Risk %</span>
+                                                            <span class="tile-title">Vulnerability Risk</span>
                                                             <span class="tile-badge badge-risk" id="pi-badge-vulnerability">[RISK INDEX]</span>
                                                         </div>
                                                         <div class="tile-value-wrap">
                                                             <span class="tile-value" id="pi-val-vulnerability">--%</span>
                                                         </div>
                                                         <div class="tile-desc" id="pi-desc-vulnerability">Normalized risk indicator</div>
+                                                    </div>
+
+                                                    <!-- 4. Memory Safety Score -->
+                                                    <div class="primary-tile tile-poor" id="tile-poor" title="Memory Safety Score (0-100%, higher is better). Verified bounds checks, memory integrity, and buffer overflow resistance.">
+                                                        <div class="tile-top">
+                                                            <span class="tile-title">Memory Safety Score</span>
+                                                            <span class="tile-badge badge-measured" id="pi-badge-poor">[MEASURED]</span>
+                                                        </div>
+                                                        <div class="tile-value-wrap">
+                                                            <span class="tile-value" id="pi-val-poor">--%</span>
+                                                        </div>
+                                                        <div class="tile-desc" id="pi-desc-poor">Heap, stack & bounds integrity</div>
                                                     </div>
                                                 </div>
 
@@ -952,12 +952,18 @@
                         <!-- Dynamic diff injected here -->
                     </div>
 
-                    <!-- Exploit Danger & Auto-Remediation Banners -->
+                    <!-- Exploit Danger, Info, & Auto-Remediation Banners -->
                     <div id="fs-comp-banners" class="fs-comp-banners">
                         <div id="fs-banner-danger" class="fs-banner-box danger" style="display:none;">
                             <span style="font-size:14px; flex-shrink:0;">⚡</span>
                             <div>
                                 <strong>Exploit Danger: </strong><span id="fs-banner-danger-text"></span>
+                            </div>
+                        </div>
+                        <div id="fs-banner-info" class="fs-banner-box info" style="display:none;">
+                            <span style="font-size:14px; flex-shrink:0;">ℹ️</span>
+                            <div>
+                                <strong>Parser note: </strong><span id="fs-banner-info-text"></span>
                             </div>
                         </div>
                         <div id="fs-banner-remediation" class="fs-banner-box remediation" style="display:none;">

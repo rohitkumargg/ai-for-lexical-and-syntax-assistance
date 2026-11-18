@@ -240,7 +240,22 @@ def handle_quality_score(data):
 
     cfg = QualityConfig(**cfg_dict) if isinstance(cfg_dict, dict) else QualityConfig()
     scorer = CodeQualityScorer(cfg)
-    report = scorer.analyze_source(source_code=code, filename=filename)
+
+    # Use orchestrator findings so syntax/semantic errors align with RepairPlanner baseline
+    from compiler.orchestrator import AgentOrchestrator, FindingCategory, FindingSeverity
+    orch = AgentOrchestrator()
+    res = orch.run_analysis(code, filename=filename)
+    syn_errs = [f for f in res.findings if f.category == FindingCategory.SYNTAX and f.severity != FindingSeverity.INFO]
+    sem_errs = [f for f in res.findings if f.category == FindingCategory.SEMANTIC and f.severity != FindingSeverity.INFO]
+    sec_errs = [f for f in res.findings if f.category == FindingCategory.SECURITY]
+
+    report = scorer.analyze_source(
+        source_code=code,
+        filename=filename,
+        syntax_errors=syn_errs,
+        semantic_issues=sem_errs,
+        security_findings=sec_errs,
+    )
     return report.to_dict(), 200
 
 
@@ -340,13 +355,27 @@ def handle_security_risk(data):
     code = data.get("code", "")
     filename = data.get("filename", "main.c")
     findings = data.get("findings")
+    language = data.get("language")
 
     from compiler.security_risk import SecurityRiskScorer
 
     if findings is None or (isinstance(findings, list) and len(findings) == 0 and len(code.strip()) >= 15):
-        from compiler.security_reporter import SecurityReporter
-        sec_rep = SecurityReporter().analyze_source(code, filename)
-        findings = sec_rep.findings
+        from compiler.orchestrator import AgentOrchestrator
+        orch = AgentOrchestrator()
+        res = orch.run_analysis(code, filename=filename, language=language)
+        sec_findings = [
+            f for f in res.findings
+            if getattr(f, "category", "") == "SECURITY" or str(getattr(f, "category", "")).upper() in ("SECURITY", "VULNERABILITY", "FINDINGCATEGORY.SECURITY")
+        ]
+        if (filename.endswith(".c") or language == "c"):
+            try:
+                from compiler.security_reporter import SecurityReporter
+                sec_rep = SecurityReporter().analyze_source(code, filename)
+                for vf in sec_rep.findings:
+                    sec_findings.append(vf)
+            except Exception:
+                pass
+        findings = sec_findings
 
     scorer = SecurityRiskScorer()
     report = scorer.assess(findings=findings, source_code=code, filename=filename)

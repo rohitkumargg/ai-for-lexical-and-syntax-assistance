@@ -1,22 +1,22 @@
 # Restore Point
 
-- **Commit Hash**: `a33db1afc27e6064592f13362cc5b8dba6748fc0`
-- **Tag**: `restore-point-qwen-repair-fix-v2`
+- **Commit Hash**: `fcf898f8d13bed94a3888366a0019e29d23485b9`
+- **Tag**: `restore-point-metrics-ui-fix`
 - **Date**: `2026-11-18`
 
 ## How to Restore
 
 To look / inspect the repository at this restore point:
 ```bash
-git checkout restore-point-qwen-repair-fix-v2
+git checkout restore-point-metrics-ui-fix
 ```
 
 To undo everything after it and reset the working directory:
 ```bash
-git reset --hard restore-point-qwen-repair-fix-v2
+git reset --hard restore-point-metrics-ui-fix
 ```
 
 To restore one file:
 ```bash
-git checkout restore-point-qwen-repair-fix-v2 -- <path>
+git checkout restore-point-metrics-ui-fix -- <path>
 ```

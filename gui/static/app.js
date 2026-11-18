@@ -645,12 +645,18 @@ function renderPrimaryIndicators() {
     const optScore = (cachedOptimizationReport && cachedOptimizationReport.can_score && cachedOptimizationReport.optimization_potential != null) ? Number(cachedOptimizationReport.optimization_potential) : null;
     const vulnScore = (cachedSecurityRiskReport && cachedSecurityRiskReport.can_score && cachedSecurityRiskReport.risk_score != null) ? Number(cachedSecurityRiskReport.risk_score) : null;
 
-    const optimalVal = optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null;
-    const poorVal = qScore != null ? Math.max(0, Math.min(100, Math.round(100 - qScore))) : null;
-    let overallVal = null;
-    if (qScore != null && optScore != null && vulnScore != null) {
-        overallVal = Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore))));
-    }
+    const m = extract4Metrics({
+        quality_score: qScore,
+        optimization_potential: optScore,
+        vulnerability_risk: vulnScore,
+        confirmed_security_count: cachedSecurityRiskReport?.confirmed_count ?? cachedSecurityRiskReport?.critical_count,
+        possible_security_count: cachedSecurityRiskReport?.possible_count ?? cachedSecurityRiskReport?.high_count,
+    });
+
+    const overallVal = m.overall;
+    const optVal = m.optimal;
+    const vulnVal = m.vuln;
+    const memSafetyVal = m.memSafety;
 
     // 1. Overall Code Quality %
     const elOverall = document.getElementById("pi-val-overall");
@@ -658,8 +664,9 @@ function renderPrimaryIndicators() {
     const descOverall = document.getElementById("pi-desc-overall");
     if (elOverall) {
         if (overallVal != null) {
-            elOverall.textContent = overallVal + "%";
-            elOverall.style.color = overallVal >= 80 ? "#16a34a" : (overallVal >= 60 ? "#d97706" : "#dc2626");
+            const rOverall = Math.round(overallVal);
+            elOverall.textContent = rOverall + "%";
+            elOverall.style.color = rOverall >= 80 ? "#16a34a" : (rOverall >= 60 ? "#d97706" : "#dc2626");
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-measured";
                 badgeOverall.textContent = "[COMBINED]";
@@ -676,25 +683,26 @@ function renderPrimaryIndicators() {
                 const riskReason = cachedSecurityRiskReport?.status_reason || cachedSecurityRiskReport?.summary;
                 descOverall.textContent = riskReason
                     ? `Unavailable until security risk can be scored: ${riskReason}`
-                    : `Needs quality, optimization, and security risk scores (Q=${qScore == null ? "pending" : "ready"}, O=${optScore == null ? "pending" : "ready"}, V=${vulnScore == null ? "pending" : "ready"}).`;
+                    : `Needs quality, optimization, and security risk scores.`;
             }
         }
     }
 
-    // 2. Optimal Code %
+    // 2. Optimization Potential %
     const elOptimal = document.getElementById("pi-val-optimal");
     const badgeOptimal = document.getElementById("pi-badge-optimal");
     const descOptimal = document.getElementById("pi-desc-optimal");
     if (elOptimal) {
-        if (optimalVal != null) {
-            elOptimal.textContent = optimalVal + "%";
-            elOptimal.style.color = optimalVal >= 80 ? "#16a34a" : (optimalVal >= 60 ? "#d97706" : "#dc2626");
+        if (optVal != null) {
+            const rOpt = Math.round(optVal);
+            elOptimal.textContent = rOpt + "%";
+            elOptimal.style.color = rOpt === 0 ? "#16a34a" : (rOpt <= 30 ? "#d97706" : "#dc2626");
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-estimate";
                 badgeOptimal.textContent = "[HEURISTIC]";
             }
             if (descOptimal) {
-                descOptimal.textContent = optScore === 0 ? "No detected opportunities" : `${Math.round(optScore)}% opt. potential`;
+                descOptimal.textContent = rOpt === 0 ? "No detected opportunities" : `${rOpt}% opt. potential`;
             }
         } else {
             elOptimal.textContent = "--%";
@@ -707,39 +715,15 @@ function renderPrimaryIndicators() {
         }
     }
 
-    // 3. Poor Code %
-    const elPoor = document.getElementById("pi-val-poor");
-    const badgePoor = document.getElementById("pi-badge-poor");
-    const descPoor = document.getElementById("pi-desc-poor");
-    if (elPoor) {
-        if (poorVal != null) {
-            elPoor.textContent = poorVal + "%";
-            elPoor.style.color = poorVal <= 20 ? "#16a34a" : (poorVal <= 40 ? "#d97706" : "#dc2626");
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-risk";
-                badgePoor.textContent = "[INVERSE Q]";
-            }
-            if (descPoor) descPoor.textContent = "Inverse of Overall Code Quality (100 - Overall)";
-        } else {
-            elPoor.textContent = "--%";
-            elPoor.style.color = "var(--text-secondary)";
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-unbenchmarked";
-                badgePoor.textContent = "[INCOMPLETE]";
-            }
-            if (descPoor) descPoor.textContent = "Quality analysis pending";
-        }
-    }
-
-    // 4. Vulnerability Risk %
+    // 3. Vulnerability Risk %
     const elVuln = document.getElementById("pi-val-vulnerability") || document.getElementById("pi-val-sec");
     const badgeVuln = document.getElementById("pi-badge-vulnerability") || document.getElementById("pi-badge-sec");
     const descVuln = document.getElementById("pi-desc-vulnerability") || document.getElementById("pi-desc-sec");
     if (elVuln) {
-        if (vulnScore != null) {
-            const r = Math.round(vulnScore);
-            elVuln.textContent = r + "%";
-            elVuln.style.color = r === 0 ? "#16a34a" : (r <= 30 ? "#d97706" : "#dc2626");
+        if (vulnVal != null) {
+            const rVuln = Math.round(vulnVal);
+            elVuln.textContent = rVuln + "%";
+            elVuln.style.color = rVuln === 0 ? "#16a34a" : (rVuln <= 30 ? "#d97706" : "#dc2626");
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-risk";
                 badgeVuln.textContent = "[RISK INDEX]";
@@ -759,13 +743,38 @@ function renderPrimaryIndicators() {
         }
     }
 
+    // 4. Memory Safety Score
+    const elPoor = document.getElementById("pi-val-poor");
+    const badgePoor = document.getElementById("pi-badge-poor");
+    const descPoor = document.getElementById("pi-desc-poor");
+    if (elPoor) {
+        if (memSafetyVal != null) {
+            const rMem = Math.round(memSafetyVal);
+            elPoor.textContent = rMem + "%";
+            elPoor.style.color = rMem >= 80 ? "#16a34a" : (rMem >= 60 ? "#d97706" : "#dc2626");
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-measured";
+                badgePoor.textContent = "[MEASURED]";
+            }
+            if (descPoor) descPoor.textContent = "Heap, stack & bounds integrity";
+        } else {
+            elPoor.textContent = "--%";
+            elPoor.style.color = "var(--text-secondary)";
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-unbenchmarked";
+                badgePoor.textContent = "[INCOMPLETE]";
+            }
+            if (descPoor) descPoor.textContent = "Memory safety analysis pending";
+        }
+    }
+
     // Backward compatibility aliases
     const qVal = document.getElementById("pi-val-quality");
     if (qVal && qScore != null) qVal.textContent = Math.round(qScore) + "%";
     const optVal = document.getElementById("pi-val-opt");
     if (optVal && optScore != null) optVal.textContent = Math.round(optScore) + "%";
     const secVal = document.getElementById("pi-val-sec");
-    if (secVal && vulnScore != null) secVal.textContent = Math.round(vulnScore) + "%";
+    if (secVal && vulnVal != null) secVal.textContent = Math.round(vulnVal) + "%";
 
     // 4. Green Metrics Score
     const grnVal = document.getElementById("pi-val-green");
@@ -3438,14 +3447,12 @@ function renderCoordinatedPlan(plan) {
     const classified = plan.classified_findings || {};
     const pipelineStages = plan.pipeline_stages || [];
 
-    // 1. Extract or compute 4 Core Code Quality Metrics (assessing Original Code)
-    const qScore = tileAssessment.quality_score != null ? Number(tileAssessment.quality_score) : (tileAssessment.code_quality_score != null ? Number(tileAssessment.code_quality_score) : null);
-    const optScore = tileAssessment.optimization_potential != null ? Number(tileAssessment.optimization_potential) : null;
-    const vulnScore = tileAssessment.vulnerability_risk != null ? Number(tileAssessment.vulnerability_risk) : (tileAssessment.security_risk_score != null ? Number(tileAssessment.security_risk_score) : (tileAssessment.security_risk != null ? Number(tileAssessment.security_risk) : null));
-
-    const overallVal = tileAssessment.overall_code_quality != null ? Number(tileAssessment.overall_code_quality) : ((qScore != null && optScore != null && vulnScore != null) ? Math.max(0, Math.min(100, Math.round(0.50 * qScore + 0.25 * (100 - optScore) + 0.25 * (100 - vulnScore)))) : null);
-    const optimalVal = tileAssessment.optimal_code != null ? Number(tileAssessment.optimal_code) : (optScore != null ? Math.max(0, Math.min(100, Math.round(100 - optScore))) : null);
-    const poorVal = (overallVal != null) ? Math.max(0, Math.min(100, Math.round(100 - overallVal))) : (tileAssessment.poor_code != null ? Number(tileAssessment.poor_code) : (qScore != null ? Math.max(0, Math.min(100, Math.round(100 - qScore))) : null));
+    // 1. Extract unified 4 Core Code Quality Metrics
+    const m = extract4Metrics(tileAssessment);
+    const overallVal = m.overall;
+    const optVal = m.optimal;
+    const vulnVal = m.vuln;
+    const memSafetyVal = m.memSafety;
 
     // 1. Overall Code Quality %
     const elOverall = document.getElementById("pi-val-overall");
@@ -3453,7 +3460,8 @@ function renderCoordinatedPlan(plan) {
     const descOverall = document.getElementById("pi-desc-overall");
     if (elOverall) {
         if (overallVal != null) {
-            elOverall.textContent = Math.round(overallVal) + "%";
+            const rOverall = Math.round(overallVal);
+            elOverall.textContent = rOverall + "%";
             elOverall.style.color = overallVal >= 80 ? "#16a34a" : (overallVal >= 60 ? "#d97706" : "#dc2626");
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-measured";
@@ -3474,21 +3482,21 @@ function renderCoordinatedPlan(plan) {
         }
     }
 
-    // 2. Optimal Code %
+    // 2. Optimization Potential %
     const elOptimal = document.getElementById("pi-val-optimal");
     const badgeOptimal = document.getElementById("pi-badge-optimal");
     const descOptimal = document.getElementById("pi-desc-optimal");
     if (elOptimal) {
-        if (optimalVal != null) {
-            elOptimal.textContent = Math.round(optimalVal) + "%";
-            elOptimal.style.color = optimalVal >= 80 ? "#16a34a" : (optimalVal >= 60 ? "#d97706" : "#dc2626");
+        if (optVal != null) {
+            const rOpt = Math.round(optVal);
+            elOptimal.textContent = rOpt + "%";
+            elOptimal.style.color = rOpt === 0 ? "#16a34a" : (rOpt <= 30 ? "#d97706" : "#dc2626");
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-estimate";
                 badgeOptimal.textContent = "[HEURISTIC]";
             }
             if (descOptimal) {
-                const optRaw = optScore != null ? Math.round(optScore) : 0;
-                descOptimal.textContent = optRaw === 0 ? "No detected opportunities" : `${optRaw}% opt. potential`;
+                descOptimal.textContent = rOpt === 0 ? "No detected opportunities" : `${rOpt}% opt. potential`;
             }
         } else {
             elOptimal.textContent = "--%";
@@ -3501,37 +3509,13 @@ function renderCoordinatedPlan(plan) {
         }
     }
 
-    // 3. Poor Code %
-    const elPoor = document.getElementById("pi-val-poor");
-    const badgePoor = document.getElementById("pi-badge-poor");
-    const descPoor = document.getElementById("pi-desc-poor");
-    if (elPoor) {
-        if (poorVal != null) {
-            elPoor.textContent = Math.round(poorVal) + "%";
-            elPoor.style.color = poorVal <= 20 ? "#16a34a" : (poorVal <= 40 ? "#d97706" : "#dc2626");
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-risk";
-                badgePoor.textContent = "[INVERSE Q]";
-            }
-            if (descPoor) descPoor.textContent = "Inverse of Code Quality (100 - Q)";
-        } else {
-            elPoor.textContent = "--%";
-            elPoor.style.color = "var(--text-secondary)";
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-unbenchmarked";
-                badgePoor.textContent = "[INCOMPLETE]";
-            }
-            if (descPoor) descPoor.textContent = "Quality analysis pending";
-        }
-    }
-
-    // 4. Vulnerability Risk %
+    // 3. Vulnerability Risk %
     const elVuln = document.getElementById("pi-val-vulnerability") || document.getElementById("pi-val-sec");
     const badgeVuln = document.getElementById("pi-badge-vulnerability") || document.getElementById("pi-badge-sec");
     const descVuln = document.getElementById("pi-desc-vulnerability") || document.getElementById("pi-desc-sec");
     if (elVuln) {
-        if (vulnScore != null) {
-            const vRound = Math.round(vulnScore);
+        if (vulnVal != null) {
+            const vRound = Math.round(vulnVal);
             elVuln.textContent = vRound + "%";
             elVuln.style.color = vRound === 0 ? "#16a34a" : (vRound <= 30 ? "#d97706" : "#dc2626");
             if (badgeVuln) {
@@ -3548,6 +3532,38 @@ function renderCoordinatedPlan(plan) {
         } else {
             elVuln.textContent = "--%";
             elVuln.style.color = "var(--text-secondary)";
+            if (badgeVuln) {
+                badgeVuln.className = "tile-badge badge-unbenchmarked";
+                badgeVuln.textContent = "[INCOMPLETE]";
+            }
+            if (descVuln) descVuln.textContent = tileAssessment.security_status_reason || tileAssessment.metrics_notes || "Security analysis pending";
+        }
+    }
+
+    // 4. Memory Safety Score
+    const elPoor = document.getElementById("pi-val-poor");
+    const badgePoor = document.getElementById("pi-badge-poor");
+    const descPoor = document.getElementById("pi-desc-poor");
+    if (elPoor) {
+        if (memSafetyVal != null) {
+            const rMem = Math.round(memSafetyVal);
+            elPoor.textContent = rMem + "%";
+            elPoor.style.color = rMem >= 80 ? "#16a34a" : (rMem >= 60 ? "#d97706" : "#dc2626");
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-measured";
+                badgePoor.textContent = "[MEASURED]";
+            }
+            if (descPoor) descPoor.textContent = "Heap, stack & bounds integrity";
+        } else {
+            elPoor.textContent = "--%";
+            elPoor.style.color = "var(--text-secondary)";
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-unbenchmarked";
+                badgePoor.textContent = "[INCOMPLETE]";
+            }
+            if (descPoor) descPoor.textContent = "Memory safety analysis pending";
+        }
+    }
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-unbenchmarked";
                 badgeVuln.textContent = "[INCOMPLETE]";
@@ -6846,7 +6862,7 @@ function handleFsResultsKeydown(event) {
 }
 
 function extract4Metrics(assess) {
-    if (!assess) return { overall: null, optimal: null, vuln: null, memSafety: null };
+    if (!assess) return { overall: null, optimal: null, vuln: null, memSafety: null, qScore: null, optScore: null, vulnScore: null };
     const qScore = assess.quality_score != null ? Number(assess.quality_score)
         : (assess.code_quality_score != null ? Number(assess.code_quality_score) : null);
     const optScore = assess.optimization_potential != null ? Number(assess.optimization_potential) : null;
@@ -6874,7 +6890,7 @@ function extract4Metrics(assess) {
         : (assess.repair_validation_success != null ? Number(assess.repair_validation_success)
         : (poor != null ? Math.max(0, 100 - poor) : (vuln != null ? Math.max(0, 100 - vuln) : 95)));
 
-    return { overall, optimal, vuln, memSafety };
+    return { overall, optimal: optScore, vuln, memSafety, qScore, optScore, vulnScore };
 }
 
 function computeDeltaInfo(targetVal, baselineVal, isInverted) {
@@ -7011,20 +7027,20 @@ function renderFsTelemetryGauges(data) {
         },
         {
             id: "fs-b-gauge-optimal",
-            title: "Code Efficiency",
-            subtitle: (bM.optimal != null && bM.optimal >= 90) ? "High execution efficiency" : "Optimization opportunities detected",
+            title: "Optimization Potential",
+            subtitle: (bM.optimal != null && bM.optimal === 0) ? "No optimization opportunities detected" : "Optimization opportunities detected",
             value: bM.optimal,
-            status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.optimal != null && bM.optimal < 70 ? "STATUS: UNOPTIMIZED" : "STATUS: HEURISTIC"),
-            statusClass: doesNotCompile ? "estimated" : (bM.optimal != null && bM.optimal < 70 ? "unoptimized" : "heuristic"),
+            status: doesNotCompile ? "STATUS: ESTIMATED" : (bM.optimal != null && bM.optimal > 30 ? "STATUS: HIGH POTENTIAL" : "STATUS: OPTIMIZABLE"),
+            statusClass: doesNotCompile ? "estimated" : (bM.optimal != null && bM.optimal > 30 ? "unoptimized" : "heuristic"),
             icon: "⚡",
             iconClass: "amber",
             sublabel: "BASELINE SCORE",
-            isInverted: false,
-            gradientClass: "baseline-red-gradient"
+            isInverted: true,
+            gradientClass: "inverted-gradient"
         },
         {
             id: "fs-b-gauge-risk",
-            title: "Vulnerability Risk %",
+            title: "Vulnerability Risk",
             subtitle: (bM.vuln != null && bM.vuln === 0) ? "No active security exposures" : "Security vulnerability active",
             value: bM.vuln,
             status: (bM.vuln != null && bM.vuln === 0) ? "STATUS: ZERO RISK" : (bM.vuln != null && bM.vuln > 50 ? "STATUS: CRITICAL EXPOSURE" : "STATUS: EXPOSURE RISK"),
@@ -7055,7 +7071,7 @@ function renderFsTelemetryGauges(data) {
         {
             id: "fs-t-gauge-overall",
             title: "Overall Code Quality",
-            subtitle: "Optimal (A) & clean guarantees",
+            subtitle: "Optimal & clean guarantees",
             value: isFailure ? null : tM.overall,
             baselineVal: bM.overall,
             status: isFailure ? "" : (tM.overall != null && tM.overall >= 80 ? "STATUS: ROBUST" : "STATUS: VERIFIED"),
@@ -7068,21 +7084,32 @@ function renderFsTelemetryGauges(data) {
         },
         {
             id: "fs-t-gauge-optimal",
-            title: "Optimal Code Efficiency",
-            subtitle: "Execution & instruction ratio",
+            title: "Optimization Potential",
+            subtitle: (tM.optimal != null && tM.optimal === 0) ? "All detected opportunities resolved" : "Residual optimization potential",
             value: isFailure ? null : tM.optimal,
             baselineVal: bM.optimal,
-            status: isFailure ? "" : "STATUS: OPTIMIZED",
+            status: isFailure ? "" : (tM.optimal != null && tM.optimal === 0 ? "STATUS: OPTIMIZED" : "STATUS: REDUCED"),
             statusClass: "optimized",
             icon: "⚡",
             iconClass: "purple",
             sublabel: "TARGET SCORE",
-            isInverted: false,
-            gradientClass: "target-purple-gradient"
+            isInverted: true,
+            gradientClass: "inverted-gradient"
         },
         {
             id: "fs-t-gauge-risk",
-            title: "Vulnerability Risk %",
+            title: "Vulnerability Risk",
+            subtitle: (tM.vuln != null && tM.vuln === 0) ? "Zero detected exposures" : "Residual exposure risk",
+            value: isFailure ? null : tM.vuln,
+            baselineVal: bM.vuln,
+            status: isFailure ? "" : ((tM.vuln != null && tM.vuln === 0) ? "STATUS: ZERO RISK" : "STATUS: MITIGATED"),
+            statusClass: (tM.vuln != null && tM.vuln === 0) ? "zero-risk" : "mitigated",
+            icon: "🛡",
+            iconClass: "green",
+            sublabel: "TARGET EXPOSURE",
+            isInverted: true,
+            gradientClass: "inverted-gradient"
+        },
             subtitle: (tM.vuln != null && tM.vuln === 0) ? "Ultra-Safe bounded guarantee" : "Residual exposure risk",
             value: isFailure ? null : tM.vuln,
             baselineVal: bM.vuln,
@@ -7259,39 +7286,62 @@ function renderFsCodeComparison(data) {
             : (data.status === "CLEAN" ? "CODE COMPARISON | Verified Clean Source" : "CODE COMPARISON | Source Code Inspection");
     }
 
-    // Exploit danger & auto-remediation banners
+    // Exploit danger, parser note, & auto-remediation banners
     const dangerBanner = document.getElementById("fs-banner-danger");
     const dangerText = document.getElementById("fs-banner-danger-text");
+    const infoBanner = document.getElementById("fs-banner-info");
+    const infoText = document.getElementById("fs-banner-info-text");
     const remediationBanner = document.getElementById("fs-banner-remediation");
     const remediationText = document.getElementById("fs-banner-remediation-text");
 
     const findings = (data.findings && data.findings.length > 0) ? data.findings : (data.unified_findings || []);
-    const topFinding = findings[0];
+    
+    // Genuine exploitable security finding (CRITICAL or HIGH severity)
+    const genuineSecurityFinding = findings.find(f => {
+        const sev = String(f.severity || "").toUpperCase();
+        const cat = String(f.category || "").toUpperCase();
+        const expl = String(f.explanation || "").toLowerCase();
+        const isCritOrHigh = (sev === "CRITICAL" || sev === "HIGH");
+        const isInfo = (sev === "INFO" || expl.includes("parser limitation"));
+        const isGenuineSecurity = (cat === "SECURITY" || cat === "VULNERABILITY" || Boolean(f.is_security));
+        return isCritOrHigh && !isInfo && isGenuineSecurity;
+    });
 
-    if (topFinding && dangerBanner && dangerText) {
-        const dMsg = topFinding.why_dangerous || topFinding.potential_impact || topFinding.explanation || topFinding.message || "Vulnerable construct lacks safe length or scope boundaries.";
+    const infoNoticeFinding = findings.find(f => {
+        const sev = String(f.severity || "").toUpperCase();
+        const expl = String(f.explanation || "").toLowerCase();
+        return sev === "INFO" || expl.includes("parser limitation");
+    });
+
+    if (genuineSecurityFinding && dangerBanner && dangerText) {
+        const dMsg = genuineSecurityFinding.why_dangerous || genuineSecurityFinding.potential_impact || genuineSecurityFinding.explanation || genuineSecurityFinding.message || "Vulnerable construct lacks safe length or scope boundaries.";
         dangerText.textContent = dMsg;
         dangerBanner.style.display = "flex";
-    } else if (dangerBanner) {
-        dangerBanner.style.display = "none";
+        if (infoBanner) infoBanner.style.display = "none";
+    } else {
+        if (dangerBanner) dangerBanner.style.display = "none";
+        if (infoNoticeFinding && infoBanner && infoText) {
+            infoText.textContent = infoNoticeFinding.explanation || infoNoticeFinding.message || "Parser coverage limitation noted.";
+            infoBanner.style.display = "flex";
+        } else if (infoBanner) {
+            infoBanner.style.display = "none";
+        }
     }
 
-    const hasCandidateDiff = Boolean(data.diff && data.diff.trim().length > 0) || (data.proposed_code && data.original_code && data.proposed_code !== data.original_code);
+    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN";
+    const hasCandidateDiff = Boolean(data.diff && data.diff.trim().length > 0) || (data.proposed_code && data.original_code && data.proposed_code.trim() !== data.original_code.trim());
     const compilesClean = data.validation_report ? (data.validation_report.compilation_passed !== false && data.validation_report.syntax_passed !== false) : (data.status !== "COMPILATION_FAILED" && data.status !== "SYNTAX_ERRORS");
     const fixesRemaining = (data.fixes_remaining_count != null ? data.fixes_remaining_count : (data.unresolved_findings ? data.unresolved_findings.length : 0));
-    const isCandidateReady = Boolean(data.candidate_id && hasCandidateDiff && compilesClean && (data.status === "FULLY_REPAIRED" || data.status === "PROPOSAL_READY" || (data.status === "PARTIALLY_REPAIRED" && fixesRemaining === 0)));
+    const isCandidateReady = !isClean && Boolean(data.candidate_id && hasCandidateDiff && compilesClean && (data.status === "FULLY_REPAIRED" || data.status === "PROPOSAL_READY" || (data.status === "PARTIALLY_REPAIRED" && fixesRemaining === 0)));
 
     if (remediationBanner && remediationText) {
         if (isCandidateReady) {
             const rMsg = (data.fixes_applied && data.fixes_applied.join("; "))
                 || data.candidate?.explanation
                 || data.explanation
-                || topFinding?.recommended_mitigation
+                || genuineSecurityFinding?.recommended_mitigation
                 || "Replaced vulnerable pattern with memory-safe bounds checks and guaranteed termination.";
             remediationText.textContent = rMsg;
-            remediationBanner.style.display = "flex";
-        } else if (data.status === "CLEAN") {
-            remediationText.textContent = "Clean Program: Source code compiles cleanly with zero errors and zero security vulnerabilities.";
             remediationBanner.style.display = "flex";
         } else {
             remediationBanner.style.display = "none";
@@ -7306,8 +7356,8 @@ function renderFsCodeComparison(data) {
 
     const fname = currentFilename || data.filename || "main.c";
     if (footerStatus) {
-        footerStatus.textContent = data.status === "CLEAN"
-            ? "✓ Clean source code — ready to execute"
+        footerStatus.textContent = isClean
+            ? "✓ Clean source code — passed analysis, no repairs needed"
             : (isCandidateReady
                 ? `Ready to apply validated patch to ${fname}`
                 : (fixesRemaining > 0 ? `Unresolved: ${fixesRemaining} actionable issue(s) remain` : (data.status === "REPAIR_UNAVAILABLE" ? "Automated repair unavailable" : (data.status || ""))));
@@ -7323,7 +7373,15 @@ function renderFsCodeComparison(data) {
     }
 
     if (btnReject) {
-        btnReject.textContent = isCandidateReady ? "Reject Patch" : "Close";
+        if (isClean) {
+            btnReject.style.display = "none";
+        } else if (isCandidateReady) {
+            btnReject.style.display = "inline-flex";
+            btnReject.textContent = "Reject Patch";
+        } else {
+            btnReject.style.display = "inline-flex";
+            btnReject.textContent = "Close";
+        }
     }
 
     // Render active tab diff view

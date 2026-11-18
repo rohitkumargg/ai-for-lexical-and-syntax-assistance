@@ -3165,9 +3165,9 @@ class RepairPlanner:
             prov = "deterministic_rules"
             strat = "verified_clean"
             cand_title = "Verified Program: Clean & Ready"
-            workflow_state = "PROPOSAL_READY"
-            terminal_status = status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY"
-            stopping_reason = msg_val or "Program is verified valid and ready to execute."
+            workflow_state = status_val
+            terminal_status = status_val
+            stopping_reason = msg_val or "Program is verified clean: zero compiler errors and zero security vulnerabilities."
             logger.record_stage(
                 stage_id="deterministic_rules",
                 stage_name="7. Deterministic Rule Engine",
@@ -3201,82 +3201,18 @@ class RepairPlanner:
             before_six = before_scores.get("six_metrics") or calculate_six_metrics(
                 source_code, filename=filename, language=lang_id, findings=findings
             )
-            import uuid
-            cand_id = f"plan_{uuid.uuid4().hex[:12]}"
             cand_val_rep = self.validator.validate_patch(
                 original_code=source_code, candidate_code=source_code, filename=filename, language=lang_id, original_findings=findings
             )
-            candidate_obj = ImprovementCandidate(
-                id=cand_id,
-                strategy=ImprovementStrategy.SECURITY_HARDENING,
-                category="Autonomous Coordinated Repair",
-                priority="LOW",
-                title="Verified Program Proposal",
-                explanation="Program is verified valid and ready to execute.",
-                line=1,
-                col=0,
-                evidence="",
-                original_code=source_code,
-                original_source_hash=orig_hash,
-                proposed_code=source_code,
-                proposed_source_hash=orig_hash,
-                filename=filename,
-                unified_diff="",
-                expected_effect="Preserves valid verified code.",
-                assumptions=[],
-                trade_offs="None.",
-                relevant_metric="Code Quality & Security",
-                predicted_metric_delta="100% Quality, 0% Risk",
-                confidence=1.0,
-                validation_passed=True,
-                validation_state=DecisionState.VALIDATED.value,
-                is_eligible_for_application=True,
-                validation_report=cand_val_rep.to_dict(),
-                user_decision_state=DecisionState.AWAITING_USER_DECISION.value,
-                run_id=logger.run_id,
-            )
-            candidate_registry.register(candidate_obj)
-            candidate_dict = {
-                "id": cand_id,
-                "title": candidate_obj.title,
-                "explanation": candidate_obj.explanation,
-                "proposed_code": source_code,
-                "diff": "",
-                "validation": cand_val_rep.to_dict(),
-                "is_valid": True,
-                "assumptions": [],
-                "validation_state": candidate_obj.validation_state,
-                "user_decision_state": "PENDING_REVIEW",
-                "repair_provider": "deterministic_rules",
-                "repair_strategy": "verified_clean",
-                "fallback_reason": None,
-                "rounds_executed": 1,
-                "terminal_status": "PROPOSAL_READY",
-                "stopping_reason": "Program verified valid and ready to execute.",
-                "candidate_source_hash": orig_hash,
-                "original_source_hash": orig_hash,
-                "workflow_state": "PROPOSAL_READY",
-                "fixes_applied": ["Verified syntax & semantic declarations"],
-                "fixes_applied_count": 0,
-                "fixes_remaining_count": 0,
-                "findings_before": len(findings),
-                "findings_after": 0,
-                "total_findings": len(findings),
-                "compiles": True,
-                "can_continue_repair": False,
-                "is_eligible_for_application": True,
-                "validation_passed": True,
-                "validation_report": cand_val_rep.to_dict(),
-            }
 
             return {
-                "status": status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY",
-                "workflow_state": "PROPOSAL_READY",
-                "terminal_status": status_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "PROPOSAL_READY",
-                "label": label_val if status_val in ("VALID_WITH_SECURITY_ISSUES", "VALID_WITH_WARNINGS") else "Proposal Ready",
+                "status": status_val,
+                "workflow_state": status_val,
+                "terminal_status": status_val,
+                "label": label_val,
                 "run_id": logger.run_id,
-                "message": msg_val or "Program verified valid and ready to execute.",
-                "stopping_reason": msg_val or "Program verified valid and ready to execute.",
+                "message": msg_val or "Program passed analysis: zero errors and zero vulnerabilities.",
+                "stopping_reason": msg_val or "Program passed analysis: zero errors and zero vulnerabilities.",
                 "findings": [f.to_dict() if hasattr(f, "to_dict") else vars(f) for f in findings],
                 "unified_findings": [f.to_dict() if hasattr(f, "to_dict") else vars(f) for f in findings],
                 "classified_findings": classified_findings,
@@ -3293,16 +3229,19 @@ class RepairPlanner:
                 "metrics_comparison": build_six_metrics_comparison(before_six, before_six),
                 "original_source_hash": orig_hash,
                 "deltas": {},
-                "candidate": candidate_dict,
-                "candidate_id": cand_id,
-                "proposed_code": source_code,
-                "candidate_code": source_code,
-                "is_eligible_for_application": True,
+                "candidate": None,
+                "candidate_id": None,
+                "has_candidate": False,
+                "proposed_code": None,
+                "candidate_code": None,
+                "diff": "",
+                "unified_diff": "",
+                "is_eligible_for_application": False,
                 "validation_passed": True,
                 "validation_report": cand_val_rep.to_dict(),
                 "fixes_remaining_count": 0,
                 "can_continue_repair": False,
-                "summary": "Source code is valid (zero errors, warnings allowed).",
+                "summary": "Source code passed analysis: 0 compiler errors, 0 security vulnerabilities. No repairs needed.",
                 "security_recommendations": [],
                 "agent_telemetry": {
                     "model_used": "Analyzers Verified",

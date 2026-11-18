@@ -354,20 +354,32 @@ def fix_keyword_typos_fuzzy(source: str) -> Tuple[str, Optional[str]]:
 
 def fix_missing_colon_case_default(source: str) -> Tuple[str, Optional[str]]:
     lines = source.splitlines(keepends=True)
+    in_block_comment = False
     for idx, raw_line in enumerate(lines):
         line = raw_line.rstrip("\r\n")
-        m_def = re.search(r"\bdefault\b(?!\s*:)", line)
+        stripped = line.strip()
+        if in_block_comment:
+            if "*/" in line:
+                in_block_comment = False
+            continue
+        if stripped.startswith("/*"):
+            if "*/" not in line:
+                in_block_comment = True
+            continue
+        if stripped.startswith("//") or stripped.startswith("*"):
+            continue
+
+        m_def = re.match(r"^(\s*default)(?!\s*:)(\s*.*)$", line)
         if m_def:
-            end_pos = m_def.end()
-            new_line = line[:end_pos] + ":" + line[end_pos:]
+            new_line = m_def.group(1) + ":" + m_def.group(2)
             lines[idx] = new_line + raw_line[len(line):]
             return "".join(lines), "inserted missing ':' after 'default'"
 
-        m_case = re.search(r"\bcase\s+([^:;\r\n{]+)(?<!:)$", line)
+        m_case = re.match(r"^(\s*case\s+[^:;\r\n{]+)(?<!:)$", line)
         if m_case:
             content = m_case.group(1).rstrip()
             if not content.endswith(":"):
-                new_line = line[:m_case.start(1)] + content + ":" + line[m_case.start(1) + len(content):]
+                new_line = content + ":"
                 lines[idx] = new_line + raw_line[len(line):]
                 return "".join(lines), "inserted missing ':' after 'case'"
     return source, None

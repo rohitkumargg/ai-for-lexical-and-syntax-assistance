@@ -1646,7 +1646,16 @@ class RepairJobManager:
                 except Exception:
                     pass
 
-            needs_qwen_escalation = bool(sec_issues)
+            from types import SimpleNamespace
+            def _is_repair_objective_job(f: Any) -> bool:
+                if isinstance(f, dict):
+                    f = SimpleNamespace(**f)
+                return planner.is_repair_objective_finding(f)
+
+            initial_actionable = [f for f in all_initial_findings if _is_repair_objective_job(f)]
+            has_no_real_change = (final_adopted_code.strip() == job.original_code.strip())
+            actionable_remain = bool(sec_issues or not curr_ok or sem_issues or (has_no_real_change and initial_actionable))
+            needs_qwen_escalation = bool(sec_issues) or (has_no_real_change and actionable_remain)
             print(f"[REPAIR JOB DEBUG] {job.filename}: curr_ok={curr_ok}, sec_issues={len(sec_issues)}, sem_issues={len(sem_issues)}, needs_qwen={needs_qwen_escalation}")
             qwen_used = False
 
@@ -1958,6 +1967,21 @@ class RepairJobManager:
                         })
                         plan_res["candidate"] = candidate_data
                 job.stage = "Whole-program repair validated." if fully_repaired else plan_res["stopping_reason"]
+            else:
+                if initial_actionable:
+                    plan_res["status"] = "REPAIR_UNAVAILABLE"
+                    plan_res["workflow_state"] = "REPAIR_UNAVAILABLE"
+                    plan_res["terminal_status"] = "REPAIR_UNAVAILABLE"
+                    plan_res["is_eligible_for_application"] = False
+                    plan_res["has_candidate"] = False
+                    plan_res["candidate_id"] = None
+                    plan_res["candidate"] = None
+                    plan_res["proposed_code"] = None
+                    plan_res["candidate_code"] = None
+                    plan_res["diff"] = ""
+                    plan_res["unified_diff"] = ""
+                    plan_res["stopping_reason"] = "Automated repair unavailable: no valid patch found for remaining actionable issues."
+                    job.stage = "Repair unavailable for remaining issues."
 
             plan_res["can_continue_repair"] = False
             plan_res["round"] = 1

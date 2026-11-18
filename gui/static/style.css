@@ -6054,6 +6054,16 @@ body {
     background: rgba(239, 68, 68, 0.12);
 }
 
+.fs-banner-box.info {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    color: #1d4ed8;
+}
+[data-theme="dark"] .fs-banner-box.info {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.12);
+}
+
 .fs-banner-box.remediation {
     background: rgba(16, 185, 129, 0.08);
     border: 1px solid rgba(16, 185, 129, 0.22);
