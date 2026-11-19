@@ -510,8 +510,16 @@ class SecurityRiskScorer:
         rule = str(self._get_attr(finding, "rule_id", "") or "").upper()
         evidence = str(self._get_attr(finding, "evidence", "")).lower()
 
-        if "PROMPT_INJECTION" in cat:
-            return 0.70, "Adversarial prompt-injection directive in comments"
+        # 4 Agent-Attack Categories: Verified High Exploitability
+        if any(k in cat for k in ("AGENT_TAMPER", "MANIPULATION", "TAMPERING", "HALLUCINATION")):
+            return 0.95, "Direct AI agent pipeline manipulation / prompt override directive"
+        if any(k in cat for k in ("IDENTITY_COMPROMISE", "IDENTITY_SPOOF", "FABRICATED_TRUST")):
+            return 0.95, "Agent sender identity spoofing / fabricated trust boundary breach"
+        if any(k in cat for k in ("RESOURCE_EXHAUSTION", "RESOURCE_OVERLOAD", "DENIAL_OF_SERVICE", "COST_AMPLIFICATION")):
+            return 0.90, "Algorithmic resource exhaustion / pipeline cost amplification"
+        if any(k in cat for k in ("PROMPT_INJECTION", "SECRET_CREDENTIAL", "HARDCODED_SECRET", "SECRET")):
+            return 0.95, "Adversarial prompt injection / exposed sensitive credential"
+
         if (
             "UNBOUNDED_INPUT" in cat
             or bool(re.search(r"\bgets\s*\(", evidence))
@@ -546,6 +554,10 @@ class SecurityRiskScorer:
         cat = str(self._get_attr(finding, "category", "")).upper()
         rule = str(self._get_attr(finding, "rule_id", "")).upper()
         finding_str = str(finding).lower()
+
+        # Agent-attack categories directly target the agent execution and decision boundary
+        if any(k in cat for k in ("AGENT_TAMPER", "MANIPULATION", "TAMPERING", "IDENTITY", "RESOURCE", "PROMPT_INJECTION", "SECRET")):
+            return 0.95, "Agent control plane and context injection surface"
 
         # Command injection from tainted source or dataflow has exposure = 1.0 (untrusted user input boundary)
         if "COMMAND_INJECTION" in cat or "CWE-78" in rule or "taint" in evidence or "source line" in finding_str:

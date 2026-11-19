@@ -1,3 +1,130 @@
+// Web / Browser compatibility layer for window.api when running outside Electron
+if (typeof window.api === "undefined") {
+    (function() {
+        async function makeWebResponse(res) {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = null;
+            }
+            return {
+                ok: res.ok,
+                status: res.status,
+                statusText: res.statusText,
+                json: async () => data,
+                text: async () => (typeof data === 'string' ? data : JSON.stringify(data)),
+                data: data
+            };
+        }
+
+        async function httpGet(url) {
+            try {
+                const res = await fetch(url);
+                return await makeWebResponse(res);
+            } catch (err) {
+                return { ok: false, status: 500, statusText: err.message, json: async () => ({ error: err.message }), text: async () => err.message, data: { error: err.message } };
+            }
+        }
+
+        async function httpPost(url, payload) {
+            try {
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: payload !== undefined ? JSON.stringify(payload) : undefined
+                });
+                return await makeWebResponse(res);
+            } catch (err) {
+                return { ok: false, status: 500, statusText: err.message, json: async () => ({ error: err.message }), text: async () => err.message, data: { error: err.message } };
+            }
+        }
+
+        async function httpDelete(url) {
+            try {
+                const res = await fetch(url, { method: "DELETE" });
+                return await makeWebResponse(res);
+            } catch (err) {
+                return { ok: false, status: 500, statusText: err.message, json: async () => ({ error: err.message }), text: async () => err.message, data: { error: err.message } };
+            }
+        }
+
+        window.api = {
+            request: async (routeOrUrl, args = {}) => {
+                let url = routeOrUrl;
+                if (!url.startsWith("/")) url = "/api/" + url;
+                return await httpPost(url, args);
+            },
+            getLanguages: async () => httpGet("/api/languages"),
+            saveFile: async (payload) => httpPost("/api/file/save", payload || {}),
+            createFile: async (payload) => httpPost("/api/file/create", payload || {}),
+            getExamples: async (lang = 'c') => httpGet("/api/examples?language=" + encodeURIComponent(lang)),
+            getExample: async (name, lang) => httpGet("/api/example/" + encodeURIComponent(name) + "?language=" + encodeURIComponent(lang || 'c')),
+            modelsStatus: async () => httpGet("/api/models/status"),
+            modelsUnload: async () => httpPost("/api/models/unload", {}),
+
+            qualityScore: async (payload) => httpPost("/api/quality/score", payload || {}),
+            qualityConfig: async () => httpGet("/api/quality/config"),
+            optimizationPotential: async (payload) => httpPost("/api/optimization/potential", payload || {}),
+            optimizationConfig: async () => httpGet("/api/optimization/config"),
+            securityRisk: async (payload) => httpPost("/api/security/risk", payload || {}),
+            securityRiskDelta: async (payload) => httpPost("/api/security/risk/delta", payload || {}),
+            securityRiskConfig: async () => httpGet("/api/security/risk/config"),
+            securityReport: async (payload) => httpPost("/api/security/report", payload || {}),
+            securityCompare: async (payload) => httpPost("/api/security/compare", payload || {}),
+            securityBenchmark: async (dirPath) => httpGet("/api/security/benchmark?dir=" + encodeURIComponent(dirPath || "")),
+            securityRemediation: async (payload) => httpPost("/api/security/remediation", payload || {}),
+            securityApply: async (payload) => httpPost("/api/security/apply", payload || {}),
+            securityPrescan: async (payload) => httpPost("/api/security/prescan", payload || {}),
+            securityApprovalCheck: async (payload) => httpPost("/api/security/approval/check", payload || {}),
+            securityApprovalApprove: async (payload) => httpPost("/api/security/approval/approve", payload || {}),
+            securityApprovalCancel: async (payload) => httpPost("/api/security/approval/cancel", payload || {}),
+
+            programRun: async (payload) => httpPost("/api/program/run", payload || {}),
+            testcase: async (payload) => httpPost("/api/testcase", payload || {}),
+            repair: async (payload) => httpPost("/api/repair", payload || {}),
+            repairJobStart: async (payload) => httpPost("/api/repair/job", payload || {}),
+            repairJobStatus: async (jobId) => httpGet("/api/repair/job/" + encodeURIComponent(jobId)),
+            repairJobCancel: async (jobId) => httpPost("/api/repair/job/" + encodeURIComponent(jobId) + "/cancel", {}),
+            repairJobDelete: async (jobId) => httpDelete("/api/repair/job/" + encodeURIComponent(jobId)),
+            coordinatorCancel: async (payload) => httpPost("/api/coordinator/cancel", payload || {}),
+            coordinatorAnalyzeAndPlan: async (payload) => httpPost("/api/coordinator/analyze_and_plan", payload || {}),
+            repairPostApply: async (payload) => httpPost("/api/repair/post_apply", payload || {}),
+            pipelineLatest: async () => httpGet("/api/pipeline/latest"),
+            pipelineRun: async (runId) => httpGet("/api/pipeline/run/" + encodeURIComponent(runId)),
+
+            patchValidate: async (payload) => httpPost("/api/patch/validate", payload || {}),
+            patchApply: async (payload) => httpPost("/api/patch/apply", payload || {}),
+            patchReject: async (payload) => httpPost("/api/patch/reject", payload || {}),
+            patchRevert: async (payload) => httpPost("/api/patch/revert", payload || {}),
+            dashboardBeforeAfter: async (payload) => httpPost("/api/dashboard/before_after", payload || {}),
+
+            improvementAdvise: async (payload) => httpPost("/api/improvement/advise", payload || {}),
+            improvementApply: async (candidateId, payload) => httpPost("/api/improvement/candidate/" + encodeURIComponent(candidateId) + "/apply", payload || {}),
+            improvementRollback: async (candidateId, payload) => httpPost("/api/improvement/candidate/" + encodeURIComponent(candidateId) + "/rollback", payload || {}),
+            improvementReject: async (candidateId) => httpPost("/api/improvement/candidate/" + encodeURIComponent(candidateId) + "/reject", {}),
+            rulesCandidates: async () => httpGet("/api/rules/candidates"),
+            rulesPropose: async (payload) => httpPost("/api/rules/propose", payload || {}),
+            rulesCandidateValidate: async (ruleId) => httpPost("/api/rules/candidate/" + encodeURIComponent(ruleId) + "/validate", {}),
+            rulesCandidateApprove: async (ruleId, payload) => httpPost("/api/rules/candidate/" + encodeURIComponent(ruleId) + "/approve", payload || {}),
+            rulesCandidateReject: async (ruleId, payload) => httpPost("/api/rules/candidate/" + encodeURIComponent(ruleId) + "/reject", payload || {}),
+            rulesActive: async () => httpGet("/api/rules/active"),
+            rulesActiveDisable: async (ruleId, payload) => httpPost("/api/rules/active/" + encodeURIComponent(ruleId) + "/disable", payload || {}),
+            rulesActiveEnable: async (ruleId) => httpPost("/api/rules/active/" + encodeURIComponent(ruleId) + "/enable", {}),
+            rulesActiveRollback: async (ruleId, payload) => httpPost("/api/rules/active/" + encodeURIComponent(ruleId) + "/rollback", payload || {}),
+            rulesHistory: async () => httpGet("/api/rules/history"),
+
+            greenConfig: async () => httpGet("/api/green/config"),
+            measureGreen: async (payload) => httpPost("/api/green/measure", payload || {}),
+            greenHistory: async (limit = 30) => httpGet("/api/green/history?limit=" + encodeURIComponent(limit)),
+            benchmarkStatus: async () => httpGet("/api/benchmark/status"),
+            benchmarkDataset: async () => httpGet("/api/benchmark/dataset"),
+            benchmarkDefinitions: async () => httpGet("/api/benchmark/definitions"),
+            benchmarkRun: async (payload) => httpPost("/api/benchmark/run", payload || {})
+        };
+    })();
+}
+
 let editor;
 let currentDecorations = [];
 let suppressHighlightClearOnce = false;
@@ -640,6 +767,34 @@ function scrollToPanel(panelId) {
     }
 }
 
+function animateSidebarMetric(valElId, barElId, targetVal, durationMs = 400) {
+    const valEl = document.getElementById(valElId);
+    const barEl = document.getElementById(barElId);
+    if (!valEl && !barEl) return;
+    if (targetVal == null || isNaN(targetVal)) {
+        if (valEl) valEl.textContent = "--%";
+        if (barEl) barEl.style.height = "0%";
+        return;
+    }
+    const finalVal = Math.max(0, Math.min(100, Math.round(targetVal)));
+    const startTime = performance.now();
+    function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / durationMs);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(ease * finalVal);
+        if (valEl) valEl.textContent = current + "%";
+        if (barEl) barEl.style.height = (ease * finalVal) + "%";
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            if (valEl) valEl.textContent = finalVal + "%";
+            if (barEl) barEl.style.height = finalVal + "%";
+        }
+    }
+    requestAnimationFrame(step);
+}
+
 function renderPrimaryIndicators() {
     const qScore = (cachedQualityReport && cachedQualityReport.can_score && cachedQualityReport.overall_score != null) ? Number(cachedQualityReport.overall_score) : null;
     const optScore = (cachedOptimizationReport && cachedOptimizationReport.can_score && cachedOptimizationReport.optimization_potential != null) ? Number(cachedOptimizationReport.optimization_potential) : null;
@@ -656,7 +811,6 @@ function renderPrimaryIndicators() {
     const overallVal = m.overall;
     const optVal = m.optimal;
     const vulnVal = m.vuln;
-    const memSafetyVal = m.memSafety;
 
     // 1. Overall Code Quality %
     const elOverall = document.getElementById("pi-val-overall");
@@ -664,9 +818,8 @@ function renderPrimaryIndicators() {
     const descOverall = document.getElementById("pi-desc-overall");
     if (elOverall) {
         if (overallVal != null) {
-            const rOverall = Math.round(overallVal);
-            elOverall.textContent = rOverall + "%";
-            elOverall.style.color = rOverall >= 80 ? "#16a34a" : (rOverall >= 60 ? "#d97706" : "#dc2626");
+            animateSidebarMetric("pi-val-overall", "pi-bar-overall", overallVal);
+            elOverall.style.color = overallVal >= 80 ? "#16a34a" : (overallVal >= 60 ? "#d97706" : "#dc2626");
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-measured";
                 badgeOverall.textContent = "[COMBINED]";
@@ -675,6 +828,8 @@ function renderPrimaryIndicators() {
         } else {
             elOverall.textContent = "--%";
             elOverall.style.color = "var(--text-secondary)";
+            const barOverall = document.getElementById("pi-bar-overall");
+            if (barOverall) barOverall.style.height = "0%";
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-unbenchmarked";
                 badgeOverall.textContent = "[INCOMPLETE]";
@@ -688,25 +843,27 @@ function renderPrimaryIndicators() {
         }
     }
 
-    // 2. Optimization Potential %
+    // 2. Optimal Code %
     const elOptimal = document.getElementById("pi-val-optimal");
     const badgeOptimal = document.getElementById("pi-badge-optimal");
     const descOptimal = document.getElementById("pi-desc-optimal");
     if (elOptimal) {
         if (optVal != null) {
-            const rOpt = Math.round(optVal);
-            elOptimal.textContent = rOpt + "%";
-            elOptimal.style.color = rOpt === 0 ? "#16a34a" : (rOpt <= 30 ? "#d97706" : "#dc2626");
+            const optimalCodePct = Math.max(0, 100 - Math.round(optVal));
+            animateSidebarMetric("pi-val-optimal", "pi-bar-optimal", optimalCodePct);
+            elOptimal.style.color = optimalCodePct >= 80 ? "#16a34a" : (optimalCodePct >= 60 ? "#d97706" : "#dc2626");
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-estimate";
                 badgeOptimal.textContent = "[HEURISTIC]";
             }
             if (descOptimal) {
-                descOptimal.textContent = rOpt === 0 ? "No detected opportunities" : `${rOpt}% opt. potential`;
+                descOptimal.textContent = optimalCodePct === 100 ? "No detected opportunities" : `${optimalCodePct}% optimal`;
             }
         } else {
             elOptimal.textContent = "--%";
             elOptimal.style.color = "var(--text-secondary)";
+            const barOptimal = document.getElementById("pi-bar-optimal");
+            if (barOptimal) barOptimal.style.height = "0%";
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-unbenchmarked";
                 badgeOptimal.textContent = "[INCOMPLETE]";
@@ -715,14 +872,41 @@ function renderPrimaryIndicators() {
         }
     }
 
-    // 3. Vulnerability Risk %
+    // 3. Poor Code %
+    const elPoor = document.getElementById("pi-val-poor");
+    const badgePoor = document.getElementById("pi-badge-poor");
+    const descPoor = document.getElementById("pi-desc-poor");
+    if (elPoor) {
+        if (overallVal != null) {
+            const poorPct = Math.max(0, 100 - Math.round(overallVal));
+            animateSidebarMetric("pi-val-poor", "pi-bar-poor", poorPct);
+            elPoor.style.color = poorPct <= 20 ? "#16a34a" : (poorPct <= 40 ? "#d97706" : "#dc2626");
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-risk";
+                badgePoor.textContent = "[INVERSE Q]";
+            }
+            if (descPoor) descPoor.textContent = "Inverse of Code Quality (100 - Q)";
+        } else {
+            elPoor.textContent = "--%";
+            elPoor.style.color = "var(--text-secondary)";
+            const barPoor = document.getElementById("pi-bar-poor");
+            if (barPoor) barPoor.style.height = "0%";
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-unbenchmarked";
+                badgePoor.textContent = "[INCOMPLETE]";
+            }
+            if (descPoor) descPoor.textContent = "Inverse quality calculation pending";
+        }
+    }
+
+    // 4. Vulnerability Risk %
     const elVuln = document.getElementById("pi-val-vulnerability") || document.getElementById("pi-val-sec");
     const badgeVuln = document.getElementById("pi-badge-vulnerability") || document.getElementById("pi-badge-sec");
     const descVuln = document.getElementById("pi-desc-vulnerability") || document.getElementById("pi-desc-sec");
     if (elVuln) {
         if (vulnVal != null) {
             const rVuln = Math.round(vulnVal);
-            elVuln.textContent = rVuln + "%";
+            animateSidebarMetric("pi-val-vulnerability", "pi-bar-vulnerability", vulnVal);
             elVuln.style.color = rVuln === 0 ? "#16a34a" : (rVuln <= 30 ? "#d97706" : "#dc2626");
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-risk";
@@ -730,11 +914,13 @@ function renderPrimaryIndicators() {
             }
             if (descVuln) {
                 const fc = cachedSecurityRiskReport ? cachedSecurityRiskReport.finding_counts : null;
-                descVuln.textContent = fc ? `Crit: ${fc.critical} | High: ${fc.high} | Med: ${fc.medium}` : "Normalized risk indicator";
+                descVuln.textContent = fc ? `Crit: ${fc.critical} | High: ${fc.high} | Med: ${fc.medium}` : (rVuln === 0 ? "Zero security findings" : "Normalized risk indicator");
             }
         } else {
             elVuln.textContent = "--%";
             elVuln.style.color = "var(--text-secondary)";
+            const barVuln = document.getElementById("pi-bar-vulnerability");
+            if (barVuln) barVuln.style.height = "0%";
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-unbenchmarked";
                 badgeVuln.textContent = "[INCOMPLETE]";
@@ -743,38 +929,13 @@ function renderPrimaryIndicators() {
         }
     }
 
-    // 4. Memory Safety Score
-    const elPoor = document.getElementById("pi-val-poor");
-    const badgePoor = document.getElementById("pi-badge-poor");
-    const descPoor = document.getElementById("pi-desc-poor");
-    if (elPoor) {
-        if (memSafetyVal != null) {
-            const rMem = Math.round(memSafetyVal);
-            elPoor.textContent = rMem + "%";
-            elPoor.style.color = rMem >= 80 ? "#16a34a" : (rMem >= 60 ? "#d97706" : "#dc2626");
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-measured";
-                badgePoor.textContent = "[MEASURED]";
-            }
-            if (descPoor) descPoor.textContent = "Heap, stack & bounds integrity";
-        } else {
-            elPoor.textContent = "--%";
-            elPoor.style.color = "var(--text-secondary)";
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-unbenchmarked";
-                badgePoor.textContent = "[INCOMPLETE]";
-            }
-            if (descPoor) descPoor.textContent = "Memory safety analysis pending";
-        }
-    }
-
     // Backward compatibility aliases
-    const qVal = document.getElementById("pi-val-quality");
-    if (qVal && qScore != null) qVal.textContent = Math.round(qScore) + "%";
-    const optVal = document.getElementById("pi-val-opt");
-    if (optVal && optScore != null) optVal.textContent = Math.round(optScore) + "%";
-    const secVal = document.getElementById("pi-val-sec");
-    if (secVal && vulnVal != null) secVal.textContent = Math.round(vulnVal) + "%";
+    const elQualityAlias = document.getElementById("pi-val-quality");
+    if (elQualityAlias && qScore != null) elQualityAlias.textContent = Math.round(qScore) + "%";
+    const elOptAlias = document.getElementById("pi-val-opt");
+    if (elOptAlias && optScore != null) elOptAlias.textContent = Math.round(optScore) + "%";
+    const elSecAlias = document.getElementById("pi-val-sec");
+    if (elSecAlias && vulnVal != null) elSecAlias.textContent = Math.round(vulnVal) + "%";
 
     // 4. Green Metrics Score
     const grnVal = document.getElementById("pi-val-green");
@@ -3460,8 +3621,7 @@ function renderCoordinatedPlan(plan) {
     const descOverall = document.getElementById("pi-desc-overall");
     if (elOverall) {
         if (overallVal != null) {
-            const rOverall = Math.round(overallVal);
-            elOverall.textContent = rOverall + "%";
+            animateSidebarMetric("pi-val-overall", "pi-bar-overall", overallVal);
             elOverall.style.color = overallVal >= 80 ? "#16a34a" : (overallVal >= 60 ? "#d97706" : "#dc2626");
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-measured";
@@ -3471,6 +3631,8 @@ function renderCoordinatedPlan(plan) {
         } else {
             elOverall.textContent = "--%";
             elOverall.style.color = "var(--text-secondary)";
+            const barOverall = document.getElementById("pi-bar-overall");
+            if (barOverall) barOverall.style.height = "0%";
             if (badgeOverall) {
                 badgeOverall.className = "tile-badge badge-unbenchmarked";
                 badgeOverall.textContent = "[INCOMPLETE]";
@@ -3482,25 +3644,27 @@ function renderCoordinatedPlan(plan) {
         }
     }
 
-    // 2. Optimization Potential %
+    // 2. Optimal Code %
     const elOptimal = document.getElementById("pi-val-optimal");
     const badgeOptimal = document.getElementById("pi-badge-optimal");
     const descOptimal = document.getElementById("pi-desc-optimal");
     if (elOptimal) {
         if (optVal != null) {
-            const rOpt = Math.round(optVal);
-            elOptimal.textContent = rOpt + "%";
-            elOptimal.style.color = rOpt === 0 ? "#16a34a" : (rOpt <= 30 ? "#d97706" : "#dc2626");
+            const optimalCodePct = Math.max(0, 100 - Math.round(optVal));
+            animateSidebarMetric("pi-val-optimal", "pi-bar-optimal", optimalCodePct);
+            elOptimal.style.color = optimalCodePct >= 80 ? "#16a34a" : (optimalCodePct >= 60 ? "#d97706" : "#dc2626");
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-estimate";
                 badgeOptimal.textContent = "[HEURISTIC]";
             }
             if (descOptimal) {
-                descOptimal.textContent = rOpt === 0 ? "No detected opportunities" : `${rOpt}% opt. potential`;
+                descOptimal.textContent = optimalCodePct === 100 ? "No detected opportunities" : `${optimalCodePct}% optimal`;
             }
         } else {
             elOptimal.textContent = "--%";
             elOptimal.style.color = "var(--text-secondary)";
+            const barOptimal = document.getElementById("pi-bar-optimal");
+            if (barOptimal) barOptimal.style.height = "0%";
             if (badgeOptimal) {
                 badgeOptimal.className = "tile-badge badge-unbenchmarked";
                 badgeOptimal.textContent = "[INCOMPLETE]";
@@ -3509,14 +3673,41 @@ function renderCoordinatedPlan(plan) {
         }
     }
 
-    // 3. Vulnerability Risk %
+    // 3. Poor Code %
+    const elPoor = document.getElementById("pi-val-poor");
+    const badgePoor = document.getElementById("pi-badge-poor");
+    const descPoor = document.getElementById("pi-desc-poor");
+    if (elPoor) {
+        if (overallVal != null) {
+            const poorPct = Math.max(0, 100 - Math.round(overallVal));
+            animateSidebarMetric("pi-val-poor", "pi-bar-poor", poorPct);
+            elPoor.style.color = poorPct <= 20 ? "#16a34a" : (poorPct <= 40 ? "#d97706" : "#dc2626");
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-risk";
+                badgePoor.textContent = "[INVERSE Q]";
+            }
+            if (descPoor) descPoor.textContent = "Inverse of Code Quality (100 - Q)";
+        } else {
+            elPoor.textContent = "--%";
+            elPoor.style.color = "var(--text-secondary)";
+            const barPoor = document.getElementById("pi-bar-poor");
+            if (barPoor) barPoor.style.height = "0%";
+            if (badgePoor) {
+                badgePoor.className = "tile-badge badge-unbenchmarked";
+                badgePoor.textContent = "[INCOMPLETE]";
+            }
+            if (descPoor) descPoor.textContent = "Inverse quality calculation pending";
+        }
+    }
+
+    // 4. Vulnerability Risk %
     const elVuln = document.getElementById("pi-val-vulnerability") || document.getElementById("pi-val-sec");
     const badgeVuln = document.getElementById("pi-badge-vulnerability") || document.getElementById("pi-badge-sec");
     const descVuln = document.getElementById("pi-desc-vulnerability") || document.getElementById("pi-desc-sec");
     if (elVuln) {
         if (vulnVal != null) {
             const vRound = Math.round(vulnVal);
-            elVuln.textContent = vRound + "%";
+            animateSidebarMetric("pi-val-vulnerability", "pi-bar-vulnerability", vulnVal);
             elVuln.style.color = vRound === 0 ? "#16a34a" : (vRound <= 30 ? "#d97706" : "#dc2626");
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-risk";
@@ -3532,6 +3723,8 @@ function renderCoordinatedPlan(plan) {
         } else {
             elVuln.textContent = "--%";
             elVuln.style.color = "var(--text-secondary)";
+            const barVuln = document.getElementById("pi-bar-vulnerability");
+            if (barVuln) barVuln.style.height = "0%";
             if (badgeVuln) {
                 badgeVuln.className = "tile-badge badge-unbenchmarked";
                 badgeVuln.textContent = "[INCOMPLETE]";
@@ -3540,45 +3733,13 @@ function renderCoordinatedPlan(plan) {
         }
     }
 
-    // 4. Memory Safety Score
-    const elPoor = document.getElementById("pi-val-poor");
-    const badgePoor = document.getElementById("pi-badge-poor");
-    const descPoor = document.getElementById("pi-desc-poor");
-    if (elPoor) {
-        if (memSafetyVal != null) {
-            const rMem = Math.round(memSafetyVal);
-            elPoor.textContent = rMem + "%";
-            elPoor.style.color = rMem >= 80 ? "#16a34a" : (rMem >= 60 ? "#d97706" : "#dc2626");
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-measured";
-                badgePoor.textContent = "[MEASURED]";
-            }
-            if (descPoor) descPoor.textContent = "Heap, stack & bounds integrity";
-        } else {
-            elPoor.textContent = "--%";
-            elPoor.style.color = "var(--text-secondary)";
-            if (badgePoor) {
-                badgePoor.className = "tile-badge badge-unbenchmarked";
-                badgePoor.textContent = "[INCOMPLETE]";
-            }
-            if (descPoor) descPoor.textContent = "Memory safety analysis pending";
-        }
-    }
-            if (badgeVuln) {
-                badgeVuln.className = "tile-badge badge-unbenchmarked";
-                badgeVuln.textContent = "[INCOMPLETE]";
-            }
-            if (descVuln) descVuln.textContent = tileAssessment.security_status_reason || tileAssessment.security_status || bs.security_status_reason || bs.security_status || "Security analysis pending";
-        }
-    }
-
     // Backward compatibility aliases
     const elQ = document.getElementById("pi-val-quality");
-    if (elQ && qScore != null) elQ.textContent = `${Math.round(qScore)}%`;
+    if (elQ && overallVal != null) elQ.textContent = `${Math.round(overallVal)}%`;
     const elOpt = document.getElementById("pi-val-opt");
-    if (elOpt && optScore != null) elOpt.textContent = `${Math.round(optScore)}%`;
+    if (elOpt && optVal != null) elOpt.textContent = `${Math.round(optVal)}%`;
     const elSec = document.getElementById("pi-val-sec");
-    if (elSec && vulnScore != null) elSec.textContent = `${Math.round(vulnScore)}%`;
+    if (elSec && vulnVal != null) elSec.textContent = `${Math.round(vulnVal)}%`;
 
     // 5. Green Metrics (Separated)
     const grnVal = bs.green_metrics != null ? `${Math.round(bs.green_metrics)}/100` : "--/100";
@@ -6646,30 +6807,39 @@ function openFullscreenResults(plan) {
     }
 
     // 1. Gather Findings for Top Grid matching current code
-    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN" || data.status === "FULLY_REPAIRED";
+    const isClean = data.status === "CLEAN" || data.terminal_status === "CLEAN";
     const hasCandidate = !!(data.candidate_id || data.proposed_code);
-    const allFindings = (hasCandidate && Array.isArray(data.remaining_findings))
-        ? data.remaining_findings
-        : ((data.findings && data.findings.length > 0)
-            ? data.findings
-            : (data.unified_findings || data.unresolved_findings || []));
+    const detectedFindings = (data.findings && data.findings.length > 0)
+        ? data.findings
+        : (data.original_assessment?.findings || data.unified_findings || data.unresolved_findings || data.remaining_findings || []);
+    const allFindings = detectedFindings;
     
     // Status check
     const isFailure = data.status === "COMPILATION_FAILED" || data.status === "REPAIR_UNAVAILABLE" || data.status === "ERROR";
+
+    // Filter real defects (excluding INFO-level parser-limitation/optimization notices)
+    const realDefects = allFindings.filter(f => {
+        const sev = String(f.severity || "").toUpperCase();
+        const expl = String(f.explanation || "").toLowerCase();
+        return sev !== "INFO" && !expl.includes("parser limitation");
+    });
 
     // Count chip
     const countChip = document.getElementById("fs-defects-count-chip");
     const countText = document.getElementById("fs-defects-count-text");
     if (countChip && countText) {
-        if (isClean && allFindings.length === 0) {
+        if ((isClean || data.status === "FULLY_REPAIRED") && realDefects.length === 0) {
             countChip.className = "fs-defects-count-chip clean";
             countText.textContent = "0 Active Defects Found — Clean";
         } else if (isFailure) {
             countChip.className = "fs-defects-count-chip";
-            countText.textContent = `${data.status || 'FAILED'} — ${allFindings.length} Issue(s)`;
+            countText.textContent = `${data.status || 'FAILED'} — ${realDefects.length} Issue(s)`;
+        } else if (realDefects.length === 0) {
+            countChip.className = "fs-defects-count-chip clean";
+            countText.textContent = "0 Active Defects Found — Clean";
         } else {
             countChip.className = "fs-defects-count-chip";
-            countText.textContent = `${allFindings.length} Active Defect${allFindings.length === 1 ? '' : 's'} Found`;
+            countText.textContent = `${realDefects.length} Active Defect${realDefects.length === 1 ? '' : 's'} Found`;
         }
     }
 
@@ -6743,7 +6913,7 @@ function openFullscreenResults(plan) {
                 const cweTagHtml = cweId ? `<span class="fs-cwe-inline-tag">[${escapeHtml(cweId)}]</span>` : "";
 
                 return `
-                    <div class="fs-finding-card results-pop-card" style="animation-delay: ${idx * 140}ms;">
+                    <div class="fs-finding-card results-pop-card" style="animation-delay: ${idx * 30}ms;">
                         <div class="fs-fc-header">
                             <div class="fs-fc-left">
                                 <span class="fs-sev-chip ${sevClass}">${escapeHtml(sev)}</span>
@@ -7110,17 +7280,6 @@ function renderFsTelemetryGauges(data) {
             isInverted: true,
             gradientClass: "inverted-gradient"
         },
-            subtitle: (tM.vuln != null && tM.vuln === 0) ? "Ultra-Safe bounded guarantee" : "Residual exposure risk",
-            value: isFailure ? null : tM.vuln,
-            baselineVal: bM.vuln,
-            status: isFailure ? "" : ((tM.vuln != null && tM.vuln === 0) ? "STATUS: ZERO RISK" : "STATUS: MITIGATED"),
-            statusClass: (tM.vuln != null && tM.vuln === 0) ? "zero-risk" : "mitigated",
-            icon: "🛡",
-            iconClass: "green",
-            sublabel: "TARGET EXPOSURE",
-            isInverted: true,
-            gradientClass: "inverted-gradient"
-        },
         {
             id: "fs-t-gauge-safety",
             title: "Memory Safety Score",
@@ -7207,7 +7366,7 @@ function renderFsTelemetryGauges(data) {
         const numEl = document.getElementById(`${g.id}-num`);
         const barFillEl = document.getElementById(`${g.id}-bar`);
         const pctLabelEl = document.getElementById(`${g.id}-pct`);
-        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, null, g.value, 1000);
+        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, null, g.value, 400);
         controllers[g.id] = ctrl;
         _fsGaugeControllers.push(ctrl);
     });
@@ -7218,7 +7377,7 @@ function renderFsTelemetryGauges(data) {
         const barFillEl = document.getElementById(`${g.id}-bar`);
         const pctLabelEl = document.getElementById(`${g.id}-pct`);
         const deltaChipEl = document.getElementById(`${g.id}-delta-chip`);
-        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, deltaChipEl, g.value, 1000);
+        const ctrl = createSingleDriver(cardEl, numEl, barFillEl, pctLabelEl, deltaChipEl, g.value, 400);
         controllers[g.id] = ctrl;
         _fsGaugeControllers.push(ctrl);
     });
@@ -7230,49 +7389,49 @@ function renderFsTelemetryGauges(data) {
         return;
     }
 
-    // Orchestrate Staggered Entrance:
-    // 1. Baseline Cards top to bottom (120ms apart)
+    // Orchestrate Staggered Entrance (fast & responsive):
+    // 1. Baseline Cards top to bottom (30ms apart)
     baselineGauges.forEach((g, idx) => {
         const cardEl = document.getElementById(`${g.id}-card`);
         const ctrl = controllers[g.id];
         const timer = setTimeout(() => {
             if (cardEl) {
-                cardEl.style.animation = 'cardPopIn 380ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+                cardEl.style.animation = 'cardPopIn 280ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
             }
             if (ctrl) ctrl.run();
-        }, idx * 120);
+        }, idx * 30);
         _fsAnimTimers.push(timer);
     });
 
-    // 2. Centre Panel fades and slides in (~480ms)
+    // 2. Centre Panel fades and slides in (~80ms)
     const centrePanel = document.getElementById("fs-comparison-card");
     if (centrePanel) {
         centrePanel.style.opacity = '0';
         const centreTimer = setTimeout(() => {
-            centrePanel.style.animation = 'fsCenterSlideIn 400ms ease-out forwards';
+            centrePanel.style.animation = 'fsCenterSlideIn 250ms ease-out forwards';
             // Sequence diff lines
             const diffLines = document.querySelectorAll('#fullscreen-results-modal .fs-diff-line.deletion, #fullscreen-results-modal .fs-diff-line.addition');
             diffLines.forEach((line, lIdx) => {
                 line.style.opacity = '0';
                 const lTimer = setTimeout(() => {
-                    line.style.animation = 'diffLineFadeIn 250ms ease-out forwards';
-                }, Math.min(1400, lIdx * 40));
+                    line.style.animation = 'diffLineFadeIn 150ms ease-out forwards';
+                }, Math.min(150, lIdx * 15));
                 _fsAnimTimers.push(lTimer);
             });
-        }, 460);
+        }, 80);
         _fsAnimTimers.push(centreTimer);
     }
 
-    // 3. Target Cards top to bottom (starts at 700ms, 120ms apart)
+    // 3. Target Cards top to bottom (starts at 120ms, 30ms apart)
     targetGauges.forEach((g, idx) => {
         const cardEl = document.getElementById(`${g.id}-card`);
         const ctrl = controllers[g.id];
         const timer = setTimeout(() => {
             if (cardEl) {
-                cardEl.style.animation = 'cardPopIn 380ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+                cardEl.style.animation = 'cardPopIn 280ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
             }
             if (ctrl) ctrl.run();
-        }, 700 + idx * 120);
+        }, 120 + idx * 30);
         _fsAnimTimers.push(timer);
     });
 }
@@ -7562,7 +7721,7 @@ function renderFsDiffViewer() {
 
     // Default: Side-by-Side Diff
     const sbsRows = computeSideBySideLines(origCode, propCode, diffText);
-    const topFinding = findings[0];
+    const topFinding = displayFindings && displayFindings.length > 0 ? displayFindings[0] : null;
     const topCwe = topFinding?.cwe || topFinding?.rule_id || "";
 
     container.innerHTML = `
@@ -7580,7 +7739,7 @@ function renderFsDiffViewer() {
                 </div>
                 <div style="padding: 8px 0;">
                     ${sbsRows.map((row, rIdx) => {
-                        const lineCwe = findings.find(f => (f.location?.line || f.line) === row.leftNum);
+                        const lineCwe = (displayFindings || []).find(f => (f.location?.line || f.line) === row.leftNum);
                         const cweTag = lineCwe ? `<span class="fs-cwe-inline-tag" style="float: right;">[${escapeHtml(lineCwe.cwe || lineCwe.rule_id)}]</span>` : "";
                         return `
                             <div class="fs-diff-line ${row.leftType}" id="fs-left-line-${row.leftNum || rIdx}">

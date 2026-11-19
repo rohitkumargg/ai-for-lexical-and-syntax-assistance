@@ -1,9 +1,0 @@
-scenario,threat_type,language,file,damage_observed,time_s,final_status,control_status
-cascading_hallucination,THREAT_1,c,examples/00_sim_1_cascading_hallucination.c,none,1.464,REJECTED_HALLUCINATION,COMPLETED
-cascading_hallucination,THREAT_1,python,examples/00_sim_1_cascading_hallucination.py,none,0.116,REJECTED_HALLUCINATION,COMPLETED
-memory_poisoning,THREAT_2,c,examples/00_sim_2_memory_poisoning.c,none,0.002,QUARANTINED_TAMPERED_ENTRY,CLEAN
-memory_poisoning,THREAT_2,python,examples/00_sim_2_memory_poisoning.py,none,0.003,QUARANTINED_TAMPERED_ENTRY,CLEAN
-identity_compromise,THREAT_3,c,examples/00_sim_3_identity_compromise.c,none,0.0,REJECTED_IDENTITY_BREACH,ACCEPTED_AUTHORIZED
-identity_compromise,THREAT_3,python,examples/00_sim_3_identity_compromise.py,none,0.0,REJECTED_IDENTITY_BREACH,ACCEPTED_AUTHORIZED
-resource_overload,THREAT_4,c,examples/00_sim_4_resource_overload.c,none,0.129,REPAIR_UNAVAILABLE,COMPLETED
-resource_overload,THREAT_4,python,examples/00_sim_4_resource_overload.py,none,0.249,REPAIR_UNAVAILABLE,COMPLETED

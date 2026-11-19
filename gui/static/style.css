@@ -3394,9 +3394,9 @@ body {
 }
 
 .primary-indicators-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     margin-top: 6px;
 }
 
@@ -6175,4 +6175,55 @@ body {
         border-bottom: 1px solid var(--border-color);
     }
 }
+
+/* Sidebar Vertical Metric Bars */
+.sidebar-vbar-track {
+    width: 22px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 11px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+[data-theme="dark"] .sidebar-vbar-track,
+.theme-dark .sidebar-vbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.sidebar-vbar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 10px;
+    transition: none;
+}
+.sidebar-vbar-fill.vbar-standard {
+    background: linear-gradient(to top, #ef4444 0%, #eab308 50%, #10b981 100%);
+}
+.sidebar-vbar-fill.vbar-inverted {
+    background: linear-gradient(to top, #10b981 0%, #eab308 50%, #ef4444 100%);
+}
+.primary-tile .tile-value-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 0 4px 0;
+    gap: 12px;
+}
+.primary-tile .tile-value-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.primary-tile .tile-desc {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
 
