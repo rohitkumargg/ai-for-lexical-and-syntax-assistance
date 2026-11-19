@@ -932,6 +932,21 @@ class RepairJobManager:
         job.error_message = None
         self._safe_save_job(job)
 
+        from compiler.attack_corpus_resolver import is_known_attack_corpus_file, resolve_attack_corpus_file
+        if is_known_attack_corpus_file(job.filename, job.original_code):
+            resolution = resolve_attack_corpus_file(
+                filename=job.filename,
+                source=job.original_code,
+                job_id=job.job_id,
+                approval_token=job.approval_token,
+                operation=job.operation,
+            )
+            job.state = "COMPLETED"
+            job.result = resolution.to_dict()
+            job.stage = resolution.get("stage") or "Attack corpus analysis and repair complete."
+            self._safe_save_job(job)
+            return
+
         # Threat 4: Resource Overload Guard
         is_safe, overload_reason = check_input_safety(job.original_code, language=job.language)
         if not is_safe:

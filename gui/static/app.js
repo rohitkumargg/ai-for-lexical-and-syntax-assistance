@@ -3040,6 +3040,13 @@ async function runRepair() {
         return;
     }
 
+    if (window.currentFilename) {
+        currentFilename = window.currentFilename;
+        if (typeof workspaces !== "undefined" && workspaces[currentLanguageId]) {
+            workspaces[currentLanguageId].currentFilename = window.currentFilename;
+        }
+    }
+
     const lang = getActiveLanguage();
     const ext = "." + currentFilename.split(".").pop().toLowerCase();
     if (!lang.extensions.includes(ext)) {
@@ -6893,7 +6900,7 @@ function openFullscreenResults(plan) {
                     }
                 }
 
-                const problem = f.explanation || f.message || catalogEntry?.problem || f.title || "Potential security defect detected.";
+                const problem = f.explanation || f.description || f.detail || f.problem || f.message || catalogEntry?.problem || f.title || "Potential security defect detected.";
                 const scenario = f.exploit_scenario || catalogEntry?.why_dangerous || "";
                 const impact = f.potential_impact || catalogEntry?.potential_impact || "";
                 const mitigation = f.recommended_mitigation || f.how_to_fix || catalogEntry?.mitigation || f.mitigation || "";
